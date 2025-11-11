@@ -8,6 +8,7 @@
 
 `Future<T>` 的原型声明如下：
 
+<!-- code_no_check -->
 ```cangjie
 public class Future<T> {
     // Blocking the current thread, waiting for the result of the thread corresponding to the current Future object.
@@ -153,6 +154,7 @@ Main thread
 
 `Thread` 类的部分方法定义如下（完整的方法描述可参考《仓颉编程语言库 API》）。
 
+<!-- code_no_check -->
 ```cangjie
 class Thread {
     // Get the currently running thread
