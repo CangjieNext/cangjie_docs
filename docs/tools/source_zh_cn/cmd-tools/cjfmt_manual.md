@@ -141,7 +141,7 @@ cjfmt -f a.cj -o b.cj -l 10:25 // 仅格式化第10行至第25行
 
 【正例】
 
-<!-- only-format -->
+<!-- code_no_check -->
 
 ```cangjie
 // 第一部分，版权信息
@@ -225,7 +225,7 @@ let add = {
 
 【正例】
 
-<!-- only-format -->
+<!-- code_no_check -->
 
 ```cangjie
 var isPresent: Bool = false  // 符合：变量声明冒号之后有一个空格
@@ -258,7 +258,7 @@ x++ // 符合：一元操作符和操作数之间不留空格
 
 【反例】
 
-<!-- only-foramt -->
+<!-- code_no_check -->
 
 ```cangjie
 class MyApp <: App {
@@ -283,7 +283,7 @@ class MyApp <: App {
 
 【格式化前】
 
-<!-- only-format -->
+<!-- code_no_check -->
 
 ```cangjie
 package demo.analyzer.filter.impl; // 冗余的分号
@@ -298,7 +298,7 @@ func fn(a: Int64): Unit {
 
 【格式化后】
 
-<!-- only-format -->
+<!-- code_no_check -->
 
 ```cangjie
 package demo.analyzer.filter.impl // 冗余的分号
@@ -347,7 +347,7 @@ static
 
 以 `*` 开头的注释， `*` 会互相对齐， 不以 `*` 开头的注释，则会保持注释原样。
 
-<!-- only-cjfmt -->
+<!-- compile -->
 
 ```cangjie
 // 格式化前

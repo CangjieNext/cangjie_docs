@@ -661,7 +661,7 @@ Architecture set to: x86_64-unknown-linux-gnu.
 
 3. 对于 `Enum` 类型的显示，如果该 `Enum` 的构造器存在参数的情况下，会显示成如下样式：
 
-    <!-- only-cjdb -->
+    <!-- code_no_check -->
 
     ```cangjie
     enum E {
@@ -819,7 +819,7 @@ Architecture set to: x86_64-unknown-linux-gnu.
 
 7. 在打断点调试时，如果该断点处有泛型变元，则泛型变元的名字为 T0, T1, ... Tn。举例如下：
 
-    <!-- only-cjdb -->
+    <!-- code_no_check -->
 
     ```cangjie
     func global_func_02<K, G>() { 0 }

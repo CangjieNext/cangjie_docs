@@ -1405,7 +1405,7 @@ cfg3 = "-O2"
 
 其中，源码 `main.cj` 调用 `pro0.xoo`、`pro0.yoo`、`pro1.zoo` 包的代码示例如下所示。
 
-<!-- only-cjpm -->
+<!-- code_no_check -->
 
 ```cangjie
 import pro0.xoo.*
@@ -1779,7 +1779,7 @@ aoo = { path = "./aoo" }
 
 则可以在构建脚本中导入该依赖，使用依赖中的接口 `aaa()`：
 
-<!-- only-cjpm -->
+<!-- code_no_check -->
 
 ```cangjie
 import std.process.*
@@ -1878,8 +1878,7 @@ cj_project
 
 ### 示例的源代码
 
-<!-- compile -pkg0 -->
-<!-- cfg="libpro0.zoo.a libtest.koo.a" -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/src/main.cj
@@ -1901,7 +1900,7 @@ func concatM(s1: String, s2: String): String {
 }
 ```
 
-<!-- only-cjpm -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/src/main_test.cj
@@ -1920,8 +1919,7 @@ public class TestM{
 }
 ```
 
-<!-- compile -pkg0 -->
-<!-- cfg="-p test.koo --output-type=staticlib" -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/src/koo/koo.cj
@@ -1934,7 +1932,7 @@ func concatk(s1: String, s2: String): String {
 }
 ```
 
-<!-- only-cjpm -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/src/koo/koo_test.cj
@@ -1953,16 +1951,14 @@ public class TestK{
 }
 ```
 
-<!-- compile -pkg0 -->
-<!-- cfg="-p pro0 --output-type=staticlib" -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/pro0/src/pro0.cj
 package pro0
 ```
 
-<!-- compile -pkg0 -->
-<!-- cfg="-p pro0.zoo --output-type=staticlib" -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/pro0/src/zoo/zoo.cj
@@ -1975,7 +1971,7 @@ func concatZ(s1: String, s2: String): String {
 }
 ```
 
-<!-- only-cjpm -->
+<!-- code_check_manual -->
 
 ```cangjie
 // cj_project/pro0/src/zoo/zoo_test.cj
