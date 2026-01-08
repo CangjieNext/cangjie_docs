@@ -78,21 +78,10 @@
 
 ### IDE插件
 
-#### 新增特性
-
-    注意该节按需提供，若没有，则删除
-
-#### 变更特性
-
-    注意该节按需提供，若没有，则删除
-
-|变更前|变更后|适配举例|
-|---|---|--|
-|   |   |   |  
-
 #### 修复问题
 
-    注意该节按需提供，若没有，则删除 
+- 【[cangjie_tools/issues/245](https://gitcode.com/Cangjie/cangjie_tools/issues/245)】修复在 prop 名字位置输入符号不触发补全的问题。
+- 【[cangjie_tools/issues/239](https://gitcode.com/Cangjie/cangjie_tools/issues/239)】修复 lsp 点补全在 CString 上失效的问题。
 
 ### cjpm
 
