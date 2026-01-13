@@ -150,8 +150,8 @@ Similar to Linux, the environment variables configured by the `envsetup` script 
         1. In the "User variables" or "System variables" section, locate and select the `Path` variable, then click "Edit" to open the "Edit Environment Variable" window.
 
         2. Click "New" and enter the following paths one by one:
-           `%CANGJIE_HOME%\bin`, `%CANGJIE_HOME%\tools\bin`, `%CANGJIE_HOME%\tools\lib`, `%CANGJIE_HOME%\runtime\lib\windows_x86_64_llvm` (`%CANGJIE_HOME%` is the extraction path of the Cangjie package). For example, if the package is extracted to `D:\cangjie`, the new environment variables should be:
-           `D:\cangjie\bin`, `D:\cangjie\tools\bin`, `D:\cangjie\tools\lib`, `D:\cangjie\runtime\lib\windows_x86_64_llvm`.
+           `%CANGJIE_HOME%\bin`, `%CANGJIE_HOME%\tools\bin`, `%CANGJIE_HOME%\tools\lib`, `%CANGJIE_HOME%\runtime\lib\windows_x86_64_cjnative` (`%CANGJIE_HOME%` is the extraction path of the Cangjie package). For example, if the package is extracted to `D:\cangjie`, the new environment variables should be:
+           `D:\cangjie\bin`, `D:\cangjie\tools\bin`, `D:\cangjie\tools\lib`, `D:\cangjie\runtime\lib\windows_x86_64_cjnative`.
 
         3. (For current user settings only) Click "New" and enter the current user directory path, appending `.cjpm\bin` to it. For example, if the user path is `C:\Users\bob`, enter `C:\Users\bob\.cjpm\bin`.
 
@@ -161,7 +161,7 @@ Similar to Linux, the environment variables configured by the `envsetup` script 
            D:\cangjie\bin
            D:\cangjie\tools\bin
            D:\cangjie\tools\lib
-           D:\cangjie\runtime\lib\windows_x86_64_llvm
+           D:\cangjie\runtime\lib\windows_x86_64_cjnative
            C:\Users\bob\.cjpm\bin
            ```
 
