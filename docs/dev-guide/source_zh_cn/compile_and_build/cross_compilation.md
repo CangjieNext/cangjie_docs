@@ -37,7 +37,7 @@
 
 使用 `cjc` 交叉编译仓颉代码时需要额外指定以下选项（`<>` 部分需要替换为实际目录）：
 
-- `--target=aarch64-linux-android`  默认以 API 26 为目标平台进行交叉编译；若需更高版本，可显式追加数字后缀，例如 `--target=aarch64-linux-android31` 指定 API 31
+- `--target=aarch64-linux-android` 默认以 Android API 26 为目标平台进行交叉编译；若需更高版本，可显式追加数字后缀，例如 `--target=aarch64-linux-android31` 则指定 Android API 31
 - `--sysroot=<sysroot-path>` 指定工具链的根目录路径 `<sysroot-path>`
 - `-L<lib-path>` 指定 `libclang_rt.builtins-aarch64-android.a` 所在目录 `<lib-path>`
 
@@ -93,8 +93,8 @@ $ adb shell "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/main"
 当前仓颉支持从 `aarch64` 架构环境交叉编译生成 iOS 模拟器静态库，既适配 `aarch64` 架构模拟器，也可编译至 x86_64 架构模拟器（该架构产物需依赖 Xcode 的 Rosetta 运行）。若需在 iOS 模拟器上运行，需指定以下选项：
 
 - `--target`
-  - `--target=aarch64-apple-ios-simulator` 适用于aarch64目标架构
-  - `--target=x86_64-apple-ios-simulator` 适用于x86_64目标架构
+  - `--target=aarch64-apple-ios-simulator` 适用于 aarch64 目标架构
+  - `--target=x86_64-apple-ios-simulator` 适用于 x86_64 目标架构
 - `--output-type=staticlib` 指定输出文件的类型为静态库
 
 编译产物需要添加至 `Xcode` 工程中，并通过 `Xcode` 构建 `iOS` 应用。
