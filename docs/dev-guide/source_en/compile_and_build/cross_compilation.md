@@ -37,7 +37,7 @@ Cross-compiling Cangjie to `Android API 26+` requires the following two dependen
 
 When using `cjc` for cross-compilation, the following additional options must be specified (replace `< >` parts with actual directories):
 
-- `--target=aarch64-linux-android` defaults to API 26 for cross-compilation; append the API level suffix explicitly for a higher version, e.g. `--target=aarch64-linux-android31` for API 31.
+- `--target=aarch64-linux-android` defaults to Android API 26 for cross-compilation; append the API level suffix explicitly for a higher version, e.g. `--target=aarch64-linux-android31` for Android API 31.
 - `--sysroot=<sysroot-path>` specifies the toolchain's root directory path `<sysroot-path>`
 - `-L<lib-path>` specifies the directory `<lib-path>` containing `libclang_rt.builtins-aarch64-android.a`
 
