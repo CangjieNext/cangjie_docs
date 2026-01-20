@@ -1060,8 +1060,8 @@ Rules for enabling/disabling aggressive parallel compilation:
 - If `--aggressive-parallel-compile` or `--apc` is used without `value`, aggressive parallel compilation is enabled by default, and the number of parallel jobs matches `--jobs`.
 
 - If this option is not set, the compiler defaults based on the scenario:
-    - `-O0` or `-g`: Aggressive parallel compilation is enabled by default, with the number of parallel jobs matching `--jobs`. It can be disabled using `--aggressive-parallel-compile=<value>` or `--apc=<value>` with `value <= 1`.
-    - Non-`-O0` and non-`-g`: Aggressive parallel compilation is disabled by default. It can be enabled using `--aggressive-parallel-compile=<value>` or `--apc=<value>` with `value > 1`.
+    - `-O0` : Aggressive parallel compilation is enabled by default, with the number of parallel jobs matching `--jobs`. It can be disabled using `--aggressive-parallel-compile=<value>` or `--apc=<value>` with `value <= 1`.
+    - Non-`-O0` : Aggressive parallel compilation is disabled by default. It can be enabled using `--aggressive-parallel-compile=<value>` or `--apc=<value>` with `value > 1`.
 
 ## Optimization Options
 

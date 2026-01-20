@@ -1073,8 +1073,8 @@ cjc -p my_pkg --test-only -L output -lmain --import-path output
 
 - 若该编译选项未设置，编译器将根据场景默认开启或关闭激进并行编译：
 
-    - `-O0` 或 `-g`：激进并行编译将由编译器默认开启，且激进并行编译的并行数与 `--jobs` 一致；可以通过 `--aggressive-parallel-compile=<value>` 或 `--apc=<value>` 且 `value <= 1` 关闭激进并行编译。
-    - 非 `-O0` 且非 `-g`：激进并行编译将由编译器默认关闭；可以通过 `--aggressive-parallel-compile=<value>` 或 `--apc=<value>` 且 `value > 1` 开启激进并行编译。
+    - `-O0` ：激进并行编译将由编译器默认开启，且激进并行编译的并行数与 `--jobs` 一致；可以通过 `--aggressive-parallel-compile=<value>` 或 `--apc=<value>` 且 `value <= 1` 关闭激进并行编译。
+    - 非 `-O0` ：激进并行编译将由编译器默认关闭；可以通过 `--aggressive-parallel-compile=<value>` 或 `--apc=<value>` 且 `value > 1` 开启激进并行编译。
 
 ## 优化选项
 
