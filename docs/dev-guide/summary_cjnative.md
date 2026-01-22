@@ -114,6 +114,8 @@
     - [`cjpm`介绍](source_zh_cn/compile_and_build/cjpm_usage.md)
     - [条件编译](source_zh_cn/compile_and_build/conditional_compilation.md)
     - [交叉编译](source_zh_cn/compile_and_build/cross_compilation.md)
+- [跨平台]()
+    - [跨平台](source_zh_cn/multiplatform/common_platform.md)
 - [部署和运行]()
     - [部署仓颉运行时](source_zh_cn/deploy_and_run/runtime_deploy.md)
     - [运行仓颉可执行程序](source_zh_cn/deploy_and_run/run.md)
