@@ -109,6 +109,8 @@
     - [Annotations](source_en/reflect_and_annotation/anno.md)
 - [Cross-Language Interoperability]()
     - [Cangjie-C Interoperability](source_en/FFI/cangjie-c.md)
+- [Cross-Platform]()
+    - [Cross-Platform](source_en/multiplatform/common_platform.md)
 - [Compilation and Building]()
     - [cjc Usage](source_en/compile_and_build/cjc_usage.md)
     - [cjpm Introduction](source_en/compile_and_build/cjpm_usage.md)

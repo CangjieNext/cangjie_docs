@@ -665,7 +665,7 @@ Summary: TOTAL: 1
     - `--filter=*.*` 匹配所有测试类所有测试用例（结果和*相同）
     - `--filter=*.*Test,*.*case*` 匹配所有测试类中以 `Test` 结尾的用例，或者所有测试类中名字中带有 `case` 的测试用例
     - `--filter=MyTest*.*Test,*.*case*,-*.*myTest` 匹配所有 `MyTest` 开头测试类中以 `Test` 结尾的用例，或者名字中带有 `case` 的用例，或者名字中不带有 `myTest` 的测试用例
-- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。 `value` 的形式如下：
+- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。`value` 的形式如下：
     - `--include-tags=Unittest` 运行所有标记为 `@Tag[Unittest]` 的测试
     - `--include-tags=Unittest,Smoke` 运行所有标记为 `@Tag[Unittest]`、`@Tag[Smoke]` 任一或同时都有的测试
     - `--include-tags=Unittest+Smoke` 运行所有标记为 `@Tag[Unittest, Smoke]` 同时都有的测试
