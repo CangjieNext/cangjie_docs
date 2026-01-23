@@ -57,10 +57,10 @@ main(){
 ```
 
 ```shell
-// 1.指定 --output-type 为 obj，并明确 --compile-target 为 exe
+# 1. 指定 --output-type 为 obj，并明确 --compile-target 为 exe
 cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe 
 
-// 2.将中间产物链接为可执行文件
+# 2. 将中间产物链接为可执行文件
 cjc main.o -lcangjie-std-core -o main --experimental
 ```
 
@@ -144,7 +144,7 @@ cjc main.cj -o a.out
 
 文件名的格式应为 `lib[arg].[extension]`。当需要链接库 `a` 时，可以使用选项 `-l a`，库文件搜索目录下的 `liba.a`、`liba.so`（或链接 Windows 目标程序时会搜索 `liba.dll`）等文件会被链接器搜索到并根据需要被链接至最终输出中。
 
-链接 `Windows` 目标程序默认使用 `ld.lld` 链接器, 会搜索 `.dll` 和 `.a` 后缀的库文件。如果要链接 `.lib` 后缀的库文件，请使用选项 `--link-options=/path/to/lib[arg].lib` 指定路径，`[arg]` 为链接库的名称。
+链接 `Windows` 目标程序默认使用 `ld.lld` 链接器，会搜索 `.dll` 和 `.a` 后缀的库文件。如果要链接 `.lib` 后缀的库文件，请使用选项 `--link-options=/path/to/lib[arg].lib` 指定路径，`[arg]` 为链接库的名称。
 
 例如需要链接 `libssl.lib`，`libcrypto.lib`，可以通过 `--link-options` 选项添加链接库，命令如下：
 
@@ -472,7 +472,6 @@ cjc --scan-dependency pkgA.cjo
 | Windows       |       支持        |     支持      |
 | OpenHarmony          |       不支持        |     支持      |
 
-
 ### `--static-libs`
 
 该选项已废弃，并会在未来版本被移除。当前版本使用该选项没有功能性作用。
@@ -487,9 +486,9 @@ cjc --scan-dependency pkgA.cjo
 
 异常调用栈的格式说明如下：
 
-- `default` 格式：`省略泛型参数的函数名 (文件名:行号)`
-- `simple` 格式： `文件名:行号`
-- `all` 格式：`完整的函数名 (文件名:行号)`
+- `default` 格式：`省略泛型参数的函数名 （文件名：行号）`
+- `simple` 格式： `文件名：行号`
+- `all` 格式：`完整的函数名 （文件名：行号）`
 
 ### `--lto=[full|thin]`
 
@@ -555,8 +554,8 @@ $ cjc test.cj --compile-as-exe
 
 使能插桩编译，生成携带插桩信息的可执行程序。
 
-- 如果指定了`<.profraw>`的路径参数，会将profile信息写入到指定的路径文件下。
-- 如果不指定路径参数，profile信息会写入到执行仓颉程序时的当前路径下的`default.profraw`文件中。
+- 如果指定了`<.profraw>`的路径参数，会将 profile 信息写入到指定的路径文件下。
+- 如果不指定路径参数，profile 信息会写入到执行仓颉程序时的当前路径下的`default.profraw`文件中。
 
 编译 macOS 与 Windows 目标时暂不支持使用该功能。
 
@@ -813,14 +812,14 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 ```text
 /usr/sdk/arch-os-env
 ├── bin
-|   ├── arch-os-env-gcc (交叉编译器)
-|   ├── arch-os-env-ld  (链接器)
+|   ├── arch-os-env-gcc （交叉编译器）
+|   ├── arch-os-env-ld  （链接器）
 |   └── ...
 ├── lib
-|   ├── crt1.o          (C 运行时目标文件)
+|   ├── crt1.o          (C 运行时目标文件）
 |   ├── crti.o
 |   ├── crtn.o
-|   ├── libc.so         (动态库)
+|   ├── libc.so         （动态库）
 |   ├── libm.so
 |   └── ...
 └── ...
@@ -856,7 +855,7 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 ### `--set-runtime-rpath`
 
-将仓颉运行时库所在目录的绝对路径写入到二进制的 RPATH/RUNPATH 段中，使用该选项后在构建所在环境中运行该仓颉程序时无需再使用 LD_LIBRARY_PATH (适用于 Linux 平台) 或 DYLD_LIBRARY_PATH (适用于 macOS 平台) 设置仓颉运行时库目录。
+将仓颉运行时库所在目录的绝对路径写入到二进制的 RPATH/RUNPATH 段中，使用该选项后在构建所在环境中运行该仓颉程序时无需再使用 LD_LIBRARY_PATH （适用于 Linux 平台） 或 DYLD_LIBRARY_PATH （适用于 macOS 平台） 设置仓颉运行时库目录。
 
 编译 Windows 目标时不支持使用该功能。
 
@@ -870,7 +869,7 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 指定链接器选项。
 
-`cjc` 会将该选项的多个参数透传给链接器, 参数之间用空格分隔。可用的参数会因（系统或指定的）链接器的不同而不同。可以多次使用 `--link-options` 指定多个链接器选项。
+`cjc` 会将该选项的多个参数透传给链接器，参数之间用空格分隔。可用的参数会因（系统或指定的）链接器的不同而不同。可以多次使用 `--link-options` 指定多个链接器选项。
 
 <sup>1</sup> 上标表示链接器透传选项可能会因为链接器的不同而不同，具体支持的选项请查阅链接器文档。
 
@@ -1030,7 +1029,7 @@ Summary: TOTAL: 2
 >
 > 使用此选项时，应单独以常规模式编译相同的包，然后通过 `-L`/`-l` 链接选项添加依赖，或在使用 `LTO` 选项时添加依赖的 `.bc` 文件。否则，编译器将报缺少依赖的符号的错误。
 
-示例:
+示例：
 
 <!-- code_check_manual -->
 
@@ -1183,7 +1182,7 @@ interface I {
 - 接口类型用作泛型约束。
 - 函数类型变量。
 - 互操作场景下的 `inout` 变量。
-- 使用 Common/Platform 特性。详见[跨平台](../multiplatform/common_platform.md)。
+- 使用 Common/Platform 特性。详见 [跨平台](../multiplatform/common_platform.md)。
 - 使用反射 API 获取信息时，将获取到编译器内部生成的类型。
 
 建议在启动 `mock=on` 模式时，避免在代码中使用上述特性，以确保稳定性。
@@ -1194,7 +1193,7 @@ interface I {
 
 ## 宏选项
 
-`cjc` 支持以下宏选项，关于宏的更多内容请参见[“宏的简介”](../Macro/macro_introduction.md)章节。
+`cjc` 支持以下宏选项，关于宏的更多内容请参见 [“宏的简介”](../Macro/macro_introduction.md) 章节。
 
 ### `--compile-macro` <sup>[frontend]</sup>
 
@@ -1210,7 +1209,7 @@ interface I {
 
 ## 条件编译选项
 
-`cjc` 支持以下条件编译选项，关于条件编译的更多内容请参见[“条件编译”](../compile_and_build/conditional_compilation.md)。
+`cjc` 支持以下条件编译选项，关于条件编译的更多内容请参见 [“条件编译”](../compile_and_build/conditional_compilation.md)。
 
 ### `--cfg <value>` <sup>[frontend]</sup>
 
@@ -1886,11 +1885,11 @@ It is resumed, a = 9
 
 ### 打印 CHIR
 
-可通过 `--dump-chir`<sup>[frontend]</sup>打印 CHIR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_CHIR 目录，文件命名为 `编号_PASS阶段名称.chirtxt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-chir`<sup>[frontend]</sup>打印 CHIR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_CHIR 目录，文件命名为 `编号_PASS 阶段名称。chirtxt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 打印 LLVM IR
 
-可通过 `--dump-ir`<sup>[frontend]</sup>打印 LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_IR 目录并在 *_IR 目录下创建 `编号_CodeGen阶段名称` 子文件夹，文件名为 `子模块编号加-包名.ll`， 子模块的编号和数量与编译并发度相关。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-ir`<sup>[frontend]</sup>打印 LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_IR 目录并在 *_IR 目录下创建 `编号_CodeGen 阶段名称` 子文件夹，文件名为 `子模块编号加-包名。ll`， 子模块的编号和数量与编译并发度相关。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 打印 AST, CHIR, LLVM IR
 

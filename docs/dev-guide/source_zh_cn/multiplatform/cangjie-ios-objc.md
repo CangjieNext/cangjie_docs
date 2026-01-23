@@ -280,7 +280,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
 3. 将 `llvm@16/lib/` 子目录添加到 `DYLD_LIBRARY_PATH` 环境变量中。
 
-   ```bash
+    ```bash
     export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
     ```
 
@@ -1281,7 +1281,7 @@ public interface A {
 
 生成的 ObjC 头文件（A.h）：
 
-```ObjC
+```objc
 // A.h
 #import <Foundation/Foundation.h>
 #import <stddef.h>
@@ -1354,7 +1354,7 @@ public enum TimeUnit {
 
 生成的 ObjC 头文件与源文件：
 
-```ObjC
+```objc
 // TimeUnit.h
 #import <Foundation/Foundation.h>
 #import <stddef.h>
@@ -1534,7 +1534,7 @@ public struct Vector {
 
 生成的 ObjC 头文件与源文件：
 
-```ObjC
+```objc
 // Vector.h
 #import <Foundation/Foundation.h>
 #import <stddef.h>
@@ -1697,7 +1697,7 @@ public class Vector {
 
 生成的 ObjC 头文件与源文件：
 
-```ObjC
+```objc
 // Vector.h
 #import <Foundation/Foundation.h>
 #import <stddef.h>
@@ -1807,10 +1807,10 @@ static struct RuntimeParam defaultCJRuntimeParams = {0};
 
 #### ObjC 使用泛型类/结构体
 
-ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用泛型配置文件)
+ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
@@ -1873,7 +1873,7 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
 
     - 映射后的 ObjC 代码如下：
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     __attribute__((objc_subclassing_restricted))
@@ -1888,7 +1888,7 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import "GenericClassFloat64.h"
     #import "Cangjie.h"
     #import <dlfcn.h>
@@ -1953,7 +1953,7 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     __attribute__((objc_subclassing_restricted))
@@ -1968,7 +1968,7 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import "GenericClassInt32.h"
     #import "Cangjie.h"
     #import <dlfcn.h>
@@ -2035,10 +2035,10 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
 
 #### ObjC 使用泛型枚举
 
-ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
+ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
@@ -2111,7 +2111,7 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
 
     - 映射后的 ObjC 代码如下：
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     __attribute__((objc_subclassing_restricted))
@@ -2131,7 +2131,7 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import "GenericEnumFloat64.h"
     #import "Cangjie.h"
     #import <dlfcn.h>
@@ -2228,7 +2228,7 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     __attribute__((objc_subclassing_restricted))
@@ -2248,7 +2248,7 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import "GenericEnumInt32.h"
     #import "Cangjie.h"
     #import <dlfcn.h>
@@ -2347,10 +2347,10 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
 
 #### ObjC 使用泛型接口
 
-ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
+ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
@@ -2409,7 +2409,7 @@ ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
 
     - 映射后的 ObjC 代码如下：
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     @protocol GenericInterfaceFloat64
@@ -2420,7 +2420,7 @@ ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
     @end
     ```
 
-    ```ObjC
+    ```objc
     #import <Foundation/Foundation.h>
     #import <stddef.h>
     @protocol GenericInterfaceInt32
