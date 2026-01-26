@@ -27,7 +27,7 @@ $ export VARIABLE=value
 
 ### `cjHeapSize`
 
-指定仓颉堆的最大值，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4MB, 系统物理内存]，超出范围的设置无效，仍旧使用默认值。若物理内存低于 1GB，默认值为 64 MB，否则为 256 MB。
+指定仓颉堆的最大值，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4MB, 系统物理内存]，超出范围的设置无效，仍旧使用默认值。若物理内存低于 1GB，默认值为 64 MB，否则为 256 MB。ohos 和 android 平台支持的最小配置值为 64MB，小于此值使用默认值。
 
 例如：
 
@@ -37,7 +37,7 @@ export cjHeapSize=4GB
 
 ### `cjRegionSize`
 
-指定 region 分配器 thread local buffer 的大小，支持单位为 kb（KB）、mb（MB）、gb（GB)，支持设置范围为[4kb, 2048kb]，超出范围的设置无效，仍旧使用默认值。默认值为 64 KB。
+指定 region 分配器 thread local buffer 的大小，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4kb, 2048kb]，超出范围的设置无效，仍旧使用默认值。默认值为 64 KB。macos 平台支持的最小配置值为 16KB，小于此值使用默认值。
 
 例如：
 
