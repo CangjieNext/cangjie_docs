@@ -3,7 +3,7 @@
 ## 功能简介
 
 `HLE (HyperlangExtension)` 是一个仓颉调用 ArkTS 或者 C 语言的互操作代码模板自动生成工具。
-该工具的输入是 ArkTS 或者 C 语言的接口声明文件，例如后缀为 .d.ts，.d.ets 或者 .h 的文件，输出为 cj 文件，其中存放生成的互操作代码。如果生成的是 ArkTS 到仓颉的胶水层代码，工具也会输出包含 ArkTS 文件的所有信息的 json 文件。ArkTS 转换到仓颉的转换规则请参见：[ArkTS 三方模块生成仓颉胶水代码的规则](cj-dts2cj-translation-rules.md)。C 语言转换到仓颉的转换规则请参见：[C 语言转换到仓颉胶水代码的规则](cj-c2cj-translation-rules.md)。
+该工具的输入是 ArkTS 或者 C 语言的接口声明文件，例如后缀 .d.ts，.d.ets 或者 .h 结尾的文件，输出为 cj 文件，其中存放生成的互操作代码。如果生成的是 ArkTS 到仓颉的胶水层代码，工具也会输出包含 ArkTS 文件的所有信息的 json 文件。ArkTS 转换到仓颉的转换规则请参见：[ArkTS 三方模块生成仓颉胶水代码的规则](cj-dts2cj-translation-rules.md)。C 语言转换到仓颉的转换规则请参见：[C 语言转换到仓颉胶水代码的规则](cj-c2cj-translation-rules.md)。
 
 ## 使用说明
 
@@ -48,7 +48,7 @@
 | `-r`            | typescript 编译器的绝对路径                  | 必选参数 | 只给 ArkTS 生成仓颉 bindings 时使用 |
 | `-d`            | d.ts，d.ets 或者 .h 文件输入所在文件夹的绝对路径    | 可选参数 | 和`-i`参数二选一或者两者同时存在                     |
 | `-o`            | 输出保存互操作代码的目录                    | 可选参数 | 缺省时输出至当前目录 |
-| `-j`            | 分析 d.ts 或者 d.ets 文件的路径                 | 可选参数 | 只给 ArkTS 生成仓颉 bindings 时使用 |
+| `-j`            | 分析 d.t 或者 d.ets 文件的路径                 | 可选参数 | 只给 ArkTS 生成仓颉 bindings 时使用 |
 | `--module-name` | 自定义生成的仓颉包名                        | 可选参数 | NA |
 | `--lib`         | 生成三方库代码                              | 可选参数 | 只给 ArkTS 生成仓颉 bindings 时使用 |
 | `-c`            | 生成 C 到仓接的绑定代码                              | 可选参数 | 只给 C 语言生成仓颉 bindings 时使用 |
