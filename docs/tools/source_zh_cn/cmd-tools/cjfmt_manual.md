@@ -122,7 +122,7 @@ multipleLineMethodChainOverLineLength = true
 >
 > 若客制化的格式化工具配置文件读取失败，则读取 CANGJIE_HOME 环境下的默认格式化工具配置文件 `cangjie-format.toml`。
 > CANGJIE_HOME 环境下的默认格式化工具配置文件路径为 `CANGJIE_HOME/tools/config` 。
-> 若 CANGJIE_HOME 环境下的默认格式化工具配置文件 `cangjie-format.toml` 同样读取失败，则使用 `cjfmt` 内置格式化配置选项。
+> 若 CANGJIE_HOME 内置的默认格式化工具配置文件 `cangjie-format.toml` 同样读取失败，则使用 `cjfmt` 内置格式化配置选项。
 > 若格式化工具配置文件中的某个配置选项读取失败，则该配置选项使用 `cjfmt` 内置格式化配置选项。
 
 ### 片段格式化
@@ -332,7 +332,7 @@ static
 
 - 多行注释的格式化行为
 
-以 `*` 开头的注释， `*` 会互相对齐， 不以 `*` 开头的注释，则会保持注释原样。若 `*` 后存在多余空格，则会将多余空格删除。
+以 `*` 开头的注释，`*` 会互相对齐，不以 `*` 开头的注释，则会保持注释原样。若 `*` 后存在多余空格，则会将多余空格删除。
 
 ```cangjie
 // 格式化前
