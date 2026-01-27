@@ -57,10 +57,10 @@ main(){
 ```
 
 ```shell
-// 1.指定 --output-type 为 obj，并明确 --compile-target 为 exe
+# 1.指定 --output-type 为 obj ，并明确 --compile-target 为 exe
 cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe 
 
-// 2.将中间产物链接为可执行文件
+# 2.将中间产物链接为可执行文件
 cjc main.o -lcangjie-std-core -o main --experimental
 ```
 
@@ -472,7 +472,6 @@ cjc --scan-dependency pkgA.cjo
 | Windows       |       支持        |     支持      |
 | OpenHarmony          |       不支持        |     支持      |
 
-
 ### `--static-libs`
 
 该选项已废弃，并会在未来版本被移除。当前版本使用该选项没有功能性作用。
@@ -555,8 +554,8 @@ $ cjc test.cj --compile-as-exe
 
 使能插桩编译，生成携带插桩信息的可执行程序。
 
-- 如果指定了`<.profraw>`的路径参数，会将profile信息写入到指定的路径文件下。
-- 如果不指定路径参数，profile信息会写入到执行仓颉程序时的当前路径下的`default.profraw`文件中。
+- 如果指定了`<.profraw>`的路径参数 ，会将 profile 信息写入到指定的路径文件下。
+- 如果不指定路径参数，profile 信息会写入到执行仓颉程序时的当前路径下的 `default.profraw` 文件中。
 
 编译 macOS 与 Windows 目标时暂不支持使用该功能。
 
@@ -889,6 +888,43 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 ### `--profile-compile-memory` <sup>[frontend]</sup>
 
 输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof 与该文件同级。
+
+### `--sanitize==[address|thread|hwsaddress]` <sup>[frontend]</sup>
+
+用于开启 sanitizer 编译期间插桩功能，运行时检测程序中的各种错误。并链接对应 sanitizer 的库。使用该选项前需下载支持 sanitizer 功能的专属 SDK 包（如 cangjie-sdk-linux-aarch64-sanitizer.tar.gz），并确保 SDK 已正确部署。
+
+- `--sanitize=address` 用于检测内存错误，对应 sdk 中的 cangjie/runtime/lib/linux_aarch64_cjnative/asan 目录。
+- `--sanitize=thread` 用于检测数据竞争，对应 sdk 中的 cangjie/runtime/lib/linux_aarch64_cjnative/tsan 目录。
+- `--sanitize=hwaddress` 用于检测内存访问错误行为，对应 sdk 中的 cangjie/runtime/lib/linux_aarch64_cjnative/hwasan 目录。
+
+使用示例：
+
+```shell
+# 编译 cangjie 文件 
+cjc --sanitize=address main.cj -o main
+
+# 手动指定 sanitizer 运行时库路径（必填，否则运行时找不到库）
+export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/arch/Asan:$LD_LIBRARY_PATH 
+
+# 运行
+./main
+```
+
+> **注意：**
+>
+> `--sanitize` 选项不能与 `--compile-macro` 同时使用，否则会报错。
+
+### --sanitize-set-rpath <sup>[frontend]</sup>
+
+该选项用于自动将对应 sanitizer 运行时库的路径写入程序的 RPATH 字段，无需用户额外执行 `export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/arch/[asan|tsan|hwasan]:$LD_LIBRARY_PATH` 指定库路径，可简化命令。
+
+使用示例：
+
+```shell
+cjc --sanitize=address main.cj -o main --sanitize-set-rpath
+
+./main
+```
 
 ## 单元测试选项
 
