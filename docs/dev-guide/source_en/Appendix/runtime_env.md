@@ -27,7 +27,7 @@ Notes:
 
 ### `cjHeapSize`
 
-Specifies the maximum size of the Cangjie heap. Supported units are kb (KB), mb (MB), and gb (GB). The valid range is [4MB, system physical memory]. Settings outside this range will be invalid, and the default value will be used. If the physical memory is less than 1GB, the default value is 64 MB; otherwise, it is 256 MB.
+Specifies the maximum size of the Cangjie heap. Supported units are kb (KB), mb (MB), and gb (GB). The valid range is [4MB, system physical memory]. Settings outside this range will be invalid, and the default value will be used. If the physical memory is less than 1GB, the default value is 64 MB; otherwise, it is 256 MB. The minimum supported configuration value for OpenHarmony and Android platforms is 64MB, the default value will be applied if the configured value is lower than this.
 
 Example:
 
@@ -37,7 +37,7 @@ export cjHeapSize=4GB
 
 ### `cjRegionSize`
 
-Specifies the size of the thread-local buffer for the region allocator. Supported units are kb (KB), mb (MB), and gb (GB). The valid range is [4kb, 2048kb]. Settings outside this range will be invalid, and the default value will be used. The default value is 64 KB.
+Specifies the size of the thread-local buffer for the region allocator. Supported units are kb (KB), mb (MB), and gb (GB). The valid range is [4kb, 2048kb]. Settings outside this range will be invalid, and the default value will be used. The default value is 64 KB. The minimum supported configuration value for the macOS platform is 16KB, the default value will be applied if the configured value is lower than this.
 
 Example:
 
