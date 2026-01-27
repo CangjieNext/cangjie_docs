@@ -51,10 +51,10 @@ main(){
 ```
 
 ```shell
-// Specify --output-type as obj and explicitly set --compile-target to exe
+# Specify --output-type as obj and explicitly set --compile-target to exe
 cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe 
 
-// Link the intermediate product into an executable file
+# Link the intermediate product into an executable file
 cjc main.o -lcangjie-std-core -o main --experimental
 ```
 
@@ -899,6 +899,39 @@ Prints time consumption data for each compilation phase.
 ### `--profile-compile-memory` <sup>[frontend]</sup>
 
 Prints memory consumption data for each compilation phase.
+
+### --sanitize=[address|thread|hwsaddress]
+
+Enables the Sanitizer compile-time instrumentation feature, detects various errors in the program during runtime, and links the corresponding Sanitizer runtime libraries. Prior to using this option, you need to download the dedicated SDK package with Sanitizer support (e.g., cangjie-sdk-linux-aarch64-sanitizer.tar.gz) and ensure the proper deployment of the SDK.
+
+- `--sanitize=address` Detects memory errors, corresponding to the cangjie/runtime/lib/linux_aarch64_cjnative/asan directory in the SDK.
+- `--sanitize=thread` Detects data races, corresponding to the cangjie/runtime/lib/linux_aarch64_cjnative/tsan/tsan directory in the SDK.
+- `--sanitize=hwaddress` Detects illegal hardware-level memory access behaviors, corresponding to the cangjie/runtime/lib/linux_aarch64_cjnative/hwasan directory in the SDK.
+
+Usage Examples:
+
+```shell
+cjc --sanitize=address main.cj -o main
+
+# Manually specify the runtime library path
+export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/arch/<sanitizer-name>:$LD_LIBRARY_PATH
+
+# Run the program
+./main
+```
+
+> **Note:**
+>
+> The `--sanitize` option cannot be used in conjunction with the `--compile-macro` option; otherwise, a compilation error will be triggered.
+
+### --sanitize-set-rpath
+
+This option automatically configures the search path for the corresponding Sanitizer runtime libraries, eliminating the need for users to execute an additional `export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/arch/[asan|tsan|hwasan]:$LD_LIBRARY_PATH` command. 
+For example, the above compilation command can be simplified to:
+
+```shell
+cjc --sanitize=address main.cj -o main --sanitize-set-rpath
+```
 
 ## Unit Test Options
 
