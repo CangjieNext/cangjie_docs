@@ -472,7 +472,6 @@ cjc --scan-dependency pkgA.cjo
 | Windows       |       支持        |     支持      |
 | OpenHarmony          |       不支持        |     支持      |
 
-
 ### `--static-libs`
 
 该选项已废弃，并会在未来版本被移除。当前版本使用该选项没有功能性作用。
