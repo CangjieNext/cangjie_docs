@@ -23,11 +23,11 @@ $ export VARIABLE=value
 1. 所有整型参数为 Int64 类型，浮点型参数为 Float64 类型;
 2. 所有参数如果未显式规定最大值，默认隐式最大值为该类型最大值;
 3. 所有参数若超出范围则设置无效，自动使用默认值。
-4. 所有参数在ohos平台下均无效，ohos平台下仓颉运行时使用默认值。
+4. 所有参数在 OpenHarmony 平台下均无效，Android 平台下仓颉运行时使用默认值。
 
 ### `cjHeapSize`
 
-指定仓颉堆的最大值，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4MB, 系统物理内存]，超出范围的设置无效，仍旧使用默认值。若物理内存低于 1GB，默认值为 64 MB，否则为 256 MB。
+指定仓颉堆的最大值，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4MB, 系统物理内存]，超出范围的设置无效，仍旧使用默认值。若物理内存低于 1GB，默认值为 64MB，否则为 256MB。OpenHarmony 和 Android 平台支持的最小配置值为 64MB，指定小于此值时使用默认值。
 
 例如：
 
@@ -37,7 +37,7 @@ export cjHeapSize=4GB
 
 ### `cjRegionSize`
 
-指定 region 分配器 thread local buffer 的大小，支持单位为 kb（KB）、mb（MB）、gb（GB)，支持设置范围为[4kb, 2048kb]，超出范围的设置无效，仍旧使用默认值。默认值为 64 KB。
+指定 region 分配器 thread local buffer 的大小，支持单位为 kb（KB）、mb（MB）、gb（GB），支持设置范围为[4kb, 2048kb]，超出范围的设置无效，仍旧使用默认值。默认值为 64KB。macOS 平台支持的最小配置值为 16KB，指定小于此值时使用默认值。
 
 例如：
 
@@ -49,7 +49,7 @@ export cjRegionSize=1024kb
 
 需要大量连续内存空间的对象（例如长数组）称为大对象。堆内频繁分配大对象可能导致堆内连续空间不足，从而触发堆溢出问题。通过增加大对象的最大值，可以提升堆内空间的连续性。
 
-在仓颉语言中，大对象的阈值为 `cjLargeThresholdSize` 和 `cjRegionSize` 的较小者。`cjLargeThresholdSize` 支持的单位有 kb（KB）、mb（MB）、gb（GB)，支持的范围是 [4KB, 2048KB]，超出范围的设置无效，仍旧使用默认值。默认值为 32 KB。
+在仓颉语言中，大对象的阈值为 `cjLargeThresholdSize` 和 `cjRegionSize` 的较小者。`cjLargeThresholdSize` 支持的单位有 kb（KB）、mb（MB）、gb（GB），支持的范围是 [4KB, 2048KB]，超出范围的设置无效，仍旧使用默认值。默认值为 32KB。
 
 > **说明：**
 >
