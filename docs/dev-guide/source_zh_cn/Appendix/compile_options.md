@@ -6,7 +6,7 @@
   如果长选项有可选参数，那么选项和参数之间需要用等号连接，如 `--xxxx=<value>`。
   如果长选项有必选参数，那么选项和参数之间既可以用空格隔开，也可以用等号连接，如 `--xxxx <value>` 与 `--xxxx=<value>` 等价。
 
-- 一个横杠开头的选项为短选项，如 `-x`。
+- 一个横杠开头的选项为短选项，如 `-x` 。
   对于短选项，如果其后有参数，选项和参数之间可以用空格隔开，也可以不隔开，如 `-x <value>` 与 `-x<value>` 等价。
 
 ## 基本选项
@@ -889,6 +889,43 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 ### `--profile-compile-memory` <sup>[frontend]</sup>
 
 输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof 与该文件同级。
+
+### `--sanitize==[address|thread|hwsaddress]`  
+
+用于开启sanitizer 编译期间插桩功能，运行时检测程序中的各种错误。并链接对应sanitizer的库。使用该选项前需下载支持 Sanitizer 功能的专属 SDK 包（如 cangjie-sdk-linux-aarch64-sanitizer.tar.gz），并确保 SDK 已正确部署。
+
+- `--sanitize = address `用于检测内存错误，对应sdk中的Asan目录。
+- `--sanitize = thread `用于检测数据竞争，对应sdk中的Tsan目录。
+- `--sanitize = hwaddress `用于检测内存访问错误行为，对应sdk中的Hwasan目录。
+
+使用示例：
+
+```cangjie
+// 编译cangjie文件 
+cjc --sanitize=address main.cj -o main
+
+// 手动指定 Sanitizer 运行时库路径（必填，否则运行时找不到库）
+export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/arch/Asan:$LD_LIBRARY_PATH 
+
+// 运行
+./main
+```
+
+> **注意：**
+>
+> `--sanitize ` 选项不能与 ` --compile-macro ` 同时使用，否则会报错。
+
+### --sanitize-set-rpath
+
+该选项用于自动将对应 Sanitizer 运行时库的路径写入程序的 RPATH 字段，无需用户手动通过 export LD_LIBRARY_PATH 指定库路径，可简化命令。
+
+使用示例：
+
+```cangjie
+cjc --sanitize=address main.cj -o main --sanitize-set-rpath
+
+./main
+```
 
 ## 单元测试选项
 
