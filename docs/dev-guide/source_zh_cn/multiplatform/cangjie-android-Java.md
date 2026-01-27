@@ -540,7 +540,7 @@ open class JString {
 >
 > 这个构造函数接受一个仓颉类型的参数`String`，cjc 编译器对该函数有特殊处理。
 
-继承自[`JObject`](# java.lang.JObject)的方法，包括：`hashCode`，`hashCode32`，`toString`，`toJString`
+继承自[`JObject`](#javalangjobject)的方法，包括：`hashCode`，`hashCode32`，`toString`，`toJString`
 
 ### java.lang.JArray
 
@@ -1560,7 +1560,6 @@ public class Main
     - Lambda 表达式支持的参数类型和返回值类型包括：Int、Int8、Int16、Int32、Int64、Float32、Float64、Bool、Unit
     - 元组支持的元素类型包括：Int、Int8、Int16、Int32、Int64、Float32、Float64、Bool
 
-
 示例代码如下，仓颉的接口类型会被映射到 Java 的 interface 类型：
 
 <!-- compile -->
@@ -1709,7 +1708,7 @@ public class User {
 Java 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#java-使用-配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持实例成员函数带有泛型参数和返回值
 
@@ -1828,7 +1827,7 @@ Java 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
 Java 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#java-使用-配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持实例成员函数、属性带有泛型参数和返回值
 
@@ -1947,7 +1946,7 @@ Java 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
 Java 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#java-使用-配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
     - 支持多泛型参数用法
     - 支持实例成员函数带有泛型参数和返回值
 
@@ -2013,7 +2012,7 @@ Java 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
 
 - 暂不支持自定义数据类型
 - 支持的基础类型：Int、Int8、Int16、Int32、Int64、Float32、Float64、Bool
-- 暂不支持的无符号类型：UInt8、UInt32、UInt64（在Java侧存在越界风险）
+- 暂不支持的无符号类型：UInt8、UInt32、UInt64（在 Java 侧存在越界风险）
 - 用户自定义类型的泛型形参若有上界，该上界类型不能包含泛型参数
 - 暂仅支持无内层类型形参的实例成员函数，其形参类型和返回类型允许使用外层类型形参
 
@@ -2115,9 +2114,9 @@ public class GenericClass<T> {
 
 - **[default]** 字段：全局默认设置，package 未具体配置信息情况下采用默认设置规则
 
-  - **APIStrategy** 字段：符号可见性策略表示外部配置默认 Cangjie 符号对目标语言的可见性
+    - **APIStrategy** 字段：符号可见性策略表示外部配置默认 Cangjie 符号对目标语言的可见性
 
-  - **GenericTypeStrategy** 字段：泛型实例化策略表示外部配置默认 Cangjie 泛型相关 API 对目标语言的实例化范围
+    - **GenericTypeStrategy** 字段：泛型实例化策略表示外部配置默认 Cangjie 泛型相关 API 对目标语言的实例化范围
 
 - **[[package]]** 字段：包配置信息
 
@@ -2164,9 +2163,10 @@ public class GenericClass<T> {
                     "setValue"
                 ]}
             ```
+
     - **lambda_patterns** 字段：用于配置需映射到 Java 侧的 Lambda 表达式函数签名列表
-      - signature 字段：必选字段，用于配置 Lambda 表达式函数签名信息
-  
+        - signature 字段：必选字段，用于配置 Lambda 表达式函数签名信息
+
         示例如下：
 
         ```toml
@@ -2221,9 +2221,9 @@ public class GenericClass<T> {
         ```
 
     - **tuple_configuration** 字段：用于配置需映射到 Java 侧的元组类型信息列表
-  
+
         示例代码如下：
-  
+
         ```toml
         tuple_configuration = [
             "(Int32, Int64)"
@@ -2231,7 +2231,7 @@ public class GenericClass<T> {
         ```
 
         以上配置将会被映射成如下 Java 类型：
-        
+
         ```toml
         final public class TupleOfInt32Int64 {
             static {
