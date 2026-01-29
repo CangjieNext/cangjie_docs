@@ -171,12 +171,12 @@ demo
 
 编译产物类型不为 `executable` 的中心仓模块只能被添加为依赖项，而编译产物类型为 `executable` 的中心仓模块还能通过 `cjpm install` 命令编译成可执行程序并安装到本地。在中心仓官网的制品页面，可以通过是否有 `install` 说明来确认该制品包是否可以通过 `install` 命令安装：
 
-（添加网页端截图，并基于截图的制品名和版本号更新下面的说明）
+![制品信息](../../figures/artifact-usage.png)
 
 上述制品包可以通过如下命令安装到本地：
 
 ```text
-cjpm install ${name}-${version}
+cjpm install cangjie_repository_artifact-1.0.0
 ```
 
 基于[仓库配置](./config.md#仓库配置)中配置的本地缓存路径 `CACHE_PATH`，本地安装目录为：
@@ -184,13 +184,10 @@ cjpm install ${name}-${version}
 ```text
 ${CACHE_PATH}
 ├── bin               # 安装的可执行文件
-│    ├── exec_demo_1
-│    └── exec_demo_2
+│    └── cangjie_repository_artifact
 └── libs              # 可执行文件所需的动态库，存放于以对应可执行文件名命名的目录中
-     ├── exec_demo_1
-     │    └── ...
-     └── exec_demo_2
+     └── cangjie_repository_artifact
           └── ...
 ```
 
-安装后，可以直接在命令行使用 `${name}`。如果可执行文件有需要的动态库，则在使用前还需要将对应路径添加到系统动态库环境变量中。
+安装后，可以直接在命令行使用 `cangjie_repository_artifact`。如果可执行文件有需要的动态库，则在使用前还需要将对应路径添加到系统动态库环境变量中。

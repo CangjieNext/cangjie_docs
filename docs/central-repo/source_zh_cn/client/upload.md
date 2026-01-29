@@ -38,9 +38,9 @@
   version = "1.0.0"
   output-type = "executable"
   authors = ["Tom", "Joan"]
-  repository = "cangjie-demo.git"
-  homepage = "cangjie-demo.com"
-  documentation = "cangjie-demo.com/docs"
+  repository = "https://cangjie-demo.git"
+  homepage = "https://cangjie-demo.com"
+  documentation = "https://cangjie-demo.com/docs"
   tag = ["cangjie", "demo"]
   category = ["Network", "UI"]
   license = ["Apache-2.0"]
