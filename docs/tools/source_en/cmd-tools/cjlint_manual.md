@@ -70,7 +70,7 @@ cjlint -f ./src -r csv -o ./output/report  # Generates report.csv in the output 
 
 `-c` and `-m` allow developers to specify custom `config` and `modules` directory paths when needed.
 
-By default, `cjlint` uses the `config` and `modules` directories in its installation path. Developers can override these using `-c` and `-m`.
+By default, `cjlint` uses the `tools/config` and `modules` directories under `CANGJIE_HOME` (the `sdk` path). Developers can override these using `-c` and `-m`.
 
 Example: If custom config and modules paths are `./tools/cjlint/config` and `./tools/cjlint/modules` respectively (both under `./tools/cjlint`), the command would be:
 
@@ -89,7 +89,7 @@ cjlint --import-path "fileDir1 fileDir2"
 
 ## Rule-Level Warning Suppression
 
-The `config` directory (located alongside the `cjlint` executable) contains two configuration files: `cjlint_rule_list.json` and `exclude_lists.json`. `cjlint_rule_list.json`: Rule list configuration. Developers can enable/disable specific rules by modifying this file. `exclude_lists.json`: Warning suppression configuration. Developers can suppress specific rule violations by adding entries here.
+The `tools/config` directory which under `CANGJIE_HOME` (the `sdk` path) contains two configuration files: `cjlint_rule_list.json` and `exclude_lists.json`. `cjlint_rule_list.json`: Rule list configuration. Developers can enable/disable specific rules by modifying this file. `exclude_lists.json`: Warning suppression configuration. Developers can suppress specific rule violations by adding entries here.
 
 Example: To enable only 5 specific rules:
 
