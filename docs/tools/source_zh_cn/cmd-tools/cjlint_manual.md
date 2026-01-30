@@ -70,7 +70,7 @@ cjlint -f ./src -r csv -o ./output/report  # 在output目录下生成report.csv�
 
 `-c`, `-m` 在开发者需要时用以指定`config`和`modules`所在的目录路径。
 
-`cjlint`默认使用其所在目录下的`config`和`modules`作为配置和依赖目录。开发者可通过命令行选项 `-c` 和 `-m` 指定其他目录路径。
+`cjlint` 默认使用 `CANGJIE_HOME`（即 `sdk`）路径下的`tools/config`和`modules`作为配置和依赖目录。开发者可通过命令行选项 `-c` 和 `-m` 指定其他目录路径。
 
 例：指定的 config 和 modules 的路径分别为：`./tools/cjlint/config` 和 `./tools/cjlint/modules`。则`config`和`modules`所在的目录路径同为`./tools/cjlint`, 所以命令应为：
 
@@ -89,7 +89,7 @@ cjlint --import-path "fileDir1 fileDir2"
 
 ## 规则级告警屏蔽
 
-可执行文件`cjlint`同目录下的`config`配置目录中包含`cjlint_rule_list.json`和`exclude_lists.json`两个配置文件。`cjlint_rule_list.json`为规则列表配置文件，用于决定执行哪些规则检查。`exclude_lists.json`为告警屏蔽配置文件，用于屏蔽特定规则的告警。
+`CANGJIE_HOME`（即 `sdk`）路径下的`tools/config`配置目录中包含`cjlint_rule_list.json`和`exclude_lists.json`两个配置文件。`cjlint_rule_list.json`为规则列表配置文件，用于决定执行哪些规则检查。`exclude_lists.json`为告警屏蔽配置文件，用于屏蔽特定规则的告警。
 
 例：若开发者只想检查如下 5 条规则，则`cjlint_rule_list.json`配置文件中只添加要检查的 5 条规则。
 
