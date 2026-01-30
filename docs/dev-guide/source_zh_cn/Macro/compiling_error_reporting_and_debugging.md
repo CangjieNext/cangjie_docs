@@ -57,7 +57,7 @@ main() {
 }
 ```
 
-当宏定义文件的编译产物和使用宏的文件不在同一目录下时，需要通过添加 `--import-path` 编译选项来指定宏定义文件编译产物的路径。以下为 Linux 平台的编译命令（具体编译选项会随着 cjc 更新而演进，以最新 cjc 的编译选项为准）：
+当宏定义文件的编译产物和使用宏的文件不在同一目录下时，需要通过添加 `--import-path` 编译选项来指定宏定义文件编译产物的路径。以下为Linux平台的编译命令（具体编译选项会随着cjc更新而演进，以最新cjc的编译选项为准）：
 
 ```shell
 # 先编译宏定义文件在指定目录产生默认的动态库文件（允许指定动态库的路径，但不能指定动态库的名字）
@@ -70,9 +70,9 @@ cjc src/demo.cj -o demo --import-path ./target --output-dir ./target
 ./target/demo
 ```
 
-在 Linux 平台上，将生成用于包管理的 `macro_define.cjo` 和实际的动态库文件。
+在Linux平台上，将生成用于包管理的 `macro_define.cjo` 和实际的动态库文件。
 
-若在 Windows 平台：
+若在Windows平台：
 
 ```shell
 # 当前目录: src
@@ -84,11 +84,11 @@ cjc macros/m.cj --compile-macro --output-dir ./target
 cjc src/demo.cj -o demo.exe --import-path ./target --output-dir ./target
 ```
 
-如果宏包还依赖其他动态库，则需要保证宏包在运行态（宏展开依赖宏包内方法的执行）下能够找到这些依赖。在 Linux 下可以通过设置 `LD_LIBRAYR_PATH`（Windows 下设置 `PATH`）环境变量添加所依赖动态库的路径。
+如果宏包还依赖其他动态库，则需要保证宏包在运行态（宏展开依赖宏包内方法的执行）下能够找到这些依赖。在Linux下可以通过设置 `LD_LIBRAYR_PATH`（Windows下设置 `PATH`）环境变量添加所依赖动态库的路径。
 
 > **说明：**
 >
-> 宏替换过程依赖仓颉 runtime ，宏替换过程中仓颉 runtime 的初始化配置采用宏提供的默认配置，配置参数支持使用仓颉 runtime 运维日志进行查询，其中 cjHeapSize 与 cjStackSize 支持用户修改，其余暂不支持。注意所有配置参数在 OpenHarmonyOS 平台下均无效，OpenHarmonyOS 平台下仓颉运行时使用默认值。仓颉 runtime 初始化配置可参见[runtime 初始化可选配置](../Appendix/runtime_env.md#runtime-初始化可选配置)章节。
+> 宏替换过程依赖仓颉runtime ，宏替换过程中仓颉runtime的初始化配置采用宏提供的默认配置，配置参数支持使用仓颉runtime运维日志进行查询，其中cjHeapSize与 cjStackSize支持用户修改，其余暂不支持。注意所有配置参数在OpenHarmonyOS平台下均无效，OpenHarmonyOS平台下仓颉运行时使用默认值。仓颉runtime初始化配置可参见[runtime初始化可选配置](../Appendix/runtime_env.md#runtime-初始化可选配置)章节。
 
 ## 并行宏展开
 
@@ -133,9 +133,9 @@ public macro B(input: Tokens) {
 
 ## diagReport 报错机制
 
-仓颉标准库 `std.ast` 包提供了自定义报错接口 `diagReport`。方便定义宏的用户，在解析传入 Tokens 时，对错误 Tokens 内容进行自定义报错。
+仓颉标准库 `std.ast` 包提供了自定义报错接口 `diagReport`。方便定义宏的用户，在解析传入Tokens时，对错误Tokens内容进行自定义报错。
 
-自定义报错接口提供同原生编译器报错一样的输出格式，允许用户报 warning 和 error 两类错误提示信息。
+自定义报错接口提供同原生编译器报错一样的输出格式，允许用户报warning和 error两类错误提示信息。
 
 `diagReport` 的函数原型如下：
 
@@ -148,7 +148,7 @@ public func diagReport(level: DiagReportLevel, tokens: Tokens, message: String, 
 其参数含义如下：
 
 - level: 报错信息等级
-- tokens: 报错信息中所引用源码内容对应的 Tokens
+- tokens: 报错信息中所引用源码内容对应的Tokens
 - message: 报错的主信息
 - hint: 辅助提示信息
 
@@ -220,7 +220,7 @@ error: This expression is not allowed to contain identifier
 
 借助宏在编译期做代码生成时，如果发生错误，处理起来十分棘手，这是开发者经常遇到但一般很难定位的问题。这是因为，开发者写的源码，经过宏的变换后变成了不同的代码片段。编译器抛出的错误信息是基于宏最终生成的代码进行提示的，但这些代码在开发者的源码中没有体现。
 
-为了解决这个问题，仓颉宏提供 debug 模式，在这个模式下，开发者可以从编译器为宏生成的 debug 文件中看到完整的宏展开后的代码，如下所示。
+为了解决这个问题，仓颉宏提供debug模式，在这个模式下，开发者可以从编译器为宏生成的debug文件中看到完整的宏展开后的代码，如下所示。
 
 宏定义文件：
 

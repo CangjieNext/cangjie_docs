@@ -8,7 +8,7 @@
 - `Decl`：所有声明节点的父类
 - `Pattern`：所有模式节点的父类
 
-具体节点的类型众多，具体细节请参见《仓颉编程语言库 API》。在下面的案例中，主要使用以下节点：
+具体节点的类型众多，具体细节请参见《仓颉编程语言库API》。在下面的案例中，主要使用以下节点：
 
 - `BinaryExpr`：二元运算表达式
 - `FuncDecl`：函数的声明
@@ -23,7 +23,7 @@
 
 - `parseExpr(input: Tokens): Expr`：将输入的 `Tokens` 解析为表达式节点。
 - `parseExprFragment(input: Tokens, startFrom!: Int64 = 0): (Expr, Int64)`：将输入 `Tokens` 的一个片段解析为表达式节点，片段从 `startFrom` 索引开始，解析可能只消耗从索引 `startFrom` 开始的片段的一部分，并返回第一个未被消耗的 `Token` 的索引（如果消耗了整个片段，返回值为 `input.size`）。
-- `parseDecl(input: Tokens, astKind!: String = "")`：将输入的 `Tokens` 解析为声明节点，`astKind` 为额外的设置，具体请参见《仓颉编程语言库 API》文档。
+- `parseDecl(input: Tokens, astKind!: String = "")`：将输入的 `Tokens` 解析为声明节点，`astKind` 为额外的设置，具体请参见《仓颉编程语言库API》文档。
 - `parseDeclFragment(input: Tokens, startFrom!: Int64 = 0): (Decl, Int64)`：将输入 `Tokens` 的一个片段解析为声明节点，`startFrom` 参数和返回索引的含义和 `parseExpr` 相同。
 - `parseType(input: Tokens): TypeNode`：将输入的 `Tokens` 解析为类型节点。
 - `parseTypeFragment(input: Tokens, startFrom!: Int64 = 0): (TypeNode, Int64)`：将输入 `Tokens` 的一个片段解析为类型节点，`startFrom` 参数和返回索引的含义和 `parseExpr` 相同。
@@ -95,7 +95,7 @@ let funcDecl = FuncDecl(quote(func f1(x: Int64) { return x + 1 }))
 
 ## 节点的组成部分
 
-从 `Tokens` 解析出节点之后，可以查看节点的组成部分。作为例子，仅列出 `BinaryExpr` 和 `FuncDecl` 的组成部分，关于其他节点的更详细的解释请参见《仓颉编程语言库 API》文档。
+从 `Tokens` 解析出节点之后，可以查看节点的组成部分。作为例子，仅列出 `BinaryExpr` 和 `FuncDecl` 的组成部分，关于其他节点的更详细的解释请参见《仓颉编程语言库API》文档。
 
 - `BinaryExpr` 节点：
     - `leftExpr: Expr`：运算符左侧的表达式

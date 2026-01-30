@@ -52,9 +52,9 @@ The type of r6 is 'Int64', and r6 = 1024
 
 ## `Rune` 到 `UInt32` 和整数类型到 `Rune` 的转换
 
-`Rune` 到 `UInt32` 的转换使用 `UInt32(e)` 的方式，其中 `e` 是一个 `Rune` 类型的表达式，`UInt32(e)` 的结果是 `e` 的 Unicode scalar value 对应的 `UInt32` 类型的整数值。
+`Rune` 到 `UInt32` 的转换使用 `UInt32(e)` 的方式，其中 `e` 是一个 `Rune` 类型的表达式，`UInt32(e)` 的结果是 `e` 的Unicode scalar value对应的 `UInt32` 类型的整数值。
 
-整数类型到 `Rune` 的转换使用 `Rune(num)` 的方式，其中 `num` 的类型可以是任意的整数类型，且仅当 `num` 的值落在 `[0x0000, 0xD7FF]` 或 `[0xE000, 0x10FFFF]` （即 Unicode scalar value）中时，返回对应的 Unicode scalar value 表示的字符，否则，编译报错（编译时可确定 `num` 的值）或运行时抛异常。
+整数类型到 `Rune` 的转换使用 `Rune(num)` 的方式，其中 `num` 的类型可以是任意的整数类型，且仅当 `num` 的值落在 `[0x0000, 0xD7FF]` 或 `[0xE000, 0x10FFFF]` （即Unicode scalar value）中时，返回对应的Unicode scalar value表示的字符，否则，编译报错（编译时可确定 `num` 的值）或运行时抛异常。
 
 下面的例子展示了 `Rune` 和 `UInt32` 之间的类型转换：
 

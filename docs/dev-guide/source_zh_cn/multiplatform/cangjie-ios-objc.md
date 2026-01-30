@@ -4,36 +4,36 @@
 
 > **注意：**
 >
-> 仓颉-ObjC 互操作特性为实验性功能，特性还在持续完善中。
+> 仓颉-ObjC互操作特性为实验性功能，特性还在持续完善中。
 
-仓颉 SDK 支持仓颉与 ObjC(Objective-C) 的互操作，因此在 IOS 应用中可以使用仓颉编程语言开发业务模块。整体调用流程如下：
+仓颉SDK支持仓颉与ObjC(Objective-C) 的互操作，因此在IOS应用中可以使用仓颉编程语言开发业务模块。整体调用流程如下：
 
-- 场景一：从 ObjC 调用仓颉，ObjC code → (glue code) → 仓颉 code
-- 场景二：从仓颉调用 ObjC，仓颉 code → (glue code) → ObjC code
+- 场景一：从ObjC调用仓颉，ObjC code → (glue code) → 仓颉code
+- 场景二：从仓颉调用ObjC，仓颉code → (glue code) → ObjC code
 
 **涉及的概念：**
 
-1. Mirror Type：镜像类型，ObjC 类型使用仓颉语法形式的表达，供开发者使用仓颉的方式调用 ObjC 方法。
-2. CFFI：C Foreign Function Interface，是 Java/Objetive C/仓颉等高级编程语言提供的 C 语言外部接口。
+1. Mirror Type：镜像类型，ObjC类型使用仓颉语法形式的表达，供开发者使用仓颉的方式调用ObjC方法。
+2. CFFI：C Foreign Function Interface，是Java/Objetive C/仓颉等高级编程语言提供的C 语言外部接口。
 3. 胶水代码：用于弥合不同编程语言差异的中间代码。
-4. 互操作代码：ObjC 调用仓颉方法的实现代码，或仓颉调用 ObjC 的实现代码。
+4. 互操作代码：ObjC调用仓颉方法的实现代码，或仓颉调用ObjC的实现代码。
 
 **涉及的工具：**
 
-1. 仓颉 SDK：仓颉的开发者工具集。
+1. 仓颉SDK：仓颉的开发者工具集。
 2. cjc：指代仓颉编译器。
-3. ObjCInteropGen: ObjC 镜像生成工具
-4. IOS 工具链：IOS 应用开发所需的工具集合。
+3. ObjCInteropGen: ObjC镜像生成工具
+4. IOS工具链：IOS应用开发所需的工具集合。
 
-仓颉与 ObjC 之间的调用，通常需要利用 ObjC 编程语言或仓颉编程语言的 CFFI 编写"胶水代码"。然而，人工书写这种胶水代码（Glue Code）对于开发者来说特别繁琐。
+仓颉与ObjC之间的调用，通常需要利用ObjC编程语言或仓颉编程语言的CFFI编写"胶水代码"。然而，人工书写这种胶水代码（Glue Code）对于开发者来说特别繁琐。
 
-仓颉 SDK 中包含的仓颉编译器（cjc）支持自动生成必要的胶水代码，减轻开发者负担。
+仓颉SDK中包含的仓颉编译器（cjc）支持自动生成必要的胶水代码，减轻开发者负担。
 
-cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 ObjC 类型（类和接口）的符号信息，该符号信息包含在 Mirror Type 中。
+cjc自动生成胶水代码需要获取在跨编程语言调用中涉及的ObjC类型（类和接口）的符号信息，该符号信息包含在Mirror Type中。
 
 **语法映射：**
 
-|            仓颉语法                            |                    ObjC 语法                       |
+|            仓颉语法                            |                    ObjC语法                       |
 |:----------------------------------------------|:---------------------------------------------------|
 |`@ObjCMirror public interface A`         |        `@protocol A`                               |
 |  `@ObjCMirror public class A`           |        `@interface A`                              |
@@ -49,7 +49,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
 **类型映射：**
 
-| 仓颉类型                                      | ObjC 类型                    |
+| 仓颉类型                                      | ObjC类型                    |
 |:------------------------------------------|:---------------------------|
 | `Unit`                                    | `void`                     |
 | `Int8`                                    | `signed char`              |
@@ -81,18 +81,18 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
 注意：
 
-1. ObjC 源码中标记为 `unavailable` 的类型不做映射转化
-2. 当前版本不支持 ObjC 中的全局变量的转化
+1. ObjC源码中标记为 `unavailable` 的类型不做映射转化
+2. 当前版本不支持ObjC中的全局变量的转化
 3. 匿名 `C enumeration` 的类型不做映射转化
 4. `C unions` 的类型不做映射转化
 5. `const` `volatile` `restrict`  的类型不做映射转化
-6. 如果 ObjC 方法签名中，返回类型或形参类型被 nonnull 修饰，则生成的仓颉侧对应类型不进行 Option 封装。
+6. 如果ObjC方法签名中，返回类型或形参类型被nonnull修饰，则生成的仓颉侧对应类型不进行Option封装。
 
-以仓颉调用 ObjC 为例，整体开发过程描述如下：
+以仓颉调用ObjC为例，整体开发过程描述如下：
 
 1. 开发者进行接口设计，确定函数调用流程和范围。
 
-2. 根据步骤 1，为被调用的 ObjC 类和接口生成 Mirror Type。
+2. 根据步骤1，为被调用的ObjC类和接口生成Mirror Type。
 
     ```objc
     // original-objc/Base.h
@@ -184,7 +184,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
     package-name = "example"
     ```
 
-    使用 ObjC 的镜像生成工具生成 ObjC 的镜像文件：
+    使用ObjC的镜像生成工具生成ObjC的镜像文件：
 
     ```bash
     ObjCInteropGen example.toml
@@ -225,11 +225,11 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
     }
     ```
 
-3. 开发互操作代码，使用步骤 2 中生成的 Mirror Type 创建 ObjC 对象、调用 ObjC 方法。
+3. 开发互操作代码，使用步骤2 中生成的Mirror Type创建ObjC对象、调用ObjC方法。
 
-    `互操作代码.cj` + `Mirror Type.cj`→ 实现仓颉调用 ObjC
+    `互操作代码.cj` + `Mirror Type.cj`→ 实现仓颉调用ObjC
 
-    例如如下示例，可通过 ObjCImpl 类型继承 Mirror Type 调用 ObjC 类型构造函数：
+    例如如下示例，可通过ObjCImpl类型继承Mirror Type调用ObjC类型构造函数：
 
     <!-- compile -->
     ```cangjie
@@ -246,33 +246,33 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
     }
     ```
 
-4. 使用 cjc 编译互操作代码和 'Mirror Type.cj' 类型。cjc 将生成：
+4. 使用cjc编译互操作代码和 'Mirror Type.cj' 类型。cjc将生成：
 
     - 胶水代码。
-    - 实际进行互操作的 ObjC 源代码。
+    - 实际进行互操作的ObjC源代码。
 
     `Mirror Type.cj`\+`互操作代码.cj`→ cjc → `仓颉代码.so`和 `互操作.m`/`互操作.h`
 
-5. 将步骤 4 中生成的文件添加到 macOs/iOS 项目中：
+5. 将步骤4 中生成的文件添加到macOs/iOS项目中：
 
-    - `互操作.m/h`：cjc 生成的文件
-    - `仓颉代码.so`：cjc 生成的文件
-    - 仓颉 SDK 包含的运行时库
+    - `互操作.m/h`：cjc生成的文件
+    - `仓颉代码.so`：cjc生成的文件
+    - 仓颉SDK包含的运行时库
 
-    在 ObjC 源代码中插入必要的调用并重新生成该程序。
+    在ObjC源代码中插入必要的调用并重新生成该程序。
 
-    macOs/iOS 项目 + `互操作.m/h` + `仓颉代码.so` → macOS/iOS 工具链 → 可执行文件
+    macOs/iOS项目 + `互操作.m/h` + `仓颉代码.so` → macOS/iOS工具链 → 可执行文件
 
 ## 环境准备
 
 **系统要求：**
 
-- **硬件/操作系统**：macOS 12.0 及以上版本(aarch64)运行
+- **硬件/操作系统**：macOS 12.0及以上版本(aarch64)运行
 
-**ObjCInteropGen 工具使用环境准备步骤：**
+**ObjCInteropGen工具使用环境准备步骤：**
 
-1. 安装对应版本的仓颉 SDK，安装方法请参见[开发指南](https://cangjie-lang.cn/docs?url=%2F1.0.0%2Fuser_manual%2Fsource_zh_cn%2Ffirst_understanding%2Finstall_Community.html)。
-2. 执行如下命令安装 LLVM 16。
+1. 安装对应版本的仓颉SDK，安装方法请参见[开发指南](https://cangjie-lang.cn/docs?url=%2F1.0.0%2Fuser_manual%2Fsource_zh_cn%2Ffirst_understanding%2Finstall_Community.html)。
+2. 执行如下命令安装LLVM 16。
 
     ```bash
     brew install llvm@16
@@ -284,7 +284,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
     export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
     ```
 
-4. 检测是否安装成功：执行如下命令，如果出现 ObjCInteropGen 使用说明，则证明安装成功。
+4. 检测是否安装成功：执行如下命令，如果出现ObjCInteropGen使用说明，则证明安装成功。
 
     ```bash
     ObjCInteropGen --help
@@ -292,7 +292,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
 ## ObjCMirror 类
 
-ObjCMirror 为 ObjC 类型使用仓颉语法形式的表达，由工具自动生成，供开发者使用仓颉的方式调用 ObjC 方法。
+ObjCMirror为 ObjC类型使用仓颉语法形式的表达，由工具自动生成，供开发者使用仓颉的方式调用ObjC方法。
 
 > **注意：**
 >
@@ -355,9 +355,9 @@ class A <: M {
 
 当前具体规格如下：
 
-- ObjCMirror 类 的构造函数可有零个、一个或多个参数。
-- 构造函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 构造函数显式声明时，不为 private/static/const 类型。无显式声明的构造函数时，则无法构建该对象。
+- ObjCMirror类 的构造函数可有零个、一个或多个参数。
+- 构造函数的参数和返回值类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
+- 构造函数显式声明时，不为private/static/const类型。无显式声明的构造函数时，则无法构建该对象。
 - 仅支持单个命名参数。
 - 暂不支持默认参数值。
 
@@ -422,12 +422,12 @@ class A <: M {
 
 具体规格如下：
 
-- ObjCMirror 类 的成员函数可有零个、一个或多个参数。
-- 函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
+- ObjCMirror类 的成员函数可有零个、一个或多个参数。
+- 函数的参数和返回值类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
 - 仅支持单个命名参数。
-- 不支持在 Mirror 类中新增成员函数，运行时将有异常。
-- 支持 static/open 类型。
-- 不支持 private/const 成员。
+- 不支持在Mirror类中新增成员函数，运行时将有异常。
+- 支持static/open类型。
+- 不支持private/const成员。
 - 暂不支持默认参数值。
 - 暂不支持重载函数。
 
@@ -476,11 +476,11 @@ class A <: M {
 
 具体规格如下：
 
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 不支持 private/const 成员。
-- 支持 static/open 修饰。
-- 暂不支持映射 assign/readonly 等 attribute，仓颉侧映射均按照 readwrite 处理，在 objc 侧处理上述 attribute 的属性时，以 objc 规格为准。
-- 若属性被 Impl 子类覆盖，则不允许在 ObjC 侧的构造函数中调用该属性，将出现运行时崩溃。
+- 类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
+- 不支持private/const成员。
+- 支持static/open修饰。
+- 暂不支持映射assign/readonly等 attribute，仓颉侧映射均按照readwrite处理，在objc侧处理上述attribute的属性时，以objc规格为准。
+- 若属性被Impl子类覆盖，则不允许在ObjC侧的构造函数中调用该属性，将出现运行时崩溃。
 
 ### 成员变量
 
@@ -534,13 +534,13 @@ class A <: M {
 
 具体规格如下：
 
-- 支持可变变量 var、不可变变量 let。
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 不支持 static/const/private 类型变量。
+- 支持可变变量var、不可变变量let。
+- 类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
+- 不支持static/const/private类型变量。
 
 ### 继承
 
-Mirror 类支持继承 open Mirror 类。
+Mirror类支持继承open Mirror类。
 示例如下：
 
 <!-- compile -->
@@ -621,20 +621,20 @@ int main(int argc, char** argv) {
 
 ### 约束限制
 
-- 暂不支持 String 类型。（暂不支持的特性将出现未知错误）
+- 暂不支持String类型。（暂不支持的特性将出现未知错误）
 - 暂不支持类型检查和类型强转。（暂不支持的特性将出现未知错误）
 - 暂不支持处理异常。（暂不支持的特性将出现未知错误）
-- 不支持普通仓颉类继承 Mirror 类。
+- 不支持普通仓颉类继承Mirror类。
 - 不支持继承普通仓颉类。
 - 当成员函数或构造函数有超过一个的参数时，必须使用 @ForeignName。
 
 > 注意：
 >
-> 支持在 Impl 类或普通仓颉类中调用 Mirror 类成员，规格一致。
+> 支持在Impl类或普通仓颉类中调用Mirror类成员，规格一致。
 
 ## ObjCMirror 全局函数
 
-支持映射 ObjC 中的全局函数，具体示例如下：
+支持映射ObjC中的全局函数，具体示例如下：
 
 ```objc
 int foo(NSObject* o, double x) { ... }
@@ -648,16 +648,16 @@ public func foo(o: ?NSObject, x: Float64): Int64
 具体规格如下:
 
 - 该函数不能包含函数体。
-- 该函数不能标记为 foreign 函数和 const 函数。
+- 该函数不能标记为foreign函数和const函数。
 - 该函数不能使用泛型。
 - 函数的返回类型必须显示指定。
 - 函数可以拥有任意个数的形参。
-- 不支持 vararg 参数。
-- 支持命名形参和形参默认值，当形参拥有默认值时，仓颉侧调用该 @ObjCMirror 全局函数时可以不提供该实参，ObjC 实际调用其全局函数时采用该默认值。
+- 不支持vararg参数。
+- 支持命名形参和形参默认值，当形参拥有默认值时，仓颉侧调用该 @ObjCMirror全局函数时可以不提供该实参，ObjC实际调用其全局函数时采用该默认值。
 
 ## ObjCMirror 接口
 
-支持映射 ObjC 中的 `protocol` 为接口，`interface` 为 `open class`，具体示例如下：
+支持映射ObjC中的 `protocol` 为接口，`interface` 为 `open class`，具体示例如下：
 
 ```objc
 // Foo.h
@@ -713,17 +713,17 @@ class A <: M {
 
 具体规格如下:
 
-- 支持成员函数，规则同 [ObjCMirror 类](#成员函数)
-- 支持属性，规则同 [ObjCMirror 类](#属性)
+- 支持成员函数，规则同 [ObjCMirror类](#成员函数)
+- 支持属性，规则同 [ObjCMirror类](#属性)
 - 暂不支持默认成员实现。
-- 暂不支持映射 ObjC protocols 的 @optional 和 @required 成员函数。
+- 暂不支持映射ObjC protocols的 @optional和 @required成员函数。
 - 暂不支持成员变量。
-- @ObjCMirror 接口仅支持继承 @ObjCMirror 接口，不支持其他类型。
+- @ObjCMirror接口仅支持继承 @ObjCMirror接口，不支持其他类型。
 - 当成员函数有超过一个的参数时，必须使用 @ForeignName。
 
 ## ObjCImpl 类
 
-ObjCImpl 为仓颉注解，语义为该类的方法与成员可以被 ObjC 函数调用。编译期间编译器会为 `@ObjCImpl` 的仓颉类生成对应的 objc 代码。
+ObjCImpl为仓颉注解，语义为该类的方法与成员可以被ObjC函数调用。编译期间编译器会为 `@ObjCImpl` 的仓颉类生成对应的objc代码。
 
 > **注意：**
 >
@@ -732,7 +732,7 @@ ObjCImpl 为仓颉注解，语义为该类的方法与成员可以被 ObjC 函�
 
 ### 调用 ObjCImpl 的构造或成员函数
 
-在 ObjC 中调用 ObjCImpl 的构造或成员函数如下：
+在ObjC中调用ObjCImpl的构造或成员函数如下：
 
 <!-- compile -->
 
@@ -769,13 +769,13 @@ int main(int argc, char** argv) {
 
 具体规格如下：
 
-- ObjCImpl 类 的成员函数可有零个、一个或多个参数。
-- 函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
+- ObjCImpl类 的成员函数可有零个、一个或多个参数。
+- 函数的参数和返回值类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
 - 构造函数必须显式声明。
 - 仅支持单个命名参数。
 - 暂不支持默认参数值。
-- 成员函数支持 static/open 修饰。
-- 仅有 public 函数可在 ObjC 侧被调用。
+- 成员函数支持static/open修饰。
+- 仅有public函数可在ObjC侧被调用。
 
 ### 属性
 
@@ -836,9 +836,9 @@ int main(int argc, char** argv) {
 
 具体规格如下：
 
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 支持 static/open 修饰。
-- 仅 public 类型可在 ObjC 侧被调用。
+- 类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
+- 支持static/open修饰。
+- 仅public类型可在ObjC侧被调用。
 
 ### 成员变量
 
@@ -897,13 +897,13 @@ int main(int argc, char** argv) {
 
 具体规格如下：
 
-- 支持可变变量 var、不可变变量 let。
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 仅 public 类型可在 ObjC 侧被调用。
+- 支持可变变量var、不可变变量let。
+- 类型可为具备与ObjC的映射关系的基础类型、Mirror类型或Impl类型。
+- 仅public类型可在ObjC侧被调用。
 
 ### 继承
 
-支持 Impl 继承 Mirror/Impl 类。并支持在 Impl 中调用 `super(x)`/`this(x)` 构造 Mirror 或 Impl 对象。具体示例如下：
+支持Impl继承Mirror/Impl类。并支持在Impl中调用 `super(x)`/`this(x)` 构造Mirror或 Impl对象。具体示例如下：
 
 <!-- compile -->
 
@@ -927,33 +927,33 @@ open class B <: A {}
 
 限制如下：
 
-- 暂未支持 @ObjCImpl 的生命周期管理。
-- 从 Cangjie 实例化的 @ObjCImpl 永远不会被垃圾回收。
-- 不支持通过 `super(x)` 或 `this(x)` 调用 @ObjCInit 函数。
+- 暂未支持 @ObjCImpl的生命周期管理。
+- 从Cangjie实例化的 @ObjCImpl永远不会被垃圾回收。
+- 不支持通过 `super(x)` 或 `this(x)` 调用 @ObjCInit函数。
 
 ### 约束限制
 
-- 暂不支持 String 类型。
+- 暂不支持String类型。
 - 暂不支持类型检查和类型强转。
-- 暂不支持在 ObjC 侧继承 Impl 类。
+- 暂不支持在ObjC侧继承Impl类。
 - 暂不支持处理异常。
 - 当成员函数或构造函数有超过一个参数时，必须使用 @ForeignName。（当该函数为重载函数时则不需要）
-- 不支持普通仓颉类继承 Impl 类。
+- 不支持普通仓颉类继承Impl类。
 - 不支持继承普通仓颉类。
-- Impl 类必须继承 Mirror/Impl 类。
-- Impl 可以实现零个或多个 Mirror 接口。
+- Impl类必须继承Mirror/Impl类。
+- Impl可以实现零个或多个Mirror接口。
 
 > 注意：
 >
-> 暂不支持在仓颉中调用 Impl 类的任意成员。
+> 暂不支持在仓颉中调用Impl类的任意成员。
 
 ## objc.lang
 
-是与互操作库一起提供的包，包含用于对 Objective-C 中的其他类型完成映射的支持类型。
+是与互操作库一起提供的包，包含用于对Objective-C中的其他类型完成映射的支持类型。
 
 ### ObjCPointer
 
-`ObjCPointer` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 中定义的原始指针。其签名如下：
+`ObjCPointer` 类型定义在 `objc.lang` 包中，用于映射Objective-C中定义的原始指针。其签名如下：
 
 <!-- compile -->
 
@@ -974,17 +974,17 @@ struct ObjCPointer<T> {
 
 具体规则如下：
 
-- 只有与 Objective-C 兼容的明确的类型才能用于实例化参数 `T`，包括其他 `ObjCPointer` 类型，例如：`ObjCPointer<Class>`、`ObjCPointer<Int64>`、`ObjCPointer<ObjCPointer<Bool>>`。如下类型不合法：`ObjCPointer<U>`，其中 `U` 为类型参数，`ObjCPointer<String>`。
-- `ObjCPointer<T>` 当 `T` 是一个明确的与 Objective C 兼容的类型时, 该类型为 Objective-C 兼容类型。
-- 由于仓颉类类型 `A` 在 Objective-C 中已经对应了指针类型 `A*`，因此指向类 `ObjCPointer<A>` 的指针对应着指向指针的指针 `A**`。这是在仓颉中模拟 Objective-C 指向指针的唯一方法。
+- 只有与Objective-C兼容的明确的类型才能用于实例化参数 `T`，包括其他 `ObjCPointer` 类型，例如：`ObjCPointer<Class>`、`ObjCPointer<Int64>`、`ObjCPointer<ObjCPointer<Bool>>`。如下类型不合法：`ObjCPointer<U>`，其中 `U` 为类型参数，`ObjCPointer<String>`。
+- `ObjCPointer<T>` 当 `T` 是一个明确的与Objective C兼容的类型时, 该类型为Objective-C兼容类型。
+- 由于仓颉类类型 `A` 在Objective-C中已经对应了指针类型 `A*`，因此指向类 `ObjCPointer<A>` 的指针对应着指向指针的指针 `A**`。这是在仓颉中模拟Objective-C指向指针的唯一方法。
 
 当前约束如下：
 
-- 由于 Objective-C ARC 的限制，`ObjCPointer<class>` 类型**不能**用作任何仓颉方法或属性的返回类型，包括 `@ObjCMirror` 和 `@ObjCImpl` 声明的方法和属性
+- 由于Objective-C ARC的限制，`ObjCPointer<class>` 类型**不能**用作任何仓颉方法或属性的返回类型，包括 `@ObjCMirror` 和 `@ObjCImpl` 声明的方法和属性
 
 ### ObjCBlock
 
-`ObjCBlock` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 的 `Block` 类型。其签名如下：
+`ObjCBlock` 类型定义在 `objc.lang` 包中，用于映射Objective-C的 `Block` 类型。其签名如下：
 
 <!-- compile -->
 
@@ -1017,13 +1017,13 @@ let ff = f.call // 报错：不允许值类型赋值。
 
 具体规格如下：
 
-- ObjCBlock\<F> 中的 F 必须为合法的仓颉函数类型。
-- F 的返回值和参数必须为 ObjC 兼容类型。
-- ObjCBlock 中的 call 属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
+- ObjCBlock\<F> 中的F 必须为合法的仓颉函数类型。
+- F的返回值和参数必须为ObjC兼容类型。
+- ObjCBlock中的call属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
 
 ### ObjCFunc
 
-`ObjCFunc` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 的函数。其签名如下：
+`ObjCFunc` 类型定义在 `objc.lang` 包中，用于映射Objective-C的函数。其签名如下：
 
 <!-- compile -->
 
@@ -1052,14 +1052,14 @@ let ff = f.call // 报错：不允许值类型赋值。
 
 具体规格如下：
 
-- ObjCFunc\<F> 中的 F 必须为合法的仓颉函数类型。
-- F 的返回值和参数必须为 ObjC 兼容类型。
-- ObjCFunc 中的 call 属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
-- 不允许在仓颉侧构造 ObjCFunc\<F> 类型对象。
+- ObjCFunc\<F> 中的F 必须为合法的仓颉函数类型。
+- F的返回值和参数必须为ObjC兼容类型。
+- ObjCFunc中的call属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
+- 不允许在仓颉侧构造ObjCFunc\<F> 类型对象。
 
 ### ObjCId
 
-`ObjCId` 类型定义在 `objc.lang` 包中，用作所有 Mirror 类型的父类型。它是 ObjC 在仓颉世界中的 `id` 类型代表。其签名如下：
+`ObjCId` 类型定义在 `objc.lang` 包中，用作所有Mirror类型的父类型。它是ObjC在仓颉世界中的 `id` 类型代表。其签名如下：
 
 <!-- code_no_check -->
 
@@ -1070,19 +1070,19 @@ public interface ObjCId {}
 
 具体规格如下：
 
-- 任意 @ObjCMirror 或 @ObjCImpl 均可以实现该接口。
-- 默认所有 Mirror 类型均继承该接口，因此需导入 `import objc.lang.ObjCId` 。
+- 任意 @ObjCMirror或 @ObjCImpl均可以实现该接口。
+- 默认所有Mirror类型均继承该接口，因此需导入 `import objc.lang.ObjCId` 。
 
 ## @C structs
 
-使用 `@C` 注解的结构体，在 `ObjCPointer<T>` 内部使用时，可以用于 `@ObjCMirror` 和 `@ObjcImpl` 的声明参数、返回类型、字段和属性。仓颉代码中此类注解的结构体 `X` 对应于 Objective C 代码中的 `struct X` 类型，前述类型需同时在仓颉侧和 ObjC 侧均存在。
+使用 `@C` 注解的结构体，在 `ObjCPointer<T>` 内部使用时，可以用于 `@ObjCMirror` 和 `@ObjcImpl` 的声明参数、返回类型、字段和属性。仓颉代码中此类注解的结构体 `X` 对应于Objective C代码中的 `struct X` 类型，前述类型需同时在仓颉侧和ObjC侧均存在。
 
 约束如下：
 
-- 结构体可以包含基础类型、CPointer 指针和其他带有 @C 注解的结构体。
-- 对于在仓颉或 Objective C 中定义的每个结构体，在对应的另一个语言中都应该有相同的声明。字段及其类型的差异可能会导致运行时错误。
+- 结构体可以包含基础类型、CPointer指针和其他带有 @C注解的结构体。
+- 对于在仓颉或Objective C中定义的每个结构体，在对应的另一个语言中都应该有相同的声明。字段及其类型的差异可能会导致运行时错误。
 - 结构体应与 `ObjCPointer<T>` 一起使用。例如，`ObjCPointer<MyStruct>`。通过值传递的结构体暂不支持。
-- struct 的类型别名 typedef 暂不支持。
+- struct的类型别名typedef暂不支持。
 
 示例如下：
 
@@ -1105,7 +1105,7 @@ public struct X {
 
 ## @optional 方法
 
-支持在仓颉侧调用 ObjC 的 @optional 方法。例如：
+支持在仓颉侧调用ObjC的 @optional方法。例如：
 
 ```objc
 @protocol K
@@ -1115,9 +1115,9 @@ public struct X {
 @end
 ```
 
-在 Objective-C 中，@optional 方法不要求必须实现。当仓颉为包含此类方法的类生成 Mirror Interface 对象并在运行时从 Cangjie 调用这些方法时，若方法未被实际实现，将导致运行时错误。
+在Objective-C中，@optional方法不要求必须实现。当仓颉为包含此类方法的类生成Mirror Interface对象并在运行时从Cangjie调用这些方法时，若方法未被实际实现，将导致运行时错误。
 
-为避免此问题，仓颉引入了 @ObjCOptional 注解：当调用被该注解标记的方法时，若其实现不存在，则抛出 ObjCOptionalMethodUnimplementedException 异常,若存在，则正常执行调用。
+为避免此问题，仓颉引入了 @ObjCOptional注解：当调用被该注解标记的方法时，若其实现不存在，则抛出ObjCOptionalMethodUnimplementedException异常,若存在，则正常执行调用。
 
 <!-- compile -->
 
@@ -1144,8 +1144,8 @@ try {
 
 ## @property 属性
 
-支持通过 `@ForeignGetterName` 和 `@ForeignSetterName` 映射 ObjC 的 @property 语法。
-在 Mirror 类中，具有 `@ForeignGetterName` 和 `@ForeignSetterName` 注解的属性将改变从 Cangjie 端访问属性时使用的方法。默认生成的选择器（来自属性名或 `@ForeignName` 注解）会被指定的选择器覆盖。在下面的示例中，Objective-C 端重新定义了属性的 getter 和 setter 名称：
+支持通过 `@ForeignGetterName` 和 `@ForeignSetterName` 映射ObjC的 @property语法。
+在Mirror类中，具有 `@ForeignGetterName` 和 `@ForeignSetterName` 注解的属性将改变从Cangjie端访问属性时使用的方法。默认生成的选择器（来自属性名或 `@ForeignName` 注解）会被指定的选择器覆盖。在下面的示例中，Objective-C端重新定义了属性的getter和 setter名称：
 
 ```objc
 @interface Component
@@ -1154,7 +1154,7 @@ try {
 @end
 ```
 
-生成的 ObjMirror 使用上述注解指示了 ObjC 侧正确的名称：
+生成的ObjMirror使用上述注解指示了ObjC侧正确的名称：
 
 <!-- compile -->
 
@@ -1167,7 +1167,7 @@ class Component {
 }
 ```
 
-支持在 ObjCImpl 类中使用该注解，在 ObjC 侧调用属性方法时，需使用注解所指示的名称。
+支持在ObjCImpl类中使用该注解，在ObjC侧调用属性方法时，需使用注解所指示的名称。
 
 <!-- code_no_check -->
 
@@ -1199,7 +1199,7 @@ class ComponentChild <: Component {
 @end
 ```
 
-ObjC 中，参数类型相同但参数名不同的构造函数不属于声明冲突，但在仓颉中，参数类型相同即被认为声明冲突，编译时会报错。
+ObjC中，参数类型相同但参数名不同的构造函数不属于声明冲突，但在仓颉中，参数类型相同即被认为声明冲突，编译时会报错。
 
 <!-- compile.error -->
 
@@ -1213,7 +1213,7 @@ class M {
 }
 ```
 
-因此，新增 `@ObjCInit` 注解，通过不同名的静态函数映射 ObjC 中的同类型构造函数。
+因此，新增 `@ObjCInit` 注解，通过不同名的静态函数映射ObjC中的同类型构造函数。
 
 <!-- code_no_check -->
 
@@ -1240,12 +1240,12 @@ class M {
 
 ### 新增实验编译选项 `--experimental --enable-interop-cjmapping=<Target Languages>`
 
-该选项启用前端（FE）对非 C 语言的 Cangjie 互操作支持。目前支持的值为 Java 和 ObjC。
+该选项启用前端（FE）对非C 语言的Cangjie互操作支持。目前支持的值为Java和 ObjC。
 
 ### 新增实验编译选项 `--experimental --import-interop-cj-package-config-path <ConfigFile Path(*.toml)>`
 
-功能：在 FE 中启用对非 C 语言的 Cangjie 互操作支持。
-参数：需要指定一个 toml 格式的配置文件路径，例如：src/cj/config.toml 或 objcCallCangjie.toml。
+功能：在FE中启用对非C 语言的Cangjie互操作支持。
+参数：需要指定一个toml格式的配置文件路径，例如：src/cj/config.toml或 objcCallCangjie.toml。
 
 > **注意：**
 >
@@ -1255,15 +1255,15 @@ class M {
 
 ### ObjC 使用 Cangjie 接口
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的接口类型映射为 ObjC 的协议（@protocol）。映射后，用户可：
+为实现Cangjie与 Objective-C的互操作，需将Cangjie的接口类型映射为ObjC的协议（@protocol）。映射后，用户可：
 
-- 将 Cangjie 接口映射为 ObjC 协议
-- 在 ObjC 函数中使用该协议作为参数类型
-- 在 ObjC 类中采纳该协议，并将其实例作为函数参数传递
+- 将Cangjie接口映射为ObjC协议
+- 在ObjC函数中使用该协议作为参数类型
+- 在ObjC类中采纳该协议，并将其实例作为函数参数传递
 
 #### 示例
 
-Cangjie 源码：
+Cangjie源码：
 
 <!-- compile -->
 
@@ -1279,7 +1279,7 @@ public interface A {
 }
 ```
 
-生成的 ObjC 头文件（A.h）：
+生成的ObjC头文件（A.h）：
 
 ```ObjC
 // A.h
@@ -1298,24 +1298,24 @@ public interface A {
 
 由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
 
-- Cangjie 接口不得继承其他接口
+- Cangjie接口不得继承其他接口
 - 不支持泛型成员函数
 - 不支持成员属性、操作符重载函数
-- 成员函数不得为 static
+- 成员函数不得为static
 - 成员函数不得包含默认实现
 - 不支持函数重载
 - 仅允许使用基础数据类型：
     - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 已支持的互操作特性不得使用 interface 作为函数返回值类型
+    - Bool类型
+    - Unit类型
+- 已支持的互操作特性不得使用interface作为函数返回值类型
 
 ### ObjC 使用 Cangjie 枚举
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的枚举类型映射为 ObjC 的类。映射后，用户可：
+为实现Cangjie与 Objective-C的互操作，需将Cangjie的枚举类型映射为ObjC的类。映射后，用户可：
 
 - 调用枚举类型的构造函数以创建对应的枚举对象
-- 在 Cangjie 与 ObjC 之间无缝传递枚举对象
+- 在Cangjie与 ObjC之间无缝传递枚举对象
 - 调用枚举中定义的静态方法和实例方法
 - 支持枚举属性的访问
 
@@ -1352,7 +1352,7 @@ public enum TimeUnit {
 }
 ```
 
-生成的 ObjC 头文件与源文件：
+生成的ObjC头文件与源文件：
 
 ```ObjC
 // TimeUnit.h
@@ -1481,30 +1481,30 @@ static struct RuntimeParam defaultCJRuntimeParams = {0};
 
 由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
 
-- Cangjie enum 不得实现其他接口
+- Cangjie enum不得实现其他接口
 - 不支持泛型成员函数
-- 成员函数中不使用 Lambda
+- 成员函数中不使用Lambda
 - 不支持操作符重载
 - 不支持函数重载
 - 不支持命名参数
 - 仅允许使用基础数据类型：
     - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 不支持通过 extend 对 enum 进行扩展
+    - Bool类型
+    - Unit类型
+- 不支持通过extend对 enum进行扩展
 
 ### ObjC 使用 Cangjie 结构体
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的 struct 类型映射为 ObjC 的类。映射后，用户可：
+为实现Cangjie与 Objective-C的互操作，需将Cangjie的 struct类型映射为ObjC的类。映射后，用户可：
 
-- 在 ObjC 中调用 Cangjie 侧 public struct 的 public 实例方法、静态方法
-- 在 ObjC 中访问 Cangjie 侧 public struct 的 public 静态/非静态成员变量
-- 在 ObjC 中访问 Cangjie 侧 public struct 的 public 成员属性
-- 在 ObjC 函数中使用 Cangjie 侧 public struct 作为参数类型、返回值类型
+- 在ObjC中调用Cangjie侧 public struct的 public实例方法、静态方法
+- 在ObjC中访问Cangjie侧 public struct的 public静态/非静态成员变量
+- 在ObjC中访问Cangjie侧 public struct的 public成员属性
+- 在ObjC函数中使用Cangjie侧 public struct作为参数类型、返回值类型
 
 #### 示例
 
-Cangjie 源码：
+Cangjie源码：
 
 <!-- compile -->
 
@@ -1532,7 +1532,7 @@ public struct Vector {
 }
 ```
 
-生成的 ObjC 头文件与源文件：
+生成的ObjC头文件与源文件：
 
 ```ObjC
 // Vector.h
@@ -1648,27 +1648,27 @@ static struct RuntimeParam defaultCJRuntimeParams = {0};
 
 由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
 
-- Cangjie 结构体不得实现其他接口
+- Cangjie结构体不得实现其他接口
 - 不支持泛型成员函数
 - 不支持操作符重载函数
 - 不支持函数重载
-- 不支持 mut 函数
-- 不支持 ObjC 端对成员变量、成员属性赋值
+- 不支持mut函数
+- 不支持ObjC端对成员变量、成员属性赋值
 - 成员变量仅允许使用基础数据类型：
     - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 不支持通过 extend 对 struct 进行扩展
+    - Bool类型
+    - Unit类型
+- 不支持通过extend对 struct进行扩展
 
 ### ObjC 使用 Cangjie 类
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的类映射为 ObjC 的类。映射后，用户可在 ObjC 代码中，直接调用 Cangjie 侧公开类（public class）的公共实例方法与静态方法，如果被映射的 Cangjie 类为 open 类，则可以在 ObjC 侧继承 Cangjie 类，并重写它的公开方法。
+为实现Cangjie与 Objective-C的互操作，需将Cangjie的类映射为ObjC的类。映射后，用户可在ObjC代码中，直接调用Cangjie侧公开类（public class）的公共实例方法与静态方法，如果被映射的Cangjie类为open类，则可以在ObjC侧继承Cangjie类，并重写它的公开方法。
 
 #### 示例
 
 <!-- compile -->
 
-Cangjie 源码：
+Cangjie源码：
 
 ```cangjie
 // cangjie code
@@ -1695,7 +1695,7 @@ public class Vector {
 
 ```
 
-生成的 ObjC 头文件与源文件：
+生成的ObjC头文件与源文件：
 
 ```ObjC
 // Vector.h
@@ -1791,32 +1791,32 @@ static struct RuntimeParam defaultCJRuntimeParams = {0};
 
 由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
 
-- Cangjie class 不得实现其他接口
-- 非 open 类仅支持 public 成员函数映射，open 类支持 public 成员函数 和 protected open 成员函数，其它成员不会报错，不会映射到 ObjC 端
+- Cangjie class不得实现其他接口
+- 非open类仅支持public成员函数映射，open类支持public成员函数 和protected open成员函数，其它成员不会报错，不会映射到ObjC端
 - 不支持泛型成员函数
 - 不支持函数重载
-- 非 open 类成员函数参数和返回值允许使用基础数据类型（数值类型、Bool 类型和 Unit 类型）和本包定义的非 open public class 类型，open 类仅支持基本数据类型（数值类型、Bool 类型和 Unit 类型）
-- 不支持通过 extend 对 class 进行扩展
-- 不支持 Cangjie abstract 类
-- 基于 ObjC 的语言特性限制，ObjC 缺乏 protected 访问修饰符，Cangjie 的 protected 成员在映射后对 ObjC 外部代码可见
-- 基于 ObjC 的语言特性限制，Cangjie 的非 open 类在映射后仍可被 ObjC 继承，建议谨慎使用继承以避免设计问题
-- Cangjie class static 成员映射后，Cangjie 的静态成员映射后无法在 ObjC 子类中被重写，且暂不支持在 ObjC 子类中重新定义（redef）
-- 基于 Cangjie open class 生成的 ObjC 代码手动管理内存的要求限制，在编译时需禁用自动引用计数（Automatic Reference Counting，ARC）功能
+- 非open类成员函数参数和返回值允许使用基础数据类型（数值类型、Bool类型和Unit类型）和本包定义的非open public class类型，open类仅支持基本数据类型（数值类型、Bool类型和Unit类型）
+- 不支持通过extend对 class进行扩展
+- 不支持Cangjie abstract类
+- 基于ObjC的语言特性限制，ObjC缺乏protected访问修饰符，Cangjie的 protected成员在映射后对ObjC外部代码可见
+- 基于ObjC的语言特性限制，Cangjie的非open类在映射后仍可被ObjC继承，建议谨慎使用继承以避免设计问题
+- Cangjie class static成员映射后，Cangjie的静态成员映射后无法在ObjC子类中被重写，且暂不支持在ObjC子类中重新定义（redef）
+- 基于Cangjie open class生成的ObjC代码手动管理内存的要求限制，在编译时需禁用自动引用计数（Automatic Reference Counting，ARC）功能
 
 ### ObjC 使用 Cangjie 泛型数据类型
 
 #### ObjC 使用泛型类/结构体
 
-ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用泛型配置文件)
+ObjC使用Cangjie泛型类（非open类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用泛型配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持Cangjie大部分基础数值类型，详情请参见[规格限制](#规格限制)
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
-- class/struct 均参考如下示例：
+- class/struct均参考如下示例：
 
-    - Cangjie 侧源码
+    - Cangjie侧源码
 
     <!-- compile -->
 
@@ -1871,7 +1871,7 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
     ]
     ```
 
-    - 映射后的 ObjC 代码如下：
+    - 映射后的ObjC代码如下：
 
     ```ObjC
     #import <Foundation/Foundation.h>
@@ -2035,15 +2035,15 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
 
 #### ObjC 使用泛型枚举
 
-ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
+ObjC使用Cangjie泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持Cangjie大部分基础数值类型，详情请参见[规格限制](#规格限制)
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
 - 示例
-    - Cangjie 侧源码
+    - Cangjie侧源码
 
     <!-- compile -->
 
@@ -2109,7 +2109,7 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
     ]
     ```
 
-    - 映射后的 ObjC 代码如下：
+    - 映射后的ObjC代码如下：
 
     ```ObjC
     #import <Foundation/Foundation.h>
@@ -2347,15 +2347,15 @@ ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[�
 
 #### ObjC 使用泛型接口
 
-ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
+ObjC使用Cangjie泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#ObjC-使用-配置文件)
 
 - 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见[规格限制](#规格限制)
+    - 泛型类型支持Cangjie大部分基础数值类型，详情请参见[规格限制](#规格限制)
     - 支持多泛型参数用法
     - 支持在非静态函数、非静态属性中使用类型变元
 
 - 示例
-    - Cangjie 侧源码
+    - Cangjie侧源码
 
     <!-- compile -->
 
@@ -2407,7 +2407,7 @@ ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
     ]
     ```
 
-    - 映射后的 ObjC 代码如下：
+    - 映射后的ObjC代码如下：
 
     ```ObjC
     #import <Foundation/Foundation.h>
@@ -2438,12 +2438,12 @@ ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
 - 支持的基础类型：Int、Int8、Int16、Int32、Int64、UInt8、UInt16、UInt32、UInt64、Float32、Float64、Bool
 - 用户自定义类型的泛型形参若有上界，该上界类型不能包含泛型参数
 - 暂仅支持无内层类型形参的实例成员函数，其形参类型和返回类型允许使用外层类型形参
-- 暂不支持 Interface default 方法实现
-- 暂不支持 mut 关键字
+- 暂不支持Interface default方法实现
+- 暂不支持mut关键字
 
 ### ObjC 使用泛型配置文件
 
-配置文件采用 toml 格式进行配置，按照包级别对于符号以及泛型实例化信息进行控制，实例参考如下：
+配置文件采用toml格式进行配置，按照包级别对于符号以及泛型实例化信息进行控制，实例参考如下：
 
 ```toml
 [default]
@@ -2473,7 +2473,7 @@ generic_object_configuration = [
 ]
 ```
 
-对应 cangjie 侧源码如下：
+对应cangjie侧源码如下：
 
 <!-- compile -->
 
@@ -2500,39 +2500,39 @@ public class GenericClass<T> {
 
 - **[default]** 字段：全局默认配置，当包（package）未提供具体配置时，将采用此默认设置
 
-- **APIStrategy** 字段：符号可见性策略，用于控制 Cangjie 符号在目标语言中的默认可见性
+- **APIStrategy** 字段：符号可见性策略，用于控制Cangjie符号在目标语言中的默认可见性
 
-- **GenericTypeStrategy** 字段：泛型实例化策略，用于控制 Cangjie 泛型 API 在目标语言中的默认实例化范围
+- **GenericTypeStrategy** 字段：泛型实例化策略，用于控制Cangjie泛型API在目标语言中的默认实例化范围
 
 - **[[package]]** 字段：包级别的配置信息
 
     - **name** 字段：包的名称
 
     - **APIStrategy** 字段：当前包的符号可见性模式配置
-        - Full : 表示默认公开所有符号，通过 excluded_apis 列表排除特定符号
-        - None : 表示默认隐藏所有符号，通过 included_apis 列表包含特定符号
+        - Full : 表示默认公开所有符号，通过excluded_apis列表排除特定符号
+        - None : 表示默认隐藏所有符号，通过included_apis列表包含特定符号
 
     - **GenericTypeStrategy** 字段：当前包的泛型实例化模式配置
         - Partial : 需要对泛型进行指定类型的实例化
         - None : 不需要使用泛型功能
 
-    - **included_apis** 字段：当 APIStrategy 为 None 时，此列表中的完全限定名称对应的符号将在目标语言中公开。符号必须满足公开的语法要求，否则会生成警告。如需公开结构体的内部符号，必须先公开该结构体本身。如果结构体已在此列表中，会生成警告
+    - **included_apis** 字段：当APIStrategy为 None时，此列表中的完全限定名称对应的符号将在目标语言中公开。符号必须满足公开的语法要求，否则会生成警告。如需公开结构体的内部符号，必须先公开该结构体本身。如果结构体已在此列表中，会生成警告
 
-    - **excluded_apis** 字段：当 APIStrategy 为 Full 时，此列表中的完全限定名称对应的符号将在目标语言中隐藏，与 included_apis 功能相反
+    - **excluded_apis** 字段：当APIStrategy为 Full时，此列表中的完全限定名称对应的符号将在目标语言中隐藏，与included_apis功能相反
 
     - **generic_object_configuration** 字段：当前包中允许进行实例化的泛型类型及其符号的配置列表
 
         - 泛型数据结构 & 实例化类型
-            - name 字段：泛型数据类型（struct/class/interface/enum）的名称
-            - type_arguments 字段：实例化时使用的具体类型参数列表。多个泛型参数应按顺序配置，如 "Int32, Int64" 对应 <T, U>
+            - name字段：泛型数据类型（struct/class/interface/enum）的名称
+            - type_arguments字段：实例化时使用的具体类型参数列表。多个泛型参数应按顺序配置，如 "Int32, Int64" 对应 <T, U>
 
             ```toml
             { name = "GenericClass", type_arguments = ["Int64", "Int32"] }
             ```
 
         - 实例化数据结构 & 实例化符号
-            - name 字段：对应实例化后上述泛型数据类型(struct/class/interface/enum)对象名称
-            - symbols 字段：该实例化数据结构中允许公开的符号列表（包括变量、函数等）
+            - name字段：对应实例化后上述泛型数据类型(struct/class/interface/enum)对象名称
+            - symbols字段：该实例化数据结构中允许公开的符号列表（包括变量、函数等）
 
             ```toml
                 { name = "GenericClass<Int64>", symbols = [
@@ -2550,24 +2550,24 @@ public class GenericClass<T> {
 
 #### 符号控制规格约束
 
-配置文件需要用户保障配置的语法正确性，例如 B.funcA 为 exposed ，则 B 不允许设置为 hiddened（其他场景同理）。
+配置文件需要用户保障配置的语法正确性，例如B.funcA为 exposed ，则B 不允许设置为hiddened（其他场景同理）。
 
 ## 版本约束限制
 
-1. 当前版本的 ObjCInteropGen 功能存在如下约束限制：
+1. 当前版本的ObjCInteropGen功能存在如下约束限制：
 
-    - 不支持 ObjC 类/接口中的非静态成员变量转换
-    - 不支持 ObjC 类/接口中的指针属性转换
-    - 不支持对构造函数 init 方法的转换
-    - 不支持同时转换多个 .h 头文件
-    - 不支持 Bit fields 转换
+    - 不支持ObjC类/接口中的非静态成员变量转换
+    - 不支持ObjC类/接口中的指针属性转换
+    - 不支持对构造函数init方法的转换
+    - 不支持同时转换多个 .h头文件
+    - 不支持Bit fields转换
 
-2. 当前版本的 ObjC 互操作方案存在如下约束限制：
-    - 不支持 ObjC Mirror 和 Impl 类的实例逃逸出线程范围，即不能作为全局变量、静态变量，或作为这些变量的字段成员
-    - ObjC Mirror 和 Impl 类的实例不能作为其他 ObjC Mirror 或 Impl 对象的字段成员
-    - ObjC Mirror 和 Impl 类的实例不能被 Lambda 表达式块或 spawn 线程捕获
+2. 当前版本的ObjC互操作方案存在如下约束限制：
+    - 不支持ObjC Mirror和 Impl类的实例逃逸出线程范围，即不能作为全局变量、静态变量，或作为这些变量的字段成员
+    - ObjC Mirror和 Impl类的实例不能作为其他ObjC Mirror或 Impl对象的字段成员
+    - ObjC Mirror和 Impl类的实例不能被Lambda表达式块或spawn线程捕获
 
-3. 使用仓颉与 ObjC 互操作时，需额外下载依赖文件 `Cangjie.h` （[点此下载](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)），并在编译时通过编译选项指定其所在位置。
-4. 在仓颉中依赖了 Foundation 中的类型（例如 NSObject），且定义该类型的头文件（例如 NSObject.h）未在编译选项中显式指定时，由于实际 Foundation 已被导入，且该类型实际已在 Foundation 中被定义，因此当前可通过创建同名空头文件，保证编译正常。
-5. 当前 ObjCImpl 的构造函数实现使用 `[self doesNotRecognizeSelecor:_cmd];` 特性，运行时总是抛出异常，无需返回值，因此需关闭 `-Werror=return-type` 的编译期检查能力，保证编译正常。
-6. 当 ObjCImpl 声明中依赖了其他 ObjCMirror/ObjCImpl 对象类型时，在翻译到 ObjC 侧并由 Clang 编译时，该声明必须置于独立的头文件中。为此，应将该声明单独定义在一个仓颉源文件中，或显式创建一个同名的空头文件，以确保编译顺利进行。
+3. 使用仓颉与ObjC互操作时，需额外下载依赖文件 `Cangjie.h` （[点此下载](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)），并在编译时通过编译选项指定其所在位置。
+4. 在仓颉中依赖了Foundation中的类型（例如NSObject），且定义该类型的头文件（例如NSObject.h）未在编译选项中显式指定时，由于实际Foundation已被导入，且该类型实际已在Foundation中被定义，因此当前可通过创建同名空头文件，保证编译正常。
+5. 当前ObjCImpl的构造函数实现使用 `[self doesNotRecognizeSelecor:_cmd];` 特性，运行时总是抛出异常，无需返回值，因此需关闭 `-Werror=return-type` 的编译期检查能力，保证编译正常。
+6. 当ObjCImpl声明中依赖了其他ObjCMirror/ObjCImpl对象类型时，在翻译到ObjC侧并由Clang编译时，该声明必须置于独立的头文件中。为此，应将该声明单独定义在一个仓颉源文件中，或显式创建一个同名的空头文件，以确保编译顺利进行。

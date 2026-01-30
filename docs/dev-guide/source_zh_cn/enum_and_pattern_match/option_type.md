@@ -47,4 +47,4 @@ let a = None<Int64> // a: Option<Int64>
 let b = None<Bool> // b: Option<Bool>
 ```
 
-最后，关于 `Option` 的使用，请参见[使用 Option](../error_handle/use_option.md)。
+最后，关于 `Option` 的使用，请参见[使用Option](../error_handle/use_option.md)。

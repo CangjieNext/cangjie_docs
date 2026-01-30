@@ -16,7 +16,7 @@ func id<T>(a: T): T {
 
 其中， `(a: T)` 是函数声明的形参，它使用到了 `id` 函数声明的类型形参 `T`，并且在 `id` 函数的返回类型使用。
 
-再比如另一个复杂的例子，定义如下一个泛型函数 `composition`，该函数声明了 3 个类型形参，分别是 `T1, T2, T3`，其功能是把两个函数 `f: (T1) -> T2, g: (T2) -> T3` 复合成类型为 `(T1) -> T3` 的函数。
+再比如另一个复杂的例子，定义如下一个泛型函数 `composition`，该函数声明了3 个类型形参，分别是 `T1, T2, T3`，其功能是把两个函数 `f: (T1) -> T2, g: (T2) -> T3` 复合成类型为 `(T1) -> T3` 的函数。
 
 <!-- verify -composition -->
 
@@ -48,7 +48,7 @@ main() {
 }
 ```
 
-这里，复合两个 `(Int64) -> Int64` 的函数，将 9 先乘以 2，再加 10，结果会是 28。
+这里，复合两个 `(Int64) -> Int64` 的函数，将9 先乘以2，再加10，结果会是28。
 
 <!-- verify -composition -->
 
@@ -84,7 +84,7 @@ true
 
 ## 泛型成员函数
 
-class、struct、enum 与 interface 的成员函数可以是泛型的。例如：
+class、struct、enum与 interface的成员函数可以是泛型的。例如：
 
 <!-- verify -->
 
@@ -160,7 +160,7 @@ eoo1
 eoo2
 ```
 
-在为类型使用 extend 声明进行扩展时，扩展中的函数也可以是泛型的，例如可以为 `Int64` 类型增加一个泛型成员函数：
+在为类型使用extend声明进行扩展时，扩展中的函数也可以是泛型的，例如可以为 `Int64` 类型增加一个泛型成员函数：
 
 <!-- verify -->
 
@@ -187,7 +187,7 @@ twelve
 
 ## 静态泛型函数
 
-interface、class、struct、enum 与 extend 中可以定义静态泛型函数，例如下例 `ToPair` class 中从 `ArrayList` 中返回一个元组：
+interface、class、struct、enum与 extend中可以定义静态泛型函数，例如下例 `ToPair` class中从 `ArrayList` 中返回一个元组：
 
 <!-- run -->
 

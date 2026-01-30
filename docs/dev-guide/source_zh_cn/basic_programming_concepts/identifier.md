@@ -2,7 +2,7 @@
 
 在仓颉编程语言中，开发者可以给一些程序元素命名，这些名字被称为“标识符”。
 
-学习标识符之前，需要了解一些 Unicode 字符集概念。在 Unicode 标准中，`XID_Start` 和 `XID_Continue` 属性用于标记可以作为 Unicode 标识符（Identifier）的起始字符和后续字符，其详细定义请参见 [Unicode 标准文档](https://www.unicode.org/reports/tr31/tr31-37.html)。其中， `XID_Start` 包含中文和英文等字符，`XID_Continue` 包含中文、英文和阿拉伯数字等字符。仓颉语言使用 Unicode 标准 15.0.0 。
+学习标识符之前，需要了解一些Unicode字符集概念。在Unicode标准中，`XID_Start` 和 `XID_Continue` 属性用于标记可以作为Unicode标识符（Identifier）的起始字符和后续字符，其详细定义请参见 [Unicode标准文档](https://www.unicode.org/reports/tr31/tr31-37.html)。其中， `XID_Start` 包含中文和英文等字符，`XID_Continue` 包含中文、英文和阿拉伯数字等字符。仓颉语言使用Unicode标准15.0.0 。
 
 仓颉编程语言的标识符分为普通标识符和原始标识符两类，它们遵从不同的命名规则。
 
@@ -11,7 +11,7 @@
 - 由 `XID_Start` 字符开头，后接任意长度的 `XID_Continue` 字符。
 - 由一个`_`开头，后接至少一个 `XID_Continue` 字符。
 
-仓颉把所有标识符识别为 [Normalization Form C (NFC)](https://www.unicode.org/reports/tr15/tr15-53.html) 后的形式。两个标识符如果在 NFC 后相等，则被认为是相同的标识符。
+仓颉把所有标识符识别为 [Normalization Form C (NFC)](https://www.unicode.org/reports/tr15/tr15-53.html) 后的形式。两个标识符如果在NFC后相等，则被认为是相同的标识符。
 
 例如，以下每行字符串都是合法的普通标识符：
 

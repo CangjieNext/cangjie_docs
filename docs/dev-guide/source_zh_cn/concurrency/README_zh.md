@@ -5,4 +5,4 @@
 - [访问线程](concurrency/use_thread.md)
 - [终止线程](concurrency/terminal_thread.md)
 - [同步机制](concurrency/sync.md)
-- [线程睡眠指定时长 sleep](concurrency/sleep.md)
+- [线程睡眠指定时长sleep](concurrency/sleep.md)

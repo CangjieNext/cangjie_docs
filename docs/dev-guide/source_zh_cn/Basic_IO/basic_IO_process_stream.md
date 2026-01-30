@@ -8,13 +8,13 @@
 
 ## 缓冲流
 
-由于涉及磁盘的 I/O 操作相比内存的 I/O 操作要慢很多，所以对于高频次且小数据量的读写操作来说，不带缓冲的数据流效率很低，每次读取和写入数据都会带来大量的 I/O 耗时。而带缓冲的数据流，可以多次读写数据，但不触发磁盘 I/O 操作，只是先放到内存里。等凑够了缓冲区大小的时候再一次性操作磁盘，这种方式可以显著减少磁盘操作次数，从而提升性能表现。
+由于涉及磁盘的I/O操作相比内存的I/O操作要慢很多，所以对于高频次且小数据量的读写操作来说，不带缓冲的数据流效率很低，每次读取和写入数据都会带来大量的I/O耗时。而带缓冲的数据流，可以多次读写数据，但不触发磁盘I/O操作，只是先放到内存里。等凑够了缓冲区大小的时候再一次性操作磁盘，这种方式可以显著减少磁盘操作次数，从而提升性能表现。
 
 仓颉编程语言标准库提供了 `BufferedInputStream` 和 `BufferedOutputStream` 这两个类型用来提供缓冲功能。
 
 使用 `BufferedInputStream` 和 `BufferedOutputStream` 类型需要导入 `io` 包。
 
-导入 io 包示例：
+导入io包示例：
 
 <!-- run -->
 
@@ -28,7 +28,7 @@ import std.io.*
 
 如果构造一个 `BufferedInputStream`，只需要在构造函数中传入另一个输入流。如果需要指定缓冲区的大小，也可以额外传入 `capacity` 参数进行指定。
 
-BufferedInputStream 构造示例：
+BufferedInputStream构造示例：
 
 <!-- run -->
 
@@ -48,7 +48,7 @@ main(): Unit {
 }
 ```
 
-`BufferedOutputStream` 的作用是为另一个输出流添加缓冲的功能。BufferedOutputStream 也是通过一个内部缓冲数组实现的。
+`BufferedOutputStream` 的作用是为另一个输出流添加缓冲的功能。BufferedOutputStream也是通过一个内部缓冲数组实现的。
 
 当通过 `BufferedOutputStream` 来向输出流写入数据时，`write` 的数据会先写入内部缓冲数组中；当缓冲区中的数据被填满之后，`BufferedOutputStream` 会将缓冲区的数据一次性写入输出流中，然后清空缓冲区再次被写入；如此反复，直到写完所有的数据。
 
@@ -56,7 +56,7 @@ main(): Unit {
 
 如果构造一个 `BufferedOutputStream`，只需要在构造函数中传入另一个输出流。如果需要指定缓冲区的大小，也可以额外传入 `capacity` 参数指定。
 
-BufferedOutputStream 构造示例：
+BufferedOutputStream构造示例：
 
 <!-- run -->
 
@@ -87,7 +87,7 @@ main(): Unit {
 
 使用 `StringReader` 和 `StringWriter` 类型需要导入 `io` 包：
 
-导入 io 包示例：
+导入io包示例：
 
 <!-- run -->
 
@@ -99,7 +99,7 @@ import std.io.*
 
 如果构造 `StringReader`，传入另一个输入流即可。
 
-StringReader 使用示例：
+StringReader使用示例：
 
 <!-- run -->
 
@@ -122,7 +122,7 @@ main(): Unit {
 
 如果构造 `StringWriter`，传入另一个输出流即可。
 
-StringWriter 使用示例：
+StringWriter使用示例：
 
 <!-- run -->
 

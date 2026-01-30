@@ -6,7 +6,7 @@
 
 ## `cjc` 基本使用方法
 
-本节介绍 `cjc` 的基本使用方法。关于编译选项详情，请查阅 [cjc 编译选项](../Appendix/compile_options.md)章节。
+本节介绍 `cjc` 的基本使用方法。关于编译选项详情，请查阅 [cjc编译选项](../Appendix/compile_options.md)章节。
 
 `cjc` 的使用方式如下：
 

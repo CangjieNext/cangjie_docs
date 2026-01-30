@@ -4,7 +4,7 @@
 
 在上面的例子中，新创建的线程会由于主线程结束而提前结束，在缺乏顺序保证的情况下，甚至可能会出现新创建的线程还来不及得到执行就退出了。可以通过 `spawn` 表达式的返回值，来等待线程执行结束。
 
-`spawn` 表达式的返回类型是 `Future<T>`，其中 `T` 是类型变元，其类型与 lambda 表达式的返回类型一致。当调用 `Future<T>` 的 `get()` 成员函数时，它将等待它的线程执行完成。
+`spawn` 表达式的返回类型是 `Future<T>`，其中 `T` 是类型变元，其类型与lambda表达式的返回类型一致。当调用 `Future<T>` 的 `get()` 成员函数时，它将等待它的线程执行完成。
 
 `Future<T>` 的原型声明如下：
 
@@ -117,7 +117,7 @@ Main thread
     result = 1
     ```
 
-- `get(timeout: Duration): T`：阻塞等待该 `Future<T>` 所代表的线程执行结束，并返回执行结果，当到达超时时间 timeout 时，如果该线程还没有执行结束，将会抛出异常 TimeoutException。如果 `timeout <= Duration.Zero`, 其行为与 `get()` 相同。
+- `get(timeout: Duration): T`：阻塞等待该 `Future<T>` 所代表的线程执行结束，并返回执行结果，当到达超时时间timeout时，如果该线程还没有执行结束，将会抛出异常TimeoutException。如果 `timeout <= Duration.Zero`, 其行为与 `get()` 相同。
 
     示例代码如下：
 
@@ -152,7 +152,7 @@ Main thread
 
 每个 `Future<T>` 对象都有一个对应的仓颉线程，以 `Thread` 对象为表示。`Thread` 类主要被用于访问线程的属性信息，例如线程标识等。需要注意的是，`Thread` 无法直接被实例化构造对象，仅能从 `Future<T>` 的 `thread` 成员属性获取对应的 `Thread` 对象，或是通过 `Thread` 的静态成员属性 `currentThread` 得到当前正在执行线程对应的 `Thread` 对象。
 
-`Thread` 类的部分方法定义如下（完整的方法描述可参考《仓颉编程语言库 API》）。
+`Thread` 类的部分方法定义如下（完整的方法描述可参考《仓颉编程语言库API》）。
 
 <!-- code_no_check -->
 ```cangjie
@@ -182,7 +182,7 @@ main(): Unit {
 }
 ```
 
-输出结果如下（其中线程 id 会变化，也可能为其他值）:
+输出结果如下（其中线程id会变化，也可能为其他值）:
 
 ```text
 New thread id: 1
