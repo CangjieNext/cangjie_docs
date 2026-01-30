@@ -2,7 +2,7 @@
 
 ## 功能简介
 
-`CJLint(Cangjie Lint)`是一款静态检查工具，该工具是基于仓颉语言编程规范开发。通过它可以识别代码中不符合编程规范的问题，帮助开发者发现代码中的漏洞，写出满足 Clean Source 要求的仓颉代码。
+`CJLint(Cangjie Lint)` 是一款静态检查工具，该工具是基于仓颉语言编程规范开发。通过它可以识别代码中不符合编程规范的问题，帮助开发者发现代码中的漏洞，写出满足 Clean Source 要求的仓颉代码。
 
 ## 使用说明
 
@@ -41,7 +41,7 @@ cjlint -f "fileDir1 fileDir2" [option] fileDir...
 
 > **注意：**
 >
-> `-f` 后面指定的是*.cj 文件所在`src`目录。
+> `-f` 后面指定的是*.cj 文件所在 `src` 目录。
 
 正例：
 
@@ -59,20 +59,20 @@ cjlint -f xxx/xxx/src/xxx.cj
 >
 > 当前工具支持目录扫描，暂不支持对单源码文件的独立检查，建议开发者提供单包路径作为输入。
 
-`-r` 指定生成扫描报告的格式，目前支持`json`格式和`csv`格式。
+`-r` 指定生成扫描报告的格式，目前支持 `json` 格式和 `csv` 格式。
 
-`-r`需要与`-o`选项配合使用，如果没有`-o`指定输出到文件，即使指定了`-r`也不会生成扫描报告。如果指定了`-o`没有指定`-r`，那么默认生成`json`格式的扫描报告。
+`-r` 需要与 `-o` 选项配合使用，如果没有 `-o` 指定输出到文件，即使指定了 `-r` 也不会生成扫描报告。如果指定了 `-o` 没有指定 `-r`，那么默认生成 `json` 格式的扫描报告。
 
 ```bash
 cjlint -f ./src -r csv -o ./report         # 生成report.csv文件
 cjlint -f ./src -r csv -o ./output/report  # 在output目录下生成report.csv文件
 ```
 
-`-c`, `-m` 在开发者需要时用以指定`config`和`modules`所在的目录路径。
+`-c`, `-m` 在开发者需要时用以指定 `config` 和 `modules` 所在的目录路径。
 
-`cjlint`默认使用其所在目录下的`config`和`modules`作为配置和依赖目录。开发者可通过命令行选项 `-c` 和 `-m` 指定其他目录路径。
+`cjlint` 默认使用 `CANGJIE_HOME`（即 `sdk`）路径下的 `tools/config` 和 `modules` 作为配置和依赖目录。开发者可通过命令行选项 `-c` 和 `-m` 指定其他目录路径。
 
-例：指定的 config 和 modules 的路径分别为：`./tools/cjlint/config` 和 `./tools/cjlint/modules`。则`config`和`modules`所在的目录路径同为`./tools/cjlint`, 所以命令应为：
+例：指定的 config 和 modules 的路径分别为：`./tools/cjlint/config` 和 `./tools/cjlint/modules`。则 `config` 和 `modules` 所在的目录路径同为 `./tools/cjlint`, 所以命令应为：
 
 ```bash
 cjlint -f ./src -c ./tools/cjlint -m ./tools/cjlint
@@ -89,9 +89,9 @@ cjlint --import-path "fileDir1 fileDir2"
 
 ## 规则级告警屏蔽
 
-可执行文件`cjlint`同目录下的`config`配置目录中包含`cjlint_rule_list.json`和`exclude_lists.json`两个配置文件。`cjlint_rule_list.json`为规则列表配置文件，用于决定执行哪些规则检查。`exclude_lists.json`为告警屏蔽配置文件，用于屏蔽特定规则的告警。
+`CANGJIE_HOME`（即 `sdk`）路径下的 `tools/config` 配置目录中包含 `cjlint_rule_list.json` 和 `exclude_lists.json` 两个配置文件。`cjlint_rule_list.json` 为规则列表配置文件，用于决定执行哪些规则检查。`exclude_lists.json` 为告警屏蔽配置文件，用于屏蔽特定规则的告警。
 
-例：若开发者只想检查如下 5 条规则，则`cjlint_rule_list.json`配置文件中只添加要检查的 5 条规则。
+例：若开发者只想检查如下 5 条规则，则 `cjlint_rule_list.json` 配置文件中只添加要检查的 5 条规则。
 
 ```json
 {
@@ -105,11 +105,11 @@ cjlint --import-path "fileDir1 fileDir2"
 }
 ```
 
-例：若开发者想要屏蔽某一条规则的某一条告警，可以在`exclude_lists.json`配置文件中添加屏蔽信息。
+例：若开发者想要屏蔽某一条规则的某一条告警，可以在 `exclude_lists.json` 配置文件中添加屏蔽信息。
 
 > **注意：**
 >
-> `path`不必填写绝对路径，但必须有`xxx.cj`格式，为模糊匹配。`line`为告警行号，为精确匹配。`colum`为告警列号，可选择性填写进行列号精确匹配。
+> `path` 不必填写绝对路径，但必须有 `xxx.cj` 格式，为模糊匹配。`line` 为告警行号，为精确匹配。`colum` 为告警列号，可选择性填写进行列号精确匹配。
 
 ```json
 {
@@ -280,7 +280,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 - G.ITF.03 类型定义时避免同时声明实现父接口和子接口。
 - G.ITF.04 尽量通过泛型约束使用接口，而不是直接将接口作为类型使用。
 - G.OPR.01 尽量避免违反使用习惯的操作符重载。
-- G.OPR.02 尽量避免在枚举类型内定义`()`操作符重载函数。
+- G.OPR.02 尽量避免在枚举类型内定义 `()` 操作符重载函数。
 - G.ENU.01 避免枚举的构造成员与顶层元素同名。
 - G.ENU.02 尽量避免不同的 enum 的 constructor 之间不必要的重载。
 - G.VAR.01 优先使用不可变变量。
@@ -311,7 +311,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 - G.SER.01 禁止序列化未加密的敏感数据。
 - G.SER.02 防止反序列化被利用来绕过构造方法中的安全操作。
 - G.SER.03 保证序列化和反序列化的变量类型一致。
-- G.SEC.01 进行安全检查的方法禁止声明为`open`。
+- G.SEC.01 进行安全检查的方法禁止声明为 `open`。
 - P.03 对外部对象进行安全检查时需要进行防御性拷贝。
 - G.OTH.01 禁止在日志中保存口令、密钥和其他敏感数据。
 - G.OTH.02 禁止将敏感信息硬编码在程序中。
@@ -332,17 +332,17 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
     lock() 函数和 unlock() 函数赋值给变量，赋值后的变量再去加解锁的场景，该规则检查不覆盖。
 
 - G.OTH.03 暂不支持宏检查。
-- 只有当宏包在正确的路径下时，`cjlint`才能支持宏检查。
+- 只有当宏包在正确的路径下时，`cjlint` 才能支持宏检查。
 
     例：a.cj 为宏包源码，其正确路径应为 xxx/src/a/a.cj。
 
-- `cjlint`只有在宏被调用时才能对其进行检查，且无法对宏包中的冗余代码进行检查。
+- `cjlint` 只有在宏被调用时才能对其进行检查，且无法对宏包中的冗余代码进行检查。
 
 ## 支持语法禁用检查
 
 1. `cjlint` 可以通过将 G.SYN.01 添加至 `cjlint_rule_list.json` 以启用禁用语法的检查。如果使用了禁用的语法元素，`cjlint` 将会报错。
 
-2. 当前`cjlint`所支持检查的禁止使用语法如表中所示:
+2. 当前 `cjlint` 所支持检查的禁止使用语法如表中所示:
 
    | 禁用语法     | 关键词          | 说明                                             |
    | ------------ | --------------- | ------------------------------------------------ |
