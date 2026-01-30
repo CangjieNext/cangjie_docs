@@ -75,23 +75,23 @@ x + y = 5
 
 依次查看代码的每个部分：
 
-- 第 1 行：`macro package define`
+- 第1行：`macro package define`
 
-  宏必须声明在独立的包中（不能和其他 public 函数一起），含有宏的包使用 `macro package` 来声明。这里声明了一个名为 `define` 的宏包。
+  宏必须声明在独立的包中（不能和其他public函数一起），含有宏的包使用 `macro package` 来声明。这里声明了一个名为 `define` 的宏包。
 
-- 第 2 行：`import std.ast.*`
+- 第2行：`import std.ast.*`
 
   实现宏需要的数据类型，例如 `Tokens` 和后面会讲到的语法节点类型，位于仓颉标准库的 `ast` 包中，因此任何宏的实现都需要首先引入 `ast` 包。
 
-- 第 3 行：`public macro dprint(input: Tokens): Tokens`
+- 第3行：`public macro dprint(input: Tokens): Tokens`
 
   在这里声明一个名为 `dprint` 的宏。由于这个宏是一个非属性宏（之后会解释这个概念），它接受一个类型为 `Tokens` 的参数。该输入代表传给宏的程序片段。宏的返回值也是一个程序片段。
 
-- 第 4 行：`let inputStr = input.toString()`
+- 第4行：`let inputStr = input.toString()`
 
   在宏的实现中，首先将输入的程序片段转化为字符串。在前面的测试案例中，`inputStr` 成为 `"x"` 或 `"x + y"`
 
-- 第 5-7 行：`let result = quote(...)`
+- 第5-7行：`let result = quote(...)`
 
   这里 [`quote` 表达式](./Tokens_types_and_quote_expressions.md#quote-表达式和插值)是用于构造 [`Tokens`](./Tokens_types_and_quote_expressions.md#tokens-类型) 的一种表达式，它将括号内的程序片段转换为 `Tokens`。在 `quote` 的输入中，可以使用插值 `$(...)` 来将括号内的表达式转换为 `Tokens`，然后插入到 `quote` 构建的 `Tokens` 中。对于以上代码，`$(inputStr)` 中插入了 `inputStr` 字符串的值（包含字符串两端的引号），`$(input)` 中插入了 `input`，即输入的程序片段。因此，如果输入的表达式是 `x + y`，那么形成的`Tokens`为：
 
@@ -102,7 +102,7 @@ x + y = 5
   println(x + y)
   ```
 
-- 第 8 行：`return result`
+- 第8行：`return result`
 
   最后，将构造出来的代码片段返回，这两行代码片段将被编译，运行时将输出 `x + y = 5`。
 

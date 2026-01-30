@@ -12,8 +12,8 @@
 
 1. 首先请前往仓颉官方发布渠道，下载适配平台架构的安装包：
 
-    - `cangjie-sdk-linux-x64-x.y.z.tar.gz`：适用于 x86_64 架构 Linux 系统的仓颉工具链。
-    - `cangjie-sdk-linux-aarch64-x.y.z.tar.gz`：适用于 aarch64 架构 Linux 系统的仓颉工具链。
+    - `cangjie-sdk-linux-x64-x.y.z.tar.gz`：适用于x86_64架构Linux系统的仓颉工具链。
+    - `cangjie-sdk-linux-aarch64-x.y.z.tar.gz`：适用于aarch64架构Linux系统的仓颉工具链。
 
 2. 请将下载的安装包解压到合适的目录。
 
@@ -31,8 +31,8 @@
 
 1. 首先请前往仓颉官方发布渠道，下载适配平台架构的安装包：
 
-    - `cangjie-sdk-mac-x64-x.y.z.tar.gz`：适用于 x86_64 架构 macOS 系统的仓颉工具链。
-    - `cangjie-sdk-mac-aarch64-x.y.z.tar.gz`：适用于 aarch64/arm64 架构 macOS 系统的仓颉工具链。
+    - `cangjie-sdk-mac-x64-x.y.z.tar.gz`：适用于x86_64架构macOS系统的仓颉工具链。
+    - `cangjie-sdk-mac-aarch64-x.y.z.tar.gz`：适用于aarch64/arm64架构macOS系统的仓颉工具链。
 
 2. 请将下载的安装包解压到合适的目录。
 
@@ -50,7 +50,7 @@
 
 1. 首先请前往仓颉官方发布渠道，下载适配平台架构的安装包：
 
-    - `cangjie-sdk-windows-x64-x.y.z.zip`：适用于 x86_64 架构 Windows 系统的仓颉工具链。
+    - `cangjie-sdk-windows-x64-x.y.z.zip`：适用于x86_64架构Windows系统的仓颉工具链。
 
 2. 请将下载的安装包解压到合适的目录。
 
@@ -60,19 +60,19 @@
 
 3. 此处为开发者提供三种环境下部署 `runtime` 的方法，可以根据使用习惯及环境配置，选择一种执行（其中 `${CANGJIE_HOME}` 请修改为 `cangjie` 目录所在的路径，`${hw_arch}` 请修改为对应的硬件架构）：
 
-    - 若使用 Windows 命令提示符（CMD）环境，请执行：
+    - 若使用Windows命令提示符（CMD）环境，请执行：
 
         ```bash
         set "PATH=${CANGJIE_HOME}\runtime\lib\windows_x86_64_llvm;%PATH%;"
         ```
 
-    - 若使用 PowerShell 环境，请执行：
+    - 若使用PowerShell环境，请执行：
 
         ```bash
         $env:PATH = "${CANGJIE_HOME}\runtime\lib\windows_x86_64_llvm;" + $env:Path
         ```
 
-    - 若使用 MSYS shell、bash 等环境，请执行：
+    - 若使用MSYS shell、bash等环境，请执行：
 
         ```bash
         export PATH=${CANGJIE_HOME}/runtime/lib/windows_x86_64_llvm

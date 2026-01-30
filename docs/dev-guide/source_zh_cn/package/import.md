@@ -278,7 +278,7 @@ func bar() {
 
 - `private import` 表示导入的内容仅当前文件内可访问，`private` 是 `import` 的默认修饰符，不写访问修饰符的 `import` 等价于 `private import`。
 - `internal import` 表示导入的内容在当前包及其子包（包括子包的子包）均可访问。非当前包访问需要显式 `import`。
-- `protected import` 表示导入的内容在当前 module 内都可访问。非当前包访问需要显式 `import`。
+- `protected import` 表示导入的内容在当前module内都可访问。非当前包访问需要显式 `import`。
 - `public import` 表示导入的内容外部都可访问。非当前包访问需要显式 `import`。
 
 在下面的例子中，`b` 是 `a` 的子包，在 `a` 中通过 `public import` 重导出了 `b` 中定义的函数 `f`。

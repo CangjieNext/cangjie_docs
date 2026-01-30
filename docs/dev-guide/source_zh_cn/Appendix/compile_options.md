@@ -17,8 +17,8 @@
 
 - `exe` 模式下会生成可执行文件。
 - `staticlib` 模式下会生成静态库文件（ `.a` 文件）。
-- `dylib` 模式下会生成动态库文件（Linux 平台为 `.so` 文件、Windows 平台为 `.dll` 文件，macOS 平台为 `.dylib` 文件）。
-- `chir` 模式下会生成 CHIR 编译阶段的序列化产物（ `.chir` 文件）
+- `dylib` 模式下会生成动态库文件（Linux平台为 `.so` 文件、Windows平台为 `.dll` 文件，macOS平台为 `.dylib` 文件）。
+- `chir` 模式下会生成CHIR编译阶段的序列化产物（ `.chir` 文件）
 
 > **注意：**
 >
@@ -32,7 +32,7 @@
 $ cjc tool.cj --output-type=dylib
 ```
 
-可以将 `tool.cj` 编译成一个动态链接库，在 Linux 平台上，`cjc` 会生成一个名为 `libtool.so` 的动态链接库文件。
+可以将 `tool.cj` 编译成一个动态链接库，在Linux平台上，`cjc` 会生成一个名为 `libtool.so` 的动态链接库文件。
 
 **值得注意的是**，若编译可执行程序时链接了仓颉的动态库文件，必须同时指定 `--dy-std` 选项，详情请见 [`--dy-std` 选项说明](#--dy-std)。
 
@@ -108,7 +108,7 @@ cjc main.cj -o a.out
 
 给定的库文件会被直接传给链接器，此编译选项一般需要和 `--library-path <value>` 配合使用。
 
-文件名的格式应为 `lib[arg].[extension]`。当需要链接库 `a` 时，可以使用选项 `-l a`，库文件搜索目录下的 `liba.a`、`liba.so`（或链接 Windows 目标程序时会搜索 `liba.dll`）等文件会被链接器搜索到并根据需要被链接至最终输出中。
+文件名的格式应为 `lib[arg].[extension]`。当需要链接库 `a` 时，可以使用选项 `-l a`，库文件搜索目录下的 `liba.a`、`liba.so`（或链接Windows目标程序时会搜索 `liba.dll`）等文件会被链接器搜索到并根据需要被链接至最终输出中。
 
 链接 `Windows` 目标程序默认使用 `ld.lld` 链接器, 会搜索 `.dll` 和 `.a` 后缀的库文件。如果要链接 `.lib` 后缀的库文件，请使用选项 `--link-options=/path/to/lib[arg].lib` 指定路径，`[arg]` 为链接库的名称。
 
@@ -126,7 +126,7 @@ cjc --link-options=/path/to/libssl.lib --link-options=/path/to/libcrypto.lib
 
 `--library-path <value>` 指定的路径会被加入链接器的库文件搜索路径。此外，环境变量 `LIBRARY_PATH` 中指定的路径也会被加入链接器的库文件搜索路径中，通过 `--library-path` 指定的路径会比 `LIBRARY_PATH` 中的路径拥有更高的优先级。
 
-假设有从以下 C 语言源文件通过 C 语言编译器编译得到的动态库文件 `libcProg.so`，
+假设有从以下C语言源文件通过C语言编译器编译得到的动态库文件 `libcProg.so`，
 
 ```c
 #include <stdio.h>
@@ -204,7 +204,7 @@ Hello World
 
 > **注意：**
 >
-> Windows 版本暂不支持输出带颜色渲染的错误信息。
+> Windows版本暂不支持输出带颜色渲染的错误信息。
 
 指定错误信息的输出格式，默认为 `default` 。
 
@@ -236,11 +236,11 @@ Hello World
 
 ### `--import-path <value>` <sup>[frontend]</sup>
 
-指定导入模块的 AST 文件的搜索路径。
+指定导入模块的AST文件的搜索路径。
 
-> **说明：** 关于 CJO 文件的详细信息，请参见 [CJO 产物说明](cjo_artifacts.md)。
+> **说明：** 关于CJO文件的详细信息，请参见 [CJO 产物说明](cjo_artifacts.md)。
 
-假设已有以下目录结构，`libs/myModule` 目录中包含 `myModule` 模块的库文件和 `log` 包的 AST 导出文件：
+假设已有以下目录结构，`libs/myModule` 目录中包含 `myModule` 模块的库文件和 `log` 包的AST导出文件：
 
 ```text
 .
@@ -263,13 +263,13 @@ main() {
 }
 ```
 
-可以通过使用 `--import-path ./libs` 来将 `./libs` 加入导入模块的 AST 文件搜索路径，`cjc` 会使用 `./libs/myModule/myModule.log.cjo` 文件来对 `main.cj` 文件进行语义检查与编译。
+可以通过使用 `--import-path ./libs` 来将 `./libs` 加入导入模块的AST文件搜索路径，`cjc` 会使用 `./libs/myModule/myModule.log.cjo` 文件来对 `main.cj` 文件进行语义检查与编译。
 
 `--import-path` 提供与 `CANGJIE_PATH` 环境变量相同的功能，但通过 `--import-path` 设置的路径拥有更高的优先级。
 
 ### `--common-part-cjo=<value>` <sup>[frontend]</sup>
 
-构建平台部分代码使用，指定导入公共部分代码构建生成的 cjo 文件的路径。
+构建平台部分代码使用，指定导入公共部分代码构建生成的cjo文件的路径。
 
 > **注意：**
 >
@@ -279,7 +279,7 @@ main() {
 
 通过 `--scan-dependency` 指令可以获得指定包源码或者一个包的 `cjo` 文件对于其他包的直接依赖以及其他信息，以 `json` 格式输出。
 
-> **说明：** 关于 CJO 文件的详细信息，请参见 [CJO 产物说明](cjo_artifacts.md)。
+> **说明：** 关于CJO文件的详细信息，请参见 [CJO 产物说明](cjo_artifacts.md)。
 
 <!-- code_check_manual -->
 
@@ -365,7 +365,7 @@ cjc --scan-dependency pkgA.cjo
 
 表明当前编译包没有子包。
 
-开启该选项后，编译器可以进一步缩减 code size 大小。
+开启该选项后，编译器可以进一步缩减code size大小。
 
 ### `--warn-off`, `-Woff <value>` <sup>[frontend]</sup>
 
@@ -387,7 +387,7 @@ cjc --scan-dependency pkgA.cjo
 
 限制编译器打印错误个数的上限。
 
-参数 `<value>` 可以为 `all` 或一个非负整数。当参数为 `all` 时，编译器会打印编译过程中生成的所有错误；当参数为非负整数 `N` 时，编译器最多会打印 `N` 个错误。此选项默认值为 8。
+参数 `<value>` 可以为 `all` 或一个非负整数。当参数为 `all` 时，编译器会打印编译过程中生成的所有错误；当参数为非负整数 `N` 时，编译器最多会打印 `N` 个错误。此选项默认值为8。
 
 ### `--output-dir <value>` <sup>[frontend]</sup>
 
@@ -407,23 +407,23 @@ cjc --scan-dependency pkgA.cjo
 
 **值得注意的是：**
 
-`--static` 选项适用于 Linux Windows MacOS 平台。
+`--static` 选项适用于Linux Windows MacOS平台。
 
 ### `--static-std`
 
-静态链接仓颉库的 std 模块。
+静态链接仓颉库的std模块。
 
 此选项仅在编译动态链接库或可执行文件时生效。
 
-当编译可执行程序时（即指定了 `--output-type=exe` 时），`cjc` 默认静态链接仓颉库的 std 模块。
+当编译可执行程序时（即指定了 `--output-type=exe` 时），`cjc` 默认静态链接仓颉库的std模块。
 
 ### `--dy-std`
 
-动态链接仓颉库的 std 模块。
+动态链接仓颉库的std模块。
 
 此选项仅在编译动态链接库或可执行文件时生效。
 
-当编译动态库时（即指定了 `--output-type=dylib` 时），`cjc` 默认动态链接仓颉库的 std 模块。
+当编译动态库时（即指定了 `--output-type=dylib` 时），`cjc` 默认动态链接仓颉库的std模块。
 
 **值得注意的是：**
 
@@ -508,7 +508,7 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--compile-as-exe`
 
-该选项使能会隐藏 LTO 模式下加载的 bc 文件符号可见性，仅保留 package init 符号可见性。在此基础上，LLVM 原生优化会在此基础上执行激进的无用符号删除。该选项仅在 `--lto` 开启下有效。
+该选项使能会隐藏LTO模式下加载的bc文件符号可见性，仅保留package init符号可见性。在此基础上，LLVM原生优化会在此基础上执行激进的无用符号删除。该选项仅在 `--lto` 开启下有效。
 
 ```shell
 # 编译通过
@@ -521,9 +521,9 @@ $ cjc test.cj --compile-as-exe
 
 使能插桩编译，生成携带插桩信息的可执行程序。
 
-编译 macOS 与 Windows 目标时暂不支持使用该功能。
+编译macOS与Windows目标时暂不支持使用该功能。
 
-`PGO`（全称 `Profile-Guided Optimization`）是一种常用的编译优化技术，通过使用运行时 profiling 信息进一步提升程序性能。`Instrumentation-based PGO` 是使用插桩信息的一种 `PGO` 优化手段，它通常包含三个步骤：
+`PGO`（全称 `Profile-Guided Optimization`）是一种常用的编译优化技术，通过使用运行时profiling信息进一步提升程序性能。`Instrumentation-based PGO` 是使用插桩信息的一种 `PGO` 优化手段，它通常包含三个步骤：
 
 1. 编译器对源码插桩编译，生成插桩后的可执行程序（instrumented program）；
 2. 运行插桩后的可执行程序，生成配置文件；
@@ -540,7 +540,7 @@ $ ./test
 
 使用指定 `profdata` 配置文件指导编译并生成优化后的可执行程序。
 
-编译 macOS 目标时暂不支持使用该功能。
+编译macOS目标时暂不支持使用该功能。
 
 > **注意：**
 >
@@ -555,14 +555,14 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 
 ### `--target <value>` <sup>[frontend]</sup>
 
-指定编译的目标平台的 triple。
+指定编译的目标平台的triple。
 
 参数 `<value>` 一般为符合以下格式的字符串：`<arch>(-<vendor>)-<os>(-<env>)`。其中：
 
 - `<arch>` 表示目标平台的系统架构，例如 `aarch64`，`x86_64` 等；
 - `<vendor>` 表示开发目标平台的厂商，常见的例如 `apple` 等，在没有明确平台厂商或厂商不重要的情况下也经常写作 `unknown` 或直接省略；
 - `<os>` 表示目标平台的操作系统，例如 `Linux`，`Win32` 等；
-- `<env>` 表示目标平台的 ABI 或标准规范，用于更细粒度地区分同一操作系统的不同运行环境，例如 `gnu`，`musl` 等。在操作系统不需要根据 `<env>` 进行更细地区分的时候，此项也可以省略。
+- `<env>` 表示目标平台的ABI或标准规范，用于更细粒度地区分同一操作系统的不同运行环境，例如 `gnu`，`musl` 等。在操作系统不需要根据 `<env>` 进行更细地区分的时候，此项也可以省略。
 
 目前，`cjc` 已支持交叉编译的本地平台和目标平台如下表所示：
 
@@ -578,7 +578,7 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 | aarch64-apple-darwin | aarch64-apple-ios-simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 | aarch64-apple-darwin | x86_64-apple-ios-simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
-在使用 `--target` 指定目标平台进行交叉编译之前，请准备好对应目标平台的交叉编译工具链，以及可以在本地平台上运行的、向该目标平台编译的对应 Cangjie SDK 版本。
+在使用 `--target` 指定目标平台进行交叉编译之前，请准备好对应目标平台的交叉编译工具链，以及可以在本地平台上运行的、向该目标平台编译的对应Cangjie SDK版本。
 
 ### `--target-cpu <value>`
 
@@ -586,26 +586,26 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 >
 > 该选项为实验性功能，使用该功能生成的二进制可能存在潜在的运行时问题，请注意使用该选项的风险。此选项必须配合 `--experimental` 选项一同使用。
 
-指定编译目标的 CPU 类型。
+指定编译目标的CPU类型。
 
-指定编译目标的 CPU 类型时，编译器在生成二进制时会尝试使用该 CPU 类型特有的扩展指令集，并尝试应用适用于该 CPU 类型的优化。为某个特定 CPU 类型生成的二进制通常会失去可移植性，该二进制可能无法在其他（拥有相同架构指令集的）CPU 上运行。
+指定编译目标的CPU类型时，编译器在生成二进制时会尝试使用该CPU类型特有的扩展指令集，并尝试应用适用于该CPU类型的优化。为某个特定CPU类型生成的二进制通常会失去可移植性，该二进制可能无法在其他（拥有相同架构指令集的）CPU上运行。
 
-该选项支持以下经过测试的 CPU 类型：
+该选项支持以下经过测试的CPU类型：
 
-**x86-64 架构：**
+**x86-64架构：**
 
 - generic
 
-**aarch64 架构：**
+**aarch64架构：**
 
 - generic
 - tsv110
 
-`generic` 为通用 CPU 类型，指定 `generic` 时编译器会生成适用于该架构的通用指令，这样生成的二进制在操作系统和二进制本身的动态依赖一致的前提下，可以在基于该架构的各种 CPU 上运行，无关于具体的 CPU 类型。`--target-cpu` 选项的默认值为 `generic`。
+`generic` 为通用CPU类型，指定 `generic` 时编译器会生成适用于该架构的通用指令，这样生成的二进制在操作系统和二进制本身的动态依赖一致的前提下，可以在基于该架构的各种CPU上运行，无关于具体的CPU类型。`--target-cpu` 选项的默认值为 `generic`。
 
-该选项还支持以下 CPU 类型，但以下 CPU 类型未经过测试验证，请注意使用以下 CPU 类型生成的二进制可能会存在运行时问题。
+该选项还支持以下CPU类型，但以下CPU类型未经过测试验证，请注意使用以下CPU类型生成的二进制可能会存在运行时问题。
 
-**x86-64 架构：**
+**x86-64架构：**
 
 - alderlake
 - amdfam10
@@ -693,7 +693,7 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 - znver2
 - znver3
 
-**aarch64 架构：**
+**aarch64架构：**
 
 - a64fx
 - ampere1
@@ -750,13 +750,13 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 - thunderxt83
 - thunderxt88
 
-除以上可选 CPU 类型外，该选项还可以使用 `native` 作为当前 CPU 类型。编译器会尝试识别当前机器的 CPU 类型，并使用该 CPU 类型作为目标类型生成二进制文件。
+除以上可选CPU类型外，该选项还可以使用 `native` 作为当前CPU类型。编译器会尝试识别当前机器的CPU类型，并使用该CPU类型作为目标类型生成二进制文件。
 
 ### `--toolchain <value>`, `-B <value>`, `-B<value>`
 
 指定编译工具链中，二进制文件存放的路径。
 
-这些二进制文件包括编译器、链接器、工具链提供的 C 运行时目标文件（如 `crt0.o`、 `crti.o` 等）。
+这些二进制文件包括编译器、链接器、工具链提供的C运行时目标文件（如 `crt0.o`、 `crti.o` 等）。
 
 在准备好编译工具链后，可以在将其存放在一个自定义路径，然后通过 `--toolchain <value>` 向编译器传入该路径，即可让编译器调用到该路径下的二进制文件进行交叉编译。
 
@@ -808,15 +808,15 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 ### `--discard-eh-frame`
 
-编译可执行文件或动态库时，指定该选项可以删除 eh_frame 段以及 eh_frame_hdr 段中的部分信息（涉及到 crt 的相关信息不作处理），减少可执行文件或动态库的大小，但会影响调试信息。
+编译可执行文件或动态库时，指定该选项可以删除eh_frame段以及eh_frame_hdr段中的部分信息（涉及到crt的相关信息不作处理），减少可执行文件或动态库的大小，但会影响调试信息。
 
-编译 macOS 目标时暂不支持使用该功能。
+编译macOS目标时暂不支持使用该功能。
 
 ### `--set-runtime-rpath`
 
-将仓颉运行时库所在目录的绝对路径写入到二进制的 RPATH/RUNPATH 段中，使用该选项后在构建所在环境中运行该仓颉程序时无需再使用 LD_LIBRARY_PATH (适用于 Linux 平台) 或 DYLD_LIBRARY_PATH (适用于 macOS 平台) 设置仓颉运行时库目录。
+将仓颉运行时库所在目录的绝对路径写入到二进制的RPATH/RUNPATH段中，使用该选项后在构建所在环境中运行该仓颉程序时无需再使用LD_LIBRARY_PATH (适用于Linux平台) 或DYLD_LIBRARY_PATH (适用于macOS平台) 设置仓颉运行时库目录。
 
-编译 Windows 目标时不支持使用该功能。
+编译Windows目标时不支持使用该功能。
 
 ### `--link-option <value>`<sup>1</sup>
 
@@ -838,21 +838,21 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 > **注意：**
 >
-> 交叉编译至 aarch64-linux-ohos 目标时，默认关闭反射信息，该选项不生效。
+> 交叉编译至aarch64-linux-ohos目标时，默认关闭反射信息，该选项不生效。
 
 ### `--profile-compile-time` <sup>[frontend]</sup>
 
-输出各编译阶段时间消耗数据到一份文件中，该文件以 .time.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .time.prof 与该文件同级。
+输出各编译阶段时间消耗数据到一份文件中，该文件以 .time.prof为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .time.prof与该文件同级。
 
 ### `--profile-compile-memory` <sup>[frontend]</sup>
 
-输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof 与该文件同级。
+输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof与该文件同级。
 
 ## 单元测试选项
 
 ### `--test` <sup>[frontend]</sup>
 
-`unittest` 测试框架提供的入口，由宏自动生成。当使用 `cjc --test` 选项编译时，程序入口不再是 `main`，而是 `test_entry`。unittest 测试框架的使用方法请参见《仓颉编程语言标准库 API》文档。
+`unittest` 测试框架提供的入口，由宏自动生成。当使用 `cjc --test` 选项编译时，程序入口不再是 `main`，而是 `test_entry`。unittest测试框架的使用方法请参见《仓颉编程语言标准库API》文档。
 
 对于 `pkgc` 目录下的仓颉文件 `a.cj`:
 <!-- run -->
@@ -1035,7 +1035,7 @@ cjc -p my_pkg --test-only -L output -lmain --import-path output
 在编译源码部分时增加该选项可导出一些原先不导出的类型声明，使同一包下的测试代码在用 `--test-only` 编译可使用。具体导出类型如下：
 
 - 来源于其他包的类型，在本包进行扩展的声明
-- foreign 函数
+- foreign函数
 
 典型的使用场景如下：
 
@@ -1116,18 +1116,18 @@ cjc -p my_pkg --test-only -L output -lmain --import-path output
 
 ### `--mock <on|off|runtime-error>` <sup>[frontend]</sup>
 
-如果传递了 `on` ，则该包将使能 mock 编译，该选项允许在测试用例中 mock 该包中的类。`off` 是一种显式禁用 mock 的方法。
+如果传递了 `on` ，则该包将使能mock编译，该选项允许在测试用例中mock该包中的类。`off` 是一种显式禁用mock的方法。
 
 > **注意：**
 >
-> 在测试模式下（当使能 `--test` 时）自动启用对此包的 mock 支持，不需要显式传递 `--mock` 选项。
+> 在测试模式下（当使能 `--test` 时）自动启用对此包的mock支持，不需要显式传递 `--mock` 选项。
 
-`runtime-error` 仅在测试模式下可用（当使能 `--test` 时），它允许编译带有 mock 代码的包，但不在编译器中做任何 mock 相关的处理（这些处理可能会造成一些开销并影响测试的运行时性能）。这对于带有 mock 代码用例进行基准测试时可能是有用的。使用此编译选项时，避免编译带有 mock 代码的用例并运行测试，否则将抛出运行时异常。
+`runtime-error` 仅在测试模式下可用（当使能 `--test` 时），它允许编译带有mock代码的包，但不在编译器中做任何mock相关的处理（这些处理可能会造成一些开销并影响测试的运行时性能）。这对于带有mock代码用例进行基准测试时可能是有用的。使用此编译选项时，避免编译带有mock代码的用例并运行测试，否则将抛出运行时异常。
 
 在 `mock=on` 模式下，当前暂不支持编译包含如下语言特性的源文件。若文件中存在任一此类特性，编译过程可能会发生出现崩溃：
 
 - 跨包类扩展本包接口：即非本包定义的类实现或扩展本包中的接口。
-- VArray 类型的使用。
+- VArray类型的使用。
 - 具有泛型参数的类的直接扩展，例如：`extend<T> class C <T>`。
 - 被扩展的接口中包含具有泛型参数的成员函数，例如：
 
@@ -1141,14 +1141,14 @@ interface I {
 - 接口类型用作泛型约束。
 - 函数类型变量。
 - 互操作场景下的 `inout` 变量。
-- 使用 Common/Platform 特性。详见[跨平台](../multiplatform/common_platform.md)。
-- 使用反射 API 获取信息时，将获取到编译器内部生成的类型。
+- 使用Common/Platform特性。详见[跨平台](../multiplatform/common_platform.md)。
+- 使用反射API获取信息时，将获取到编译器内部生成的类型。
 
 建议在启动 `mock=on` 模式时，避免在代码中使用上述特性，以确保稳定性。
 
 > 注意：
 >
-> `mock=on` 选项不支持 ABI 兼容性。使用该选项编译的二进制不应该用于分发。
+> `mock=on` 选项不支持ABI兼容性。使用该选项编译的二进制不应该用于分发。
 
 ## 宏选项
 
@@ -1208,8 +1208,8 @@ interface I {
     - `--fobf-cf-bogus`
     - `--lto`
     - `--coverage`
-    - 编译 Windows 目标
-    - 编译 macOS 目标
+    - 编译Windows目标
+    - 编译macOS目标
 
 - 若使用 `--aggressive-parallel-compile=<value>` 或 `--apc=<value>`，则激进并行编译的开关由 `value` 控制：
 
@@ -1227,27 +1227,27 @@ interface I {
 
 ### `--fchir-constant-propagation` <sup>[frontend]</sup>
 
-开启 chir 常量传播优化。
+开启chir常量传播优化。
 
 ### `--fno-chir-constant-propagation` <sup>[frontend]</sup>
 
-关闭 chir 常量传播优化。
+关闭chir常量传播优化。
 
 ### `--fchir-function-inlining` <sup>[frontend]</sup>
 
-开启 chir 函数内联优化。
+开启chir函数内联优化。
 
 ### `--fno-chir-function-inlining` <sup>[frontend]</sup>
 
-关闭 chir 函数内联优化。
+关闭chir函数内联优化。
 
 ### `--fchir-devirtualization` <sup>[frontend]</sup>
 
-开启 chir 去虚函数调用优化。
+开启chir去虚函数调用优化。
 
 ### `--fno-chir-devirtualization` <sup>[frontend]</sup>
 
-关闭 chir 去虚函数调用优化。
+关闭chir去虚函数调用优化。
 
 ### `--fast-math` <sup>[frontend]</sup>
 
@@ -1259,25 +1259,25 @@ interface I {
 
 指定越高的优化级别，编译器会越多地进行代码优化以生成更高效的程序，同时也可能会需要更长的编译时间。
 
-`cjc` 默认使用 O0 级别的代码优化。当前 `cjc` 支持如下优化级别：O0、O1、O2、Os、Oz。
+`cjc` 默认使用O0级别的代码优化。当前 `cjc` 支持如下优化级别：O0、O1、O2、Os、Oz。
 
-当优化等级等于 2 时，`cjc` 除了进行对应的优化外，还会开启以下选项：
+当优化等级等于2时，`cjc` 除了进行对应的优化外，还会开启以下选项：
 
 - `--fchir-constant-propagation`
 - `--fchir-function-inlining`
 - `--fchir-devirtualization`
 
-当优化等级等于 s 时， `cjc`除了进行 O2 级别优化外，将针对 code size 进行优化。
+当优化等级等于s时， `cjc`除了进行O2级别优化外，将针对code size进行优化。
 
-当优化等级等于 z 时， `cjc`除了进行 Os 级别优化外，还将进一步缩减 code size 大小。
+当优化等级等于z时， `cjc`除了进行Os级别优化外，还将进一步缩减code size大小。
 
 > **注意：**
 >
-> 当优化等级等于 s 或 z 时，不允许同时使用链接时优化编译选项 `--lto=[full|thin]`。
+> 当优化等级等于s或z时，不允许同时使用链接时优化编译选项 `--lto=[full|thin]`。
 
 ### `-O` <sup>[frontend]</sup>
 
-使用 O1 级别的代码优化，等价于 `-O1`。
+使用O1级别的代码优化，等价于 `-O1`。
 
 ## 代码混淆选项
 
@@ -1457,7 +1457,7 @@ class MyClassA {
 obf-cf-flatten packA.MyClassA.funcA(std.core.String, Int64)
 ```
 
-用户也可以使用通配符编写更加灵活的规则，达到一条规则保留多个对象的效果。目前支持的通配符包含以下 3 类：
+用户也可以使用通配符编写更加灵活的规则，达到一条规则保留多个对象的效果。目前支持的通配符包含以下3类：
 
 混淆功能通配符：
 
@@ -1487,7 +1487,7 @@ obf-cf-flatten packA.MyClassA.funcA(std.core.String, Int64)
 
 以下是通配符使用示例：
 
-例子 1：
+例子1：
 
 ```text
 obf-cf-flatten pro?.myfunc()
@@ -1495,7 +1495,7 @@ obf-cf-flatten pro?.myfunc()
 
 该规则表示禁止 `obf-cf-flatten` 功能混淆函数 `pro?.myfunc()`，`pro?.myfunc()` 可以匹配 `pro0.myfunc()`，但不能匹配 `pro00.myfunc()`。
 
-例子 2：
+例子2：
 
 ```text
 * pro0.**
@@ -1503,7 +1503,7 @@ obf-cf-flatten pro?.myfunc()
 
 该规则表示禁止任何混淆功能混淆包 `pro0` 下的任何函数和变量。
 
-例子 3：
+例子3：
 
 ```text
 * pro*.myfunc(...)
@@ -1513,7 +1513,7 @@ obf-cf-flatten pro?.myfunc()
 
 如果需要匹配多层包名，比如 `pro0.mypack.myfunc()`，请使用 `pro*.**.myfunc(...)`。请注意 `'**'` 只有单独作为字段名时才生效，因此 `pro**.myfunc(...)` 和 `pro*.myfunc(...)` 等价，无法匹配多层包名。如果要匹配以 `pro` 开头的所有包下的所有 `myfunc` 函数（包括类中名为 `myfunc` 的函数），请使用 `pro*.**.myfunc(...)`。
 
-例子 4：
+例子4：
 
 ```text
 obf-cf-* pro0.MyClassA.myfunc(**.MyClassB, ***, ...)
@@ -1525,7 +1525,7 @@ obf-cf-* pro0.MyClassA.myfunc(**.MyClassB, ***, ...)
 
 指定混淆功能强度级别。
 
-可指定 1-9 强度级别。默认强度级别为 5。级别数字越大，强度则越高，该选项会影响输出文件的大小以及执行开销。
+可指定1-9强度级别。默认强度级别为5。级别数字越大，强度则越高，该选项会影响输出文件的大小以及执行开销。
 
 ### `--obf-seed <value>`
 
@@ -1537,7 +1537,7 @@ obf-cf-* pro0.MyClassA.myfunc(**.MyClassB, ***, ...)
 
 `cjc` 默认生成地址无关代码，在编译可执行文件时默认生成地址无关可执行文件。
 
-在构建 Release 版本时，建议根据以下规则打开/关闭编译选项以提高安全性。
+在构建Release版本时，建议根据以下规则打开/关闭编译选项以提高安全性。
 
 ### 启用 `--trimpath <value>` <sup>[frontend]</sup>
 
@@ -1555,55 +1555,55 @@ obf-cf-* pro0.MyClassA.myfunc(**.MyClassB, ***, ...)
 
 若可执行程序会被分发至不同环境运行，或其他普通用户对当前正在使用的仓颉运行时库目录拥有写权限，使用该选项可能导致安全风险，因此禁用该选项。
 
-编译 Windows 目标时不涉及该选项。
+编译Windows目标时不涉及该选项。
 
 ### 启用 `--link-options "-z noexecstack"`<sup>1</sup>
 
 设置线程栈不可执行。
 
-仅编译 Linux 目标时可用。
+仅编译Linux目标时可用。
 
 ### 启用 `--link-options "-z relro"`<sup>1</sup>
 
-设置 GOT 表重定位只读。
+设置GOT表重定位只读。
 
-仅编译 Linux 目标时可用。
+仅编译Linux目标时可用。
 
 ### 启用 `--link-options "-z now"`<sup>1</sup>
 
 设置立即绑定。
 
-仅编译 Linux 目标时可用。
+仅编译Linux目标时可用。
 
 ## 代码覆盖率插桩选项
 
 > **注意：**
 >
-> Windows 和 macOS 版本目前不支持代码覆盖率插桩选项。
+> Windows和macOS版本目前不支持代码覆盖率插桩选项。
 
-仓颉支持对代码覆盖率插桩（SanitizerCoverage，以下简称 SanCov），提供与 LLVM 的 SanitizerCoverage 一致的接口，编译器在函数级或 BasicBlock 级插入覆盖率反馈函数，用户只需要实现约定好的回调函数即可在运行过程中感知程序运行状态。
+仓颉支持对代码覆盖率插桩（SanitizerCoverage，以下简称SanCov），提供与LLVM的SanitizerCoverage一致的接口，编译器在函数级或BasicBlock级插入覆盖率反馈函数，用户只需要实现约定好的回调函数即可在运行过程中感知程序运行状态。
 
-仓颉提供的 SanCov 功能以 package 为单位，即整个 package 只有全部插桩和全部不插桩两种情况。
+仓颉提供的SanCov功能以package为单位，即整个package只有全部插桩和全部不插桩两种情况。
 
 ### `--sanitizer-coverage-level=0/1/2`
 
 插桩级别：
 
-- 0 表示不插桩；
-- 1 表示函数级插桩，仅在函数入口处插入回调函数；
-- 2 表示 BasicBlock 级插桩，在各个 BasicBlock 处插入回调函数。
+- 0表示不插桩；
+- 1表示函数级插桩，仅在函数入口处插入回调函数；
+- 2表示BasicBlock级插桩，在各个BasicBlock处插入回调函数。
 
-如果不指定，默认值为 2。
+如果不指定，默认值为2。
 
 该编译选项仅影响 `--sanitizer-coverage-trace-pc-guard`、`--sanitizer-coverage-inline-8bit-counters` 和 `--sanitizer-coverage-inline-bool-flag` 的插桩级别。
 
 ### `--sanitizer-coverage-trace-pc-guard`
 
-开启该选项，会在每个 Edge 插入函数调用 `__sanitizer_cov_trace_pc_guard(uint32_t *guard_variable)`，受 `sanitizer-coverage-level` 影响。
+开启该选项，会在每个Edge插入函数调用 `__sanitizer_cov_trace_pc_guard(uint32_t *guard_variable)`，受 `sanitizer-coverage-level` 影响。
 
-**值得注意的是**，该功能存在与 gcc/llvm 实现不一致的地方：不会在 constructor 插入 `void __sanitizer_cov_trace_pc_guard_init(uint32_t *start, uint32_t *stop)`，而是在 package 初始化阶段插入函数调用 `uint32_t *__cj_sancov_pc_guard_ctor(uint64_t edgeCount)`。
+**值得注意的是**，该功能存在与gcc/llvm实现不一致的地方：不会在constructor插入 `void __sanitizer_cov_trace_pc_guard_init(uint32_t *start, uint32_t *stop)`，而是在package初始化阶段插入函数调用 `uint32_t *__cj_sancov_pc_guard_ctor(uint64_t edgeCount)`。
 
-`__cj_sancov_pc_guard_ctor` 回调函数需要开发者自行实现，开启 SanCov 的 package 会尽可能早地调用该回调函数，入参是该 Package 的 Edge 个数，返回值是通常是 calloc 创建的内存区域。
+`__cj_sancov_pc_guard_ctor` 回调函数需要开发者自行实现，开启SanCov的package会尽可能早地调用该回调函数，入参是该Package的Edge个数，返回值是通常是calloc创建的内存区域。
 
 如果需要调用 `__sanitizer_cov_trace_pc_guard_init`，建议在 `__cj_sancov_pc_guard_ctor` 中调用，使用动态创建的缓冲区计算该函数的入参和返回值。
 
@@ -1619,11 +1619,11 @@ uint32_t *__cj_sancov_pc_guard_ctor(uint64_t edgeCount) {
 
 ### `--sanitizer-coverage-inline-8bit-counters`
 
-开启该选项后，会在每个 Edge 插入一个累加器，每经历过一次，该累加器加一，受 `sanitizer-coverage-level` 影响。
+开启该选项后，会在每个Edge插入一个累加器，每经历过一次，该累加器加一，受 `sanitizer-coverage-level` 影响。
 
-**值得注意的是**，该功能存在与 gcc/llvm 实现不一致的地方：不会在 constructor 插入 `void __sanitizer_cov_8bit_counters_init(char *start, char *stop)`，而是在 package 初始化阶段插入函数调用 `uint8_t *__cj_sancov_8bit_counters_ctor(uint64_t edgeCount)`。
+**值得注意的是**，该功能存在与gcc/llvm实现不一致的地方：不会在constructor插入 `void __sanitizer_cov_8bit_counters_init(char *start, char *stop)`，而是在package初始化阶段插入函数调用 `uint8_t *__cj_sancov_8bit_counters_ctor(uint64_t edgeCount)`。
 
-`__cj_sancov_pc_guard_ctor` 回调函数需要开发者自行实现，开启 SanCov 的 package 会尽可能早地调用该回调函数，入参是该 Package 的 Edge 个数，返回值是通常是 calloc 创建的内存区域。
+`__cj_sancov_pc_guard_ctor` 回调函数需要开发者自行实现，开启SanCov的package会尽可能早地调用该回调函数，入参是该Package的Edge个数，返回值是通常是calloc创建的内存区域。
 
 如果需要调用 `__sanitizer_cov_8bit_counters_init`，建议在 `__cj_sancov_8bit_counters_ctor` 中调用，使用动态创建的缓冲区计算该函数的入参和返回值。
 
@@ -1639,11 +1639,11 @@ uint8_t *__cj_sancov_8bit_counters_ctor(uint64_t edgeCount) {
 
 ### `--sanitizer-coverage-inline-bool-flag`
 
-开启该选项后，会在每个 Edge 插入布尔值，经历过的 Edge 对应的布尔值会被设置为 True，受 `sanitizer-coverage-level` 影响。
+开启该选项后，会在每个Edge插入布尔值，经历过的Edge对应的布尔值会被设置为True，受 `sanitizer-coverage-level` 影响。
 
-**值得注意的是**，该功能存在与 gcc/llvm 实现不一致的地方：不会在 constructor 插入 `void __sanitizer_cov_bool_flag_init(bool *start, bool *stop)`，而是在 package 初始化阶段插入函数调用 `bool *__cj_sancov_bool_flag_ctor(uint64_t edgeCount)`。
+**值得注意的是**，该功能存在与gcc/llvm实现不一致的地方：不会在constructor插入 `void __sanitizer_cov_bool_flag_init(bool *start, bool *stop)`，而是在package初始化阶段插入函数调用 `bool *__cj_sancov_bool_flag_ctor(uint64_t edgeCount)`。
 
-`__cj_sancov_bool_flag_ctor` 回调函数需要开发者自行实现，开启 SanCov 的 package 会尽可能早地调用该回调函数，入参是该 Package 的 Edge 个数，返回值是通常是 calloc 创建的内存区域。
+`__cj_sancov_bool_flag_ctor` 回调函数需要开发者自行实现，开启SanCov的package会尽可能早地调用该回调函数，入参是该Package的Edge个数，返回值是通常是calloc创建的内存区域。
 
 如果需要调用 `__sanitizer_cov_bool_flag_init`，建议在 `__cj_sancov_bool_flag_ctor` 中调用，使用动态创建的缓冲区计算该函数的入参和返回值。
 
@@ -1661,19 +1661,19 @@ bool *__cj_sancov_bool_flag_ctor(uint64_t edgeCount) {
 
 该编译选项用于提供插桩点和源码之间的对应关系，当前只提供精确到函数级的对应关系。需要与 `--sanitizer-coverage-trace-pc-guard`、`--sanitizer-coverage-inline-8bit-counters`、`--sanitizer-coverage-inline-bool-flag` 共用，至少需要开启其中一项，可以同时开启多项。
 
-**值得注意的是**，该功能存在与 gcc/llvm 实现不一致的地方：不会在 constructor 插入 `void __sanitizer_cov_pcs_init(const uintptr_t *pcs_beg, const uintptr_t *pcs_end);`，而是在 package 初始化阶段插入函数调用 `void __cj_sancov_pcs_init(int8_t *packageName, uint64_t n, int8_t **funcNameTable, int8_t **fileNameTable, uint64_t *lineNumberTable)`，各入参含义如下：
+**值得注意的是**，该功能存在与gcc/llvm实现不一致的地方：不会在constructor插入 `void __sanitizer_cov_pcs_init(const uintptr_t *pcs_beg, const uintptr_t *pcs_end);`，而是在package初始化阶段插入函数调用 `void __cj_sancov_pcs_init(int8_t *packageName, uint64_t n, int8_t **funcNameTable, int8_t **fileNameTable, uint64_t *lineNumberTable)`，各入参含义如下：
 
-- `int8_t *packageName`: 字符串，表示包名（插桩用 c 风格的 int8 数组作为入参来表达字符串，下同）。
-- `uint64_t n`: 共有 n 个函数被插桩。
-- `int8_t **funcNameTable`: 长度为 n 的字符串数组，第 i 个插桩点对应的函数名为 funcNameTable\[i\]。
-- `int8_t **fileNameTable`: 长度为 n 的字符串数组，第 i 个插桩点对应的文件名为 fileNameTable\[i\]。
-- `uint64_t *lineNumberTable`: 长度为 n 的 uint64 数组，第 i 个插桩点对应的行号为 lineNumberTable\[i\]。
+- `int8_t *packageName`: 字符串，表示包名（插桩用c风格的int8数组作为入参来表达字符串，下同）。
+- `uint64_t n`: 共有n个函数被插桩。
+- `int8_t **funcNameTable`: 长度为n的字符串数组，第i个插桩点对应的函数名为funcNameTable\[i\]。
+- `int8_t **fileNameTable`: 长度为n的字符串数组，第i个插桩点对应的文件名为fileNameTable\[i\]。
+- `uint64_t *lineNumberTable`: 长度为n的uint64数组，第i个插桩点对应的行号为lineNumberTable\[i\]。
 
-如果需要调用 `__sanitizer_cov_pcs_init`，需要自行完成仓颉 pc-table 到 C 语言 pc-table 的转化。
+如果需要调用 `__sanitizer_cov_pcs_init`，需要自行完成仓颉pc-table到C语言pc-table的转化。
 
 ### `--sanitizer-coverage-stack-depth`
 
-开启该编译选项后，由于仓颉无法获取 SP 指针的值，因此只能在每个函数入口处插入调用 `__updateSancovStackDepth`，在 C 侧实现该函数即可获得 SP 指针。
+开启该编译选项后，由于仓颉无法获取SP指针的值，因此只能在每个函数入口处插入调用 `__updateSancovStackDepth`，在C侧实现该函数即可获得SP指针。
 
 一个标准的 `updateSancovStackDepth` 实现如下：
 
@@ -1691,7 +1691,7 @@ void __updateSancovStackDepth()
 
 ### `--sanitizer-coverage-trace-compares`
 
-开启该选项后，会在所有的 compare 指令和 match 指令调用前插入函数回调函数，具体列表如下，与 LLVM 系的 API 功能一致。参考 Tracing data flow。
+开启该选项后，会在所有的compare指令和match指令调用前插入函数回调函数，具体列表如下，与LLVM系的API功能一致。参考Tracing data flow。
 
 ```cpp
 void __sanitizer_cov_trace_cmp1(uint8_t Arg1, uint8_t Arg2);
@@ -1707,7 +1707,7 @@ void __sanitizer_cov_trace_switch(uint64_t Val, uint64_t *Cases);
 
 ### `--sanitizer-coverage-trace-memcmp`
 
-该编译选项用于在 String 、 Array 等比较中反馈前缀比较信息。开启该选项后，会对 String 和 Array 的比较函数前插入函数回调函数。具体对于以下对各 String 和 Array 的 API，分别插入对应桩函数：
+该编译选项用于在String 、 Array等比较中反馈前缀比较信息。开启该选项后，会对String和Array的比较函数前插入函数回调函数。具体对于以下对各String和Array的API，分别插入对应桩函数：
 
 - String==: __sanitizer_weak_hook_memcmp
 - String.startsWith: __sanitizer_weak_hook_memcmp
@@ -1727,13 +1727,13 @@ void __sanitizer_cov_trace_switch(uint64_t Val, uint64_t *Cases);
 
 ### `--enable-eh` <sup>[frontend]</sup>
 
-启用该选项后，仓颉将支持效应处理器（Effect Handlers），Effect Handlers 是一种先进的控制流机制，用于实现模块化、可恢复的副作用处理。
+启用该选项后，仓颉将支持效应处理器（Effect Handlers），Effect Handlers是一种先进的控制流机制，用于实现模块化、可恢复的副作用处理。
 
-Effect Handler 允许程序员将副作用操作与其处理逻辑解耦，从而编写出更清晰、更具可组合性的代码。这种机制有助于提高抽象层次，尤其适用于处理日志记录、输入输出、状态变更等操作，从而避免主流程被副作用逻辑污染。
+Effect Handler允许程序员将副作用操作与其处理逻辑解耦，从而编写出更清晰、更具可组合性的代码。这种机制有助于提高抽象层次，尤其适用于处理日志记录、输入输出、状态变更等操作，从而避免主流程被副作用逻辑污染。
 
 效应的工作机制类似异常处理，但不使用 `throw` 和 `catch`，而是通过 `perform` 执行效应，使用 `handle` 进行捕获与处理。每个效应需通过继承 `stdx.effect.Command` 类来定义。
 
-与传统异常机制不同，Effect Handler 在处理效应后可以选择 恢复执行（`resume`），即向原始调用点注入一个值并继续运行。这种“恢复”能力使得程序员可以对控制流进行更精细的操作，特别适合用于构建模拟器、解释器或协作式多任务系统等需要高度控制的场景。
+与传统异常机制不同，Effect Handler在处理效应后可以选择 恢复执行（`resume`），即向原始调用点注入一个值并继续运行。这种“恢复”能力使得程序员可以对控制流进行更精细的操作，特别适合用于构建模拟器、解释器或协作式多任务系统等需要高度控制的场景。
 
 示例：
 
@@ -1782,8 +1782,8 @@ It is resumed, a = 9
 
 > **注意：**
 >
-> - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
-> - 使用 Effect Handler 需引入 `stdx.effect` 库。
+> - Effect Handler当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
+> - 使用Effect Handler需引入 `stdx.effect` 库。
 
 ### `--experimental` <sup>[frontend]</sup>
 
@@ -1803,19 +1803,19 @@ It is resumed, a = 9
 
 ### 编译器报错信息显示颜色
 
-对于 Windows 版本的仓颉编译器，仅在运行于 Windows 10 version 1511 (Build 10586) 或更高版本的系统时，编译器报错信息才会显示颜色，否则不显示颜色。
+对于Windows版本的仓颉编译器，仅在运行于Windows 10 version 1511 (Build 10586) 或更高版本的系统时，编译器报错信息才会显示颜色，否则不显示颜色。
 
 ### 设置 build-id
 
-通过 `--link-options "--build-id=<arg>"`<sup>1</sup> 可以透传链接器选项以设置 build-id。
+通过 `--link-options "--build-id=<arg>"`<sup>1</sup> 可以透传链接器选项以设置build-id。
 
-编译 Windows 目标时不支持此功能。
+编译Windows目标时不支持此功能。
 
 ### 设置 rpath
 
-通过 `--link-options "-rpath=<arg>"`<sup>1</sup> 可以透传链接器选项以设置 rpath。
+通过 `--link-options "-rpath=<arg>"`<sup>1</sup> 可以透传链接器选项以设置rpath。
 
-编译 Windows 目标时不支持此功能。
+编译Windows目标时不支持此功能。
 
 ### 增量编译
 
@@ -1828,31 +1828,31 @@ It is resumed, a = 9
 
 ### 输出 CHIR
 
-通过 `--emit-chir=[raw|opt]`<sup>[frontend]</sup>指定输出 CHIR 编译阶段的序列化产物，`raw` 输出编译器优化前的 CHIR，`opt` 输出编译器优化后的 CHIR。使用 `--emit-chir` 则默认输出编译器优化后的 CHIR。
+通过 `--emit-chir=[raw|opt]`<sup>[frontend]</sup>指定输出CHIR编译阶段的序列化产物，`raw` 输出编译器优化前的CHIR，`opt` 输出编译器优化后的CHIR。使用 `--emit-chir` 则默认输出编译器优化后的CHIR。
 
 ### `--no-prelude` <sup>[frontend]</sup>
 
-关闭标准库 core 包自动导入功能。
+关闭标准库core包自动导入功能。
 
 > **注意：**
 >
-> 该选项仅能用于编译仓颉标准库 core 包，不能用于编译其他仓颉代码的场景。
+> 该选项仅能用于编译仓颉标准库core包，不能用于编译其他仓颉代码的场景。
 
 ### 打印 AST
 
-可通过 `--dump-ast`<sup>[frontend]</sup>打印 AST。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_AST 目录，文件命名为 `编号_编译阶段名称_ast.txt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-ast`<sup>[frontend]</sup>打印AST。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_AST目录，文件命名为 `编号_编译阶段名称_ast.txt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 打印 CHIR
 
-可通过 `--dump-chir`<sup>[frontend]</sup>打印 CHIR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_CHIR 目录，文件命名为 `编号_PASS阶段名称.chirtxt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-chir`<sup>[frontend]</sup>打印CHIR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_CHIR目录，文件命名为 `编号_PASS阶段名称.chirtxt`。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 打印 LLVM IR
 
-可通过 `--dump-ir`<sup>[frontend]</sup>打印 LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_IR 目录并在 *_IR 目录下创建 `编号_CodeGen阶段名称` 子文件夹，文件名为 `子模块编号加-包名.ll`， 子模块的编号和数量与编译并发度相关。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-ir`<sup>[frontend]</sup>打印LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_IR目录并在 *_IR目录下创建 `编号_CodeGen阶段名称` 子文件夹，文件名为 `子模块编号加-包名.ll`， 子模块的编号和数量与编译并发度相关。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 打印 AST, CHIR, LLVM IR
 
-可通过 `--dump-all`<sup>[frontend]</sup>打印 AST, CHIR, LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_AST, *_CHIR, *_IR 目录。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
+可通过 `--dump-all`<sup>[frontend]</sup>打印AST, CHIR, LLVM IR。默认输出到文件，产物目录会创建以包名（或使用 `-o` 指定的产物名）命名的 *_AST, *_CHIR, *_IR目录。加上 --dump-to-screen<sup>[frontend]</sup> 可输出到屏幕。
 
 ### 将 dump 内容打印到屏幕上
 
@@ -1871,13 +1871,13 @@ It is resumed, a = 9
 仓颉编译器会将编译过程中生成的临时文件放置在临时目录中。默认情况下，`Linux` 和 `macOS` 操作系统会将其放在 `/tmp` 目录下，而 `Windows` 操作系统则会将其放在 `C:\Windows\Temp` 目录下。仓颉编译器还支持自定义临时文件存放目录，在 `Linux` 和 `macOS` 操作系统上，可以通过设置环境变量 `TMPDIR` 来更改临时文件目录，而在 `Windows` 操作系统上，则可以通过设置环境变量 `TMP` 来更改临时文件目录。
 
 例如：
-在 Linux shell 中
+在Linux shell中
 
 ```shell
 export TMPDIR=/home/xxxx
 ```
 
-在 Windows cmd 中
+在Windows cmd中
 
 ```shell
 set TMP=D:\\xxxx

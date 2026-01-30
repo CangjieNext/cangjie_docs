@@ -34,9 +34,9 @@
 | <code>&vert;</code>        | 13  | 按位或             | <code>expr &vert; expr</code>                           | 左结合  |
 | `&&`                       | 14  | 逻辑与             | `expr && expr`                                          | 左结合  |
 | <code>&vert;&vert;</code>  | 15  | 逻辑或             | <code>expr  &vert;&vert; expr</code>                    | 左结合  |
-| `??`                       | 16  | coalescing 操作符  | `expr ?? expr`                                          | 右结合  |
-| <code>&vert;></code>       | 17  | pipeline 操作符    | <code>id &vert;> expr</code>                            | 左结合  |
-| `~>`                       | 17  | composition 操作符 | `expr ~> expr`                                          | 左结合  |
+| `??`                       | 16  | coalescing操作符  | `expr ?? expr`                                          | 右结合  |
+| <code>&vert;></code>       | 17  | pipeline操作符    | <code>id &vert;> expr</code>                            | 左结合  |
+| `~>`                       | 17  | composition操作符 | `expr ~> expr`                                          | 左结合  |
 | `=`                        | 18  | 赋值              | `id = expr`                                             | 无    |
 | `**=`                      | 18  | 复合运算符           | `id **= expr`                                           | 无    |
 | `*=`                       | 18  | 复合运算符           | `id *= expr`                                            | 无    |

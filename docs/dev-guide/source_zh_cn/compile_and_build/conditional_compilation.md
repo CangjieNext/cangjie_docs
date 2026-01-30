@@ -8,7 +8,7 @@
 
 ### 使用方法
 
-以内置 os 编译条件为例，其使用方法如下：
+以内置os编译条件为例，其使用方法如下：
 
 <!-- run -->
 
@@ -22,7 +22,7 @@ main(): Int64 {
 }
 ```
 
-在上面代码中，开发者在 `Linux` 系统中可以正确编译执行；在`非 Linux` 系统中，则会遇到找不到 `mc` 类定义的编译错误。
+在上面代码中，开发者在 `Linux` 系统中可以正确编译执行；在`非Linux` 系统中，则会遇到找不到 `mc` 类定义的编译错误。
 
 值得注意的是：
 
@@ -55,7 +55,7 @@ main(): Int64 {
 
 ### os
 
-os 表示目标平台的操作系统。`os` 支持 `==` 和 `!=` 两种操作符。支持的操作系统有：`Windows`、`Linux`、`macOS`、`iOS`。
+os表示目标平台的操作系统。`os` 支持 `==` 和 `!=` 两种操作符。支持的操作系统有：`Windows`、`Linux`、`macOS`、`iOS`。
 
 使用方式如下：
 
@@ -112,7 +112,7 @@ main() {
 
 ### env
 
-`env` 在其他条件变量的基础上提供额外信息，比如目标平台的 ABI （Application Binary Interface），用于消除目标平台之间的歧义。`env` 条件支持 `==` 和 `!=` 两种操作符。
+`env` 在其他条件变量的基础上提供额外信息，比如目标平台的ABI （Application Binary Interface），用于消除目标平台之间的歧义。`env` 条件支持 `==` 和 `!=` 两种操作符。
 
 支持的 `env` 选项有：`ohos`、`gnu`、`simulator`、`android`以及缺省（空字符串）。
 
@@ -132,7 +132,7 @@ main() {
 }
 ```
 
-在 OpenHarmony 目标平台上编译执行，会得到 `ohos` 的信息；在其他目标平台编译执行，会得到 `other` 的信息。
+在OpenHarmony目标平台上编译执行，会得到 `ohos` 的信息；在其他目标平台编译执行，会得到 `other` 的信息。
 
 ### backend
 
@@ -162,7 +162,7 @@ main() {
 
 ### cjc_version
 
-`cjc_version` 是仓颉内置的条件，开发者可以根据当前仓颉编译器的版本选择要编译的代码。`cjc_version` 条件支持 `==`、`!=`、`>`、`<`、`>=`、`<=` 六种操作符，格式为 `xx.xx.xx` 支持每个 `xx` 支持 1-2 位数字，计算规则为补位 (补齐 2 位) 比较，例如：`0.18.8 < 0.18.11`， `0.18.8 == 0.18.08`。
+`cjc_version` 是仓颉内置的条件，开发者可以根据当前仓颉编译器的版本选择要编译的代码。`cjc_version` 条件支持 `==`、`!=`、`>`、`<`、`>=`、`<=` 六种操作符，格式为 `xx.xx.xx` 支持每个 `xx` 支持1-2位数字，计算规则为补位 (补齐2位) 比较，例如：`0.18.8 < 0.18.11`， `0.18.8 == 0.18.08`。
 
 使用方式如下：
 
@@ -382,5 +382,5 @@ main() {
 | arm64-apple-ios[11+]<sup>[ios target]</sup>           | "aarch64" | "iOS"     |    ""         |
 | arm64-apple-ios[11+]-simulator<sup>[ios target]</sup> | "aarch64" | "iOS"     | "simulator" |
 
-<sup>[android target]</sup> x86_64-linux-android[26+] 中 android 后缀的数字用于指定 Android API Level。未指定数字时，默认 API Level 为 26；指定数字（如 x86_64-linux-android33）表示 Android API Level 为 33，指定的数字应大于等于 26。
-<sup>[ios target]</sup> arm64-apple-ios[11+] 中 ios 后缀的数字用于指定 ios 版本信息。未指定数字时，默认为 11；指定数字（如 arm64-apple-ios26）表示 ios 版本为 26，指定的数字应大于等于 11。
+<sup>[android target]</sup> x86_64-linux-android[26+] 中android后缀的数字用于指定Android API Level。未指定数字时，默认API Level为26；指定数字（如x86_64-linux-android33）表示Android API Level为33，指定的数字应大于等于26。
+<sup>[ios target]</sup> arm64-apple-ios[11+] 中ios后缀的数字用于指定ios版本信息。未指定数字时，默认为11；指定数字（如arm64-apple-ios26）表示ios版本为26，指定的数字应大于等于11。

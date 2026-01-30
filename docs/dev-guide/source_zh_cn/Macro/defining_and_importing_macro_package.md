@@ -21,11 +21,11 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
 >
 > - 重导出的声明也允许对外可见，关于包管理和重导出的相关概念，请参见[包的导入](../package/import.md)章节。
 > - 在宏包中，允许其他宏包和非宏包的声明被重导出。在非宏包中仅允许非宏包的声明被重导出。
-> - 使用宏时，需要同时导入该宏依赖的包（宏定义时如果重导出了依赖的部分，则可以不导入依赖包），并在使用 cjc 编译时用 -l 连接依赖包。否则，代码编译过程中会报错（找不到相关依赖）。
+> - 使用宏时，需要同时导入该宏依赖的包（宏定义时如果重导出了依赖的部分，则可以不导入依赖包），并在使用cjc编译时用 -l连接依赖包。否则，代码编译过程中会报错（找不到相关依赖）。
 
 在宏包中重导出红包和非宏包，示例如下：
 
-- 在宏包 A 中定义宏 `M1`
+- 在宏包A中定义宏 `M1`
 
   <!-- compile -macro5 -->
   <!-- cfg="--compile-macro" -->
@@ -45,7 +45,7 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
   cjc A.cj --compile-macro
   ```
 
-- 在非宏包 B 中定义一个 public 函数 `f1`。注意在非 `macro package` 中无法重导出 `macro package` 的符号
+- 在非宏包B中定义一个public函数 `f1`。注意在非 `macro package` 中无法重导出 `macro package` 的符号
 
   <!-- compile -macro5 -->
   <!-- cfg="--output-type=dylib -o libB.so" -->
@@ -59,13 +59,13 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
   }
   ```
 
-  编译命令如下，这里选择使用 `--output-type` 选项将 B 包编译成动态库，关于 cjc 编译选项介绍可以参考 "附录 > cjc 编译选项"。
+  编译命令如下，这里选择使用 `--output-type` 选项将B包编译成动态库，关于cjc编译选项介绍可以参考 "附录 > cjc编译选项"。
 
   ```shell
   cjc B.cj --output-type=dylib -o libB.so
   ```
 
-- 在宏包 C 中定义宏 `M2`，依赖了 A 包和 B 包的内容。可以看到 `macro package` 中可以重导出 `macro package` 和非 `macro package` 的符号
+- 在宏包C中定义宏 `M2`，依赖了A包和B包的内容。可以看到 `macro package` 中可以重导出 `macro package` 和非 `macro package` 的符号
 
   <!-- compile -macro5 -->
   <!-- cfg="--compile-macro -L. -lB" -->
@@ -81,7 +81,7 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
   }
   ```
 
-  编译命令如下，注意这里需要显式链接 B 包动态库：
+  编译命令如下，注意这里需要显式链接B包动态库：
 
   ```shell
   cjc C.cj --compile-macro -L. -lB
@@ -120,4 +120,4 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
   }
   ```
 
-可以看到 `main.cj` 中出现了来自于 B 包的符号 `f1`。宏的编写者可以在 C 包中重导出 B 包里的符号，这样宏的使用者仅需导入宏包，就可以正确地编译宏展开后的代码。如果在 `main.cj` 中仅使用 `import C.M2` 导入宏符号，则会报 `undeclared identifier 'f1'` 的错误信息。
+可以看到 `main.cj` 中出现了来自于B包的符号 `f1`。宏的编写者可以在C包中重导出B包里的符号，这样宏的使用者仅需导入宏包，就可以正确地编译宏展开后的代码。如果在 `main.cj` 中仅使用 `import C.M2` 导入宏符号，则会报 `undeclared identifier 'f1'` 的错误信息。

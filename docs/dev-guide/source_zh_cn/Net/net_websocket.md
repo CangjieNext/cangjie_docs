@@ -1,22 +1,22 @@
 # WebSocket 编程
 
-在网络编程中，WebSocket 是一种常用的应用层协议。与 HTTP 一样，它也基于 TCP 协议之上，并且常用于 web 服务端应用开发。
+在网络编程中，WebSocket是一种常用的应用层协议。与HTTP一样，它也基于TCP协议之上，并且常用于web服务端应用开发。
 
-不同于 HTTP 的是， WebSocket 只需要客户端和服务端进行一次握手，即可创建长久的连接，并且进行双向的数据传输。即基于 WebSocket 实现的服务端可以主动传输数据给客户端，从而实现实时通讯。
+不同于HTTP的是， WebSocket只需要客户端和服务端进行一次握手，即可创建长久的连接，并且进行双向的数据传输。即基于WebSocket实现的服务端可以主动传输数据给客户端，从而实现实时通讯。
 
-WebSocket 是一个独立的协议，它与 HTTP 的关联在于，它的握手被 HTTP 服务端解释为一个升级请求。因此，仓颉将 WebSocket 包含在 http 包中。
+WebSocket是一个独立的协议，它与HTTP的关联在于，它的握手被HTTP服务端解释为一个升级请求。因此，仓颉将WebSocket包含在http包中。
 
-仓颉将 WebSocket 协议通信机制抽象为 WebSocket 类，提供方法将一个 http/1.1 或 http/2.0 服务端句柄升级到 WebSocket 协议实例，通过返回的 WebSocket 实例进行 WebSocket 通信，例如数据报文的读写。
+仓颉将WebSocket协议通信机制抽象为WebSocket类，提供方法将一个http/1.1或http/2.0服务端句柄升级到WebSocket协议实例，通过返回的WebSocket实例进行WebSocket通信，例如数据报文的读写。
 
-在仓颉中，WebSocket 所传输的数据基本单元称为帧，帧分为两类，一类为传输控制信息的帧，即 Close Frame 用于关闭连接， Ping Frame 用于实现 Keep-Alive ， Pong Frame 是 Ping Frame 的响应类型，另一类是传输应用数据的帧，应用数据帧支持分段传输。
+在仓颉中，WebSocket所传输的数据基本单元称为帧，帧分为两类，一类为传输控制信息的帧，即Close Frame用于关闭连接， Ping Frame用于实现Keep-Alive ， Pong Frame是Ping Frame的响应类型，另一类是传输应用数据的帧，应用数据帧支持分段传输。
 
-仓颉的帧由三个属性构成，其中 fin 和 frameType 共同说明了帧是否分段和帧的类型，payload 为帧的载荷，除此之外开发者无需关心其他属性即可进行报文传输。
+仓颉的帧由三个属性构成，其中fin和frameType共同说明了帧是否分段和帧的类型，payload为帧的载荷，除此之外开发者无需关心其他属性即可进行报文传输。
 
-如下示例展示了 WebSocket 的握手以及消息收发过程：创建 HTTP 客户端和服务端，分别发起 WebSocket 升级（或握手），握手成功后开始帧的读写。
+如下示例展示了WebSocket的握手以及消息收发过程：创建HTTP客户端和服务端，分别发起WebSocket升级（或握手），握手成功后开始帧的读写。
 
 > **说明：**
 >
-> net、encoding、log 等库已从仓颉 SDK 移到 stdx 模块，使用前需要下载软件包，并在 cjpm.toml 中配置。
+> net、encoding、log等库已从仓颉SDK移到stdx模块，使用前需要下载软件包，并在cjpm.toml中配置。
 
 <!-- verify -->
 

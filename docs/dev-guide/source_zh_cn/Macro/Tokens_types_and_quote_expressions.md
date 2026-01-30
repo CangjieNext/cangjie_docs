@@ -4,7 +4,7 @@
 
 宏操作的基本类型是 `Tokens`，代表一个程序片段。`Tokens` 由若干个 `Token` 组成，每个 `Token` 可以理解为用户可操作的词法单元。一个 `Token` 可能是一个标识符（例如变量名等）、字面量（例如整数、浮点数、字符串）、关键字或运算符。每个 `Token` 包含它的类型、内容和位置信息。
 
-`Token` 的类型取值为 enum `TokenKind` 中的元素。`TokenKind` 的可用值详见《仓颉编程语言库 API》文档。通过提供 `TokenKind` 和 `Token` 的值（`TokenKind` 对应的标识符或字面量），可以直接构造任何 `Token`。具体的构造函数如下：
+`Token` 的类型取值为enum `TokenKind` 中的元素。`TokenKind` 的可用值详见《仓颉编程语言库API》文档。通过提供 `TokenKind` 和 `Token` 的值（`TokenKind` 对应的标识符或字面量），可以直接构造任何 `Token`。具体的构造函数如下：
 
 <!-- code_no_check -->
 
@@ -29,7 +29,7 @@ let tk5 = Token(TokenKind.STRING_LITERAL, "xyz")  // 字符串字面量
 
 ## Tokens 类型
 
-一个 `Tokens` 代表由多个 `Token` 组成的序列。可以通过 `Token` 数组直接构造 `Tokens`。下面是 3 种基本的构造 `Tokens` 实例的方式：
+一个 `Tokens` 代表由多个 `Token` 组成的序列。可以通过 `Token` 数组直接构造 `Tokens`。下面是3种基本的构造 `Tokens` 实例的方式：
 
 <!-- code_no_check -->
 
@@ -76,7 +76,7 @@ description: add, token_id: 12, token_literal_value: +, fileID: 1, line: 5, colu
 description: integer_literal, token_id: 140, token_literal_value: 2, fileID: 1, line: 6, column: 5
 ```
 
-在 dump 信息中，包含了每个 `Token` 的类型（`description`）和值（`token_literal_value`），最后打印每个 `Token` 的位置信息。
+在dump信息中，包含了每个 `Token` 的类型（`description`）和值（`token_literal_value`），最后打印每个 `Token` 的位置信息。
 
 ## quote 表达式和插值
 
@@ -85,7 +85,7 @@ description: integer_literal, token_id: 140, token_literal_value: 2, fileID: 1, 
 - 所有的节点类型（节点将在[语法节点](./syntax_node.md)中讨论）
 - `Token` 和 `Tokens` 类型
 - 所有基础数据类型：整数、浮点数、`Bool`、`Rune` 和 `String`
-- `Array<T>` 和 `ArrayList<T>`，这里对 `T` 的类型有限制，并根据 `T` 的类型不同，输出不同的分隔符，详细请见《仓颉编程语言库 API》文档。
+- `Array<T>` 和 `ArrayList<T>`，这里对 `T` 的类型有限制，并根据 `T` 的类型不同，输出不同的分隔符，详细请见《仓颉编程语言库API》文档。
 
 下面的例子展示 `Array` 和基础数据类型的插值：
 

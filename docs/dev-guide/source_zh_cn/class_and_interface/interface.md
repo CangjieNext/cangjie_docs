@@ -60,7 +60,7 @@ main() {
 Foo
 ```
 
-`interface` 也可以使用 `sealed` 修饰符表示只能在 `interface` 定义所在的包内继承、实现或扩展该 `interface`。`sealed` 已经蕴含了 `public`/`open` 的语义，因此定义 `sealed interface` 时若提供 `public`/`open` 修饰符，编译器将会告警。继承 `sealed` 接口的子接口或实现 `sealed` 接口的抽象类仍可被 `sealed` 修饰或不使用 `sealed` 修饰。若 `sealed` 接口的子接口被 `public` 修饰，且不被 `sealed` 修饰，则其子接口可在包外被继承、实现或扩展。继承、实现 sealed 接口的类型可以不被 `public` 修饰。
+`interface` 也可以使用 `sealed` 修饰符表示只能在 `interface` 定义所在的包内继承、实现或扩展该 `interface`。`sealed` 已经蕴含了 `public`/`open` 的语义，因此定义 `sealed interface` 时若提供 `public`/`open` 修饰符，编译器将会告警。继承 `sealed` 接口的子接口或实现 `sealed` 接口的抽象类仍可被 `sealed` 修饰或不使用 `sealed` 修饰。若 `sealed` 接口的子接口被 `public` 修饰，且不被 `sealed` 修饰，则其子接口可在包外被继承、实现或扩展。继承、实现sealed接口的类型可以不被 `public` 修饰。
 
 <!-- compile -->
 
@@ -89,7 +89,7 @@ class S2 <: I2 {}  // Error, I2 is sealed interface, cannot be inherited here.
 
 通过接口的这种约束能力，可以对一系列的类型约定共同的功能，达到对功能进行抽象的目的。
 
-例如下面的代码，可以定义一个 Flyable 接口，并且让其他具有 Flyable 属性的类实现它。
+例如下面的代码，可以定义一个Flyable接口，并且让其他具有Flyable属性的类实现它。
 
 <!-- verify -->
 
@@ -302,7 +302,7 @@ open class C <: I {
 
 当想为一个类型实现多个接口，可以在声明处使用 `&` 分隔多个接口，实现的接口之间没有顺序要求。
 
-例如下面的例子，可以让 MyInt 同时实现 Addable 和 Subtractable 两个接口。
+例如下面的例子，可以让MyInt同时实现Addable和Subtractable两个接口。
 
 <!-- compile -->
 
@@ -328,7 +328,7 @@ class MyInt <: Addable & Subtractable {
 
 接口可以继承一个或多个接口，但不能继承类。与此同时，接口继承的时候可以添加新的接口成员。
 
-例如下面的例子，Calculable 接口继承了 Addable 和 Subtractable 两个接口，并且增加了乘除两种运算符重载。
+例如下面的例子，Calculable接口继承了Addable和Subtractable两个接口，并且增加了乘除两种运算符重载。
 
 <!-- compile -myInt -->
 
@@ -347,7 +347,7 @@ interface Calculable <: Addable & Subtractable {
 }
 ```
 
-这样实现类型实现 Calculable 接口时就必须同时实现加减乘除四种运算符重载，不能缺少任何一个成员。
+这样实现类型实现Calculable接口时就必须同时实现加减乘除四种运算符重载，不能缺少任何一个成员。
 
 <!-- compile -myInt -->
 
@@ -369,7 +369,7 @@ class MyInt <: Calculable {
 }
 ```
 
-MyInt 实现 Calculable 的同时，也同时实现了 Calculable 继承的所有接口，因此 MyInt 也实现了 Addable 和 Subtractable，即同时是它们的子类型。
+MyInt实现Calculable的同时，也同时实现了Calculable继承的所有接口，因此MyInt也实现了Addable和Subtractable，即同时是它们的子类型。
 
 <!-- compile -myInt -->
 
@@ -413,13 +413,13 @@ interface I2 <: I1 {
 
 ### 接口实现的要求
 
-仓颉除 Tuple、VArray 和函数外的其他类型都可以实现接口。
+仓颉除Tuple、VArray和函数外的其他类型都可以实现接口。
 
 一个类型实现接口有三种途径：
 
 1. 在定义类型时就声明实现接口，在以上的内容中已经见过相关例子。
 2. 通过扩展实现接口，这种方式详见[扩展](../extension/interface_extension.md)。
-3. 由语言内置实现，具体详见《仓颉编程语言库 API》相关文档。
+3. 由语言内置实现，具体详见《仓颉编程语言库API》相关文档。
 
 实现类型声明实现接口时，需要实现接口中要求的所有成员，为此需要满足下面一些规则。
 
@@ -428,7 +428,7 @@ interface I2 <: I1 {
 
 所以大部分情况都如同上面的例子，需要让实现类型中包含与接口要求的一样的成员的实现。
 
-但有个地方是个例外，如果接口中的成员函数或操作符重载函数的返回值类型是 class 类型，那么允许实现函数的返回类型是其子类型。
+但有个地方是个例外，如果接口中的成员函数或操作符重载函数的返回值类型是class类型，那么允许实现函数的返回类型是其子类型。
 
 例如下面这个例子，`I` 中的 `f` 返回类型是一个 `class` 类型 `Base`，因此 `C` 中实现的 `f` 返回类型可以是 `Base` 的子类型 `Sub`。
 
@@ -495,7 +495,7 @@ class Foo <: SayHi & SayHello {
 }
 ```
 
-struct、enum 和 class 在实现接口时，函数或属性定义前的 `override` 修饰符（或 `redef` 修饰符）是可选的，无论接口中的函数或属性是否存在默认实现。
+struct、enum和class在实现接口时，函数或属性定义前的 `override` 修饰符（或 `redef` 修饰符）是可选的，无论接口中的函数或属性是否存在默认实现。
 
 <!-- compile -->
 
@@ -520,7 +520,7 @@ struct S <: I {
 
 ## Any 类型
 
-Any 类型是一个内置的接口，它的定义如下：
+Any类型是一个内置的接口，它的定义如下：
 
 <!-- compile -->
 
@@ -528,9 +528,9 @@ Any 类型是一个内置的接口，它的定义如下：
 interface Any {}
 ```
 
-仓颉中所有接口都默认继承它，所有非接口类型都默认实现它，因此所有类型都可以作为 Any 类型的子类型使用。
+仓颉中所有接口都默认继承它，所有非接口类型都默认实现它，因此所有类型都可以作为Any类型的子类型使用。
 
-如下面的代码，可以将一系列不同类型的变量赋值给 Any 类型的变量。
+如下面的代码，可以将一系列不同类型的变量赋值给Any类型的变量。
 
 <!-- compile -->
 

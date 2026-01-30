@@ -40,7 +40,7 @@ func test2(n!: Int64 = @sourceLine()) { /* at line 5 */
 
 为了提升与 `C` 语言互操作的性能，仓颉提供 `@FastNative` 标记用于优化对 `C` 函数的调用。值得注意的是 `@FastNative` 只能用于 `foreign` 声明的函数。
 
-首先编译以下 C 语言程序得到动态库文件 `libcProg.so`，示例如下：
+首先编译以下C语言程序得到动态库文件 `libcProg.so`，示例如下：
 
 ```c
 #include <stdio.h>
@@ -164,7 +164,7 @@ import define.Component
 
 ## @Deprecated
 
-`@Deprecated` 表示此 API 已废弃，虽然暂时可用，但未来将被移除或更改，建议其他开发者不要调用此 API。例如：
+`@Deprecated` 表示此API已废弃，虽然暂时可用，但未来将被移除或更改，建议其他开发者不要调用此API。例如：
 
 <!-- compile -->
 
@@ -191,19 +191,19 @@ warning: function 'foo' is deprecated since 1.3.4. 用boo代替
 1 warning generated, 1 warning printed.
 ```
 
-@Deprecated 自定义宏可以应用于以下声明：
+@Deprecated自定义宏可以应用于以下声明：
 
 - 类、接口、结构体、枚举、枚举构造器
 - 顶级（全局）函数或变量
 - 静态或非静态的成员函数、成员变量、属性、属性设置器
 - 运算符函数
 - 扩展的成员函数、静态函数、属性或属性设置器
-- foreign 函数或声明在 foreign 块内的函数
+- foreign函数或声明在foreign块内的函数
 - 构造函数和主构造函数
 - 抽象的函数和属性
 - 类型别名（包括关联类型）
 - 函数具有默认参数的命名参数
-- const 变量和函数
+- const变量和函数
 - 宏定义
 - 注解类
 
@@ -211,7 +211,7 @@ warning: function 'foo' is deprecated since 1.3.4. 用boo代替
 
 - `message: String` - 描述声明为何废弃、如何迁移等。
 - `since!: ?String` - 废弃版本。
-- `strict!: Bool` - 默认值为 `false`，在被该标记修饰的 API 的调用处会触发警告。如果设置为 `true`，则会触发编译错误。
+- `strict!: Bool` - 默认值为 `false`，在被该标记修饰的API的调用处会触发警告。如果设置为 `true`，则会触发编译错误。
 
 <!-- compile.error -->
 

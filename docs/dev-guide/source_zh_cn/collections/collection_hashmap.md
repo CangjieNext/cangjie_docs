@@ -1,6 +1,6 @@
 # HashMap
 
-使用 HashMap 类型需要导入 collection 包：
+使用HashMap类型需要导入collection包：
 
 <!-- run -->
 
@@ -8,11 +8,11 @@
 import std.collection.*
 ```
 
-可以使用 HashMap 类型来构造元素为键值对的 Collection。
+可以使用HashMap类型来构造元素为键值对的Collection。
 
-HashMap 是一种哈希表，提供对其包含的元素的快速访问。表中的每个元素都使用其键作为标识，可以使用键来访问相应的值。
+HashMap是一种哈希表，提供对其包含的元素的快速访问。表中的每个元素都使用其键作为标识，可以使用键来访问相应的值。
 
-仓颉使用 `HashMap<K, V>` 表示 HashMap 类型，K 表示 HashMap 的键类型，K 必须是实现了 Hashable 和 `Equatable<K>` 接口的类型，例如数值或 String。V 表示 HashMap 的值类型，V 可以是任意类型。
+仓颉使用 `HashMap<K, V>` 表示HashMap类型，K表示HashMap的键类型，K必须是实现了Hashable和 `Equatable<K>` 接口的类型，例如数值或String。V表示HashMap的值类型，V可以是任意类型。
 
 <!-- compile.error -hashmap1 -->
 
@@ -21,7 +21,7 @@ var a: HashMap<Int64, Int64> = HashMap<Int64, Int64>() // HashMap whose key type
 var b: HashMap<String, Int64> = HashMap<String, Int64>() // HashMap whose key type is String and value type is Int64
 ```
 
-元素类型不相同的 HashMap 是不相同的类型，所以它们之间不可以互相赋值。
+元素类型不相同的HashMap是不相同的类型，所以它们之间不可以互相赋值。
 
 因此以下例子是不合法的。
 
@@ -31,7 +31,7 @@ var b: HashMap<String, Int64> = HashMap<String, Int64>() // HashMap whose key ty
 b = a // Type mismatch
 ```
 
-仓颉中可以使用构造函数的方式构造一个指定的 HashMap。
+仓颉中可以使用构造函数的方式构造一个指定的HashMap。
 
 <!-- run -->
 
@@ -45,9 +45,9 @@ let e = HashMap<Int64, Int64>(10, {x: Int64 => (x, x * x)}) // Created a HashMap
 
 ## 访问 HashMap 成员
 
-当需要对 HashMap 的所有元素进行访问时，可以使用 for-in 循环遍历 HashMap 的所有元素。
+当需要对HashMap的所有元素进行访问时，可以使用for-in循环遍历HashMap的所有元素。
 
-需要注意的是，HashMap 并不保证按插入元素的顺序排列，因此遍历的顺序和插入的顺序可能不同。
+需要注意的是，HashMap并不保证按插入元素的顺序排列，因此遍历的顺序和插入的顺序可能不同。
 
 <!-- verify -->
 
@@ -70,7 +70,7 @@ The key is b, the value is 1
 The key is c, the value is 2
 ```
 
-当需要知道某个 HashMap 包含的元素个数时，可以使用 size 属性获得对应信息。
+当需要知道某个HashMap包含的元素个数时，可以使用size属性获得对应信息。
 
 <!-- verify -->
 
@@ -93,7 +93,7 @@ main() {
 The size of hashmap is 3
 ```
 
-当想判断 HashMap 中是否包含某个键时，可以使用 contains 函数。如果该键存在会返回 true，否则返回 false。
+当想判断HashMap中是否包含某个键时，可以使用contains函数。如果该键存在会返回true，否则返回false。
 
 <!-- run -->
 
@@ -116,9 +116,9 @@ let c = map["d"] // Runtime exceptions
 
 ## 修改 HashMap
 
-HashMap 是一种可变的引用类型，HashMap 类型提供了修改元素、添加元素、删除元素的功能。
+HashMap是一种可变的引用类型，HashMap类型提供了修改元素、添加元素、删除元素的功能。
 
-HashMap 的可变性是一个非常有用的特征，可以让同一个 HashMap 实例的所有引用都共享同样的元素，并且对它们统一进行修改。
+HashMap的可变性是一个非常有用的特征，可以让同一个HashMap实例的所有引用都共享同样的元素，并且对它们统一进行修改。
 
 可以使用下标语法对某个键对应的值进行修改。
 
@@ -129,9 +129,9 @@ let map = HashMap<String, Int64>([("a", 0), ("b", 1), ("c", 2)])
 map["a"] = 3
 ```
 
-HashMap 是引用类型，HashMap 在作为表达式使用时不会拷贝副本，同一个 HashMap 实例的所有引用都会共享同样的数据。
+HashMap是引用类型，HashMap在作为表达式使用时不会拷贝副本，同一个HashMap实例的所有引用都会共享同样的数据。
 
-因此对 HashMap 元素的修改会影响到该实例的所有引用。
+因此对HashMap元素的修改会影响到该实例的所有引用。
 
 <!-- run -->
 
@@ -143,7 +143,7 @@ map2["a"] = 3
 // map2 contains the elements ("a", 3), ("b", 1), ("c", 2)
 ```
 
-如果需要将单个键值对添加到 HashMap 里，请使用 add 函数。如果希望同时添加多个键值对，可以使用 `add(all!: Collection<(K, V)>)` 函数。当键不存在时，add 函数会执行添加的操作，当键存在时，add 函数会将新的值覆盖旧的值。
+如果需要将单个键值对添加到HashMap里，请使用add函数。如果希望同时添加多个键值对，可以使用 `add(all!: Collection<(K, V)>)` 函数。当键不存在时，add函数会执行添加的操作，当键存在时，add函数会将新的值覆盖旧的值。
 
 <!-- run -->
 
@@ -155,7 +155,7 @@ let map2 = HashMap<String, Int64>([("c", 2), ("d", 3)])
 map.add(all: map2) // map contains the elements ("a", 0), ("b", 1), ("c", 2), ("d", 3)
 ```
 
-除了使用 add 函数以外，也可以使用赋值的方式直接将新的键值对添加到 HashMap。
+除了使用add函数以外，也可以使用赋值的方式直接将新的键值对添加到HashMap。
 
 <!-- run -->
 
@@ -164,7 +164,7 @@ let map = HashMap<String, Int64>([("a", 0), ("b", 1), ("c", 2)])
 map["d"] = 3 // map contains the elements ("a", 0), ("b", 1), ("c", 2), ("d", 3)
 ```
 
-从 HashMap 中删除元素，可以使用 remove 函数，需要指定删除的键。
+从HashMap中删除元素，可以使用remove函数，需要指定删除的键。
 
 <!-- run -->
 

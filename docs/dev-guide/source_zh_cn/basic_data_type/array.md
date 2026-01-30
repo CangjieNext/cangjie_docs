@@ -2,9 +2,9 @@
 
 ## Array
 
-可以使用 Array 类型来构造单一元素类型，有序序列的数据。
+可以使用Array类型来构造单一元素类型，有序序列的数据。
 
-仓颉使用 `Array<T>` 来表示 Array 类型。T 表示 Array 的元素类型，T 可以是任意类型。
+仓颉使用 `Array<T>` 来表示Array类型。T表示Array的元素类型，T可以是任意类型。
 
 <!-- compile.error -array_example -->
 
@@ -13,7 +13,7 @@ var a: Array<Int64> = [0, 0, 0, 0] // Array whose element type is Int64
 var b: Array<String> = ["a1", "a2", "a3"] // Array whose element type is String
 ```
 
-元素类型不相同的 Array 是不相同的类型，所以它们之间不可以互相赋值。
+元素类型不相同的Array是不相同的类型，所以它们之间不可以互相赋值。
 
 因此以下例子是不合法的。
 
@@ -23,9 +23,9 @@ var b: Array<String> = ["a1", "a2", "a3"] // Array whose element type is String
 b = a // Type mismatch
 ```
 
-可以轻松使用字面量来初始化一个 Array，只需要使用方括号将逗号分隔的值列表括起来即可。
+可以轻松使用字面量来初始化一个Array，只需要使用方括号将逗号分隔的值列表括起来即可。
 
-编译器会根据上下文自动推断 Array 字面量的类型。
+编译器会根据上下文自动推断Array字面量的类型。
 
 <!-- compile -->
 
@@ -34,9 +34,9 @@ let a: Array<String> = [] // Created an empty Array whose element type is String
 let b = [1, 2, 3, 3, 2, 1] // Created a Array whose element type is Int64, containing elements 1, 2, 3, 3, 2, 1
 ```
 
-也可以使用构造函数的方式构造一个指定元素类型的 Array。其中， repeat 属于 Array 构造函数中的一个命名参数。
+也可以使用构造函数的方式构造一个指定元素类型的Array。其中， repeat属于Array构造函数中的一个命名参数。
 
-需要注意的是，当通过 repeat 指定的初始值初始化 Array 时，该构造函数不会拷贝 repeat，如果 repeat 是一个引用类型，构造后数组的每一个元素都将指向相同的引用。
+需要注意的是，当通过repeat指定的初始值初始化Array时，该构造函数不会拷贝repeat，如果repeat是一个引用类型，构造后数组的每一个元素都将指向相同的引用。
 
 <!-- compile -->
 
@@ -50,9 +50,9 @@ let d = Array<Int64>(3, {i => i + 1}) // Created an Array whose element type is 
 
 ### 访问 Array 成员
 
-当需要对 Array 的所有元素进行访问时，可以使用 for-in 循环遍历 Array 的所有元素。
+当需要对Array的所有元素进行访问时，可以使用for-in循环遍历Array的所有元素。
 
-Array 是按元素插入顺序排列的，因此对 Array 遍历的顺序总是恒定的。
+Array是按元素插入顺序排列的，因此对Array遍历的顺序总是恒定的。
 
 <!-- verify -->
 
@@ -73,7 +73,7 @@ The element is 1
 The element is 2
 ```
 
-当需要知道某个 Array 包含的元素个数时，可以使用 size 属性获得对应信息。
+当需要知道某个Array包含的元素个数时，可以使用size属性获得对应信息。
 
 <!-- verify -->
 
@@ -94,7 +94,7 @@ main() {
 The size of array is 3
 ```
 
-当想访问单个指定位置的元素时，可以使用下标语法访问（下标的类型必须是 Int64）。非空 Array 的第一个元素总是从位置 0 开始的。可以从 0 开始访问 Array 的任意一个元素，直到最后一个位置（Array 的 size - 1）。索引值不能使用负数或者大于等于 size，当编译器能检查出索引值非法时，会在编译时报错，否则会在运行时抛异常。
+当想访问单个指定位置的元素时，可以使用下标语法访问（下标的类型必须是Int64）。非空Array的第一个元素总是从位置0开始的。可以从0开始访问Array的任意一个元素，直到最后一个位置（Array的size - 1）。索引值不能使用负数或者大于等于size，当编译器能检查出索引值非法时，会在编译时报错，否则会在运行时抛异常。
 
 <!-- compile.error -->
 
@@ -107,7 +107,7 @@ main() {
 }
 ```
 
-如果想获取某一段 Array 的元素，可以在下标中传入 Range 类型的值，就可以一次性取得 Range 对应范围的一段 Array。
+如果想获取某一段Array的元素，可以在下标中传入Range类型的值，就可以一次性取得Range对应范围的一段Array。
 
 <!-- compile -->
 
@@ -116,9 +116,9 @@ let arr1 = [0, 1, 2, 3, 4, 5, 6]
 let arr2 = arr1[0..5] // arr2 contains the elements 0, 1, 2, 3, 4
 ```
 
-当 Range 字面量在下标语法中使用时，可以省略 start 或 end。
+当Range字面量在下标语法中使用时，可以省略start或end。
 
-当省略 start 时，Range 会从 0 开始；当省略 end 时，Range 的 end 会延续到最后一位。
+当省略start时，Range会从0开始；当省略end时，Range的end会延续到最后一位。
 
 <!-- compile -->
 
@@ -130,9 +130,9 @@ let arr3 = arr1[2..] // arr3 contains elements 2, 3, 4, 5, 6
 
 ### 修改 Array
 
-Array 是一种长度不变的 [Collection 类型](../../source_zh_cn/collections/collection_overview.md)，因此 Array 没有提供添加和删除元素的成员函数。
+Array是一种长度不变的 [Collection 类型](../../source_zh_cn/collections/collection_overview.md)，因此Array没有提供添加和删除元素的成员函数。
 
-但是 Array 允许对其中的元素进行修改，同样使用下标语法。
+但是Array允许对其中的元素进行修改，同样使用下标语法。
 
 <!-- verify -->
 
@@ -150,9 +150,9 @@ main() {
 The first element is 3
 ```
 
-Array 虽然是 struct 类型，但其内部持有的只是元素的引用，因此在作为表达式使用时不会拷贝副本，同一个 Array 实例的所有引用都会共享同样的元素数据。
+Array虽然是struct类型，但其内部持有的只是元素的引用，因此在作为表达式使用时不会拷贝副本，同一个Array实例的所有引用都会共享同样的元素数据。
 
-因此对 Array 元素的修改会影响到该实例的所有引用。
+因此对Array元素的修改会影响到该实例的所有引用。
 
 <!-- compile -->
 
@@ -166,9 +166,9 @@ arr2[0] = 3
 
 ## VArray
 
-除了引用类型的数组 Array，仓颉还引入了值类型数组 `VArray<T, $N>` ，其中 `T` 表示该值类型数组的元素类型，`$N` 是一个固定的语法。通过 `$` 加上一个 `Int64` 类型的数值字面量表示这个值类型数组的长度。需要注意的是，`VArray<T, $N>` 不能省略 `<T, $N>`，且使用类型别名时，不允许拆分 `VArray` 关键字与其泛型参数。
+除了引用类型的数组Array，仓颉还引入了值类型数组 `VArray<T, $N>` ，其中 `T` 表示该值类型数组的元素类型，`$N` 是一个固定的语法。通过 `$` 加上一个 `Int64` 类型的数值字面量表示这个值类型数组的长度。需要注意的是，`VArray<T, $N>` 不能省略 `<T, $N>`，且使用类型别名时，不允许拆分 `VArray` 关键字与其泛型参数。
 
-与频繁使用引用类型 Array 相比，使用值类型 VArray 可以减少堆上内存分配和垃圾回收的压力。但是需要注意的是，由于值类型本身在传递和赋值时的拷贝，会产生额外的性能开销，因此建议不要在性能敏感场景使用较大长度的 `VArray`。值类型和引用类型的特点请参见[值类型和引用类型变量](../basic_programming_concepts/program_structure.md#值类型和引用类型变量)。
+与频繁使用引用类型Array相比，使用值类型VArray可以减少堆上内存分配和垃圾回收的压力。但是需要注意的是，由于值类型本身在传递和赋值时的拷贝，会产生额外的性能开销，因此建议不要在性能敏感场景使用较大长度的 `VArray`。值类型和引用类型的特点请参见[值类型和引用类型变量](../basic_programming_concepts/program_structure.md#值类型和引用类型变量)。
 <!-- compile.error -->
 
 ```cangjie
@@ -178,7 +178,7 @@ type varr2 = VArray // Error
 
 > **注意：**
 >
-> 由于运行时后端限制，当前 `VArray<T, $N>` 的元素类型 `T` 或 `T` 的成员不能包含引用类型、枚举类型、Lambda 表达式（`CFunc` 除外）以及未实例化的泛型类型。
+> 由于运行时后端限制，当前 `VArray<T, $N>` 的元素类型 `T` 或 `T` 的成员不能包含引用类型、枚举类型、Lambda表达式（`CFunc` 除外）以及未实例化的泛型类型。
 
 `VArray` 可以由一个数组的字面量来进行初始化，左值 `a` 必须标识出 `VArray` 的实例化类型：
 
@@ -222,6 +222,6 @@ let c = VArray<Int64, $5>(repeat: 0) // [0, 0, 0, 0, 0]
   let s = a.size // s is 3
   ```
 
-  size 属性的类型为 `Int64`。
+  size属性的类型为 `Int64`。
 
-此外，`VArray` 还支持仓颉与 C 语言互操作场景使用，相关内容请参见[数组](../FFI/cangjie-c.md#数组)。
+此外，`VArray` 还支持仓颉与C语言互操作场景使用，相关内容请参见[数组](../FFI/cangjie-c.md#数组)。

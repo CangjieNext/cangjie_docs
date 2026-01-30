@@ -45,7 +45,7 @@ type C = (B, Int64)
     var a: A = B() // Use typealias A as type B
     ```
 
-2. 当类型别名实际指向的类型为 class、struct 时，可以作为构造器名称使用：
+2. 当类型别名实际指向的类型为class、struct时，可以作为构造器名称使用：
 
     <!-- compile -->
 
@@ -55,7 +55,7 @@ type C = (B, Int64)
     func foo() { A() }  // Use type alias A as constructor of B
     ```
 
-3. 当类型别名实际指向的类型为 class、interface、struct 时，可以作为访问内部静态成员变量或函数的类型名：
+3. 当类型别名实际指向的类型为class、interface、struct时，可以作为访问内部静态成员变量或函数的类型名：
 
     <!-- compile -->
 
@@ -71,7 +71,7 @@ type C = (B, Int64)
     }
     ```
 
-4. 当类型别名实际指向的类型为 enum 时，可以作为 enum 声明的构造器的类型名：
+4. 当类型别名实际指向的类型为enum时，可以作为enum声明的构造器的类型名：
 
     <!-- compile -->
 

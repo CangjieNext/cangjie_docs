@@ -1,6 +1,6 @@
 # 动态特性
 
-本章介绍 Cangjie 的动态特性，应用动态特性开发者能够更为优雅的实现一些功能。仓颉的动态特性主要包含反射。
+本章介绍Cangjie的动态特性，应用动态特性开发者能够更为优雅的实现一些功能。仓颉的动态特性主要包含反射。
 
 ## 仓颉反射基本介绍
 
@@ -18,9 +18,9 @@
 
 ## 如何获得 TypeInfo
 
-对于仓颉的反射特性，需要知道 TypeInfo 这一类型，这个核心类型中记录任意类型的类型信息，并且定义了方法用于获取类型信息、设置值等。当然为了便于用户操作仓颉还提供了 ClassTypeInfo、PrimitiveTypeInfo、ParameterInfo 等一系列的信息类型。
+对于仓颉的反射特性，需要知道TypeInfo这一类型，这个核心类型中记录任意类型的类型信息，并且定义了方法用于获取类型信息、设置值等。当然为了便于用户操作仓颉还提供了ClassTypeInfo、PrimitiveTypeInfo、ParameterInfo等一系列的信息类型。
 
-可以使用三种静态的 `of` 方法来生成 TypeInfo 信息类。
+可以使用三种静态的 `of` 方法来生成TypeInfo信息类。
 
 <!-- code_check_manual -->
 
@@ -59,7 +59,7 @@ default.Foo
 default.Foo
 ```
 
-此外 TypeInfo 还提供了静态函数 `get`，该接口可通过传入的类型名称获取 TypeInfo。
+此外TypeInfo还提供了静态函数 `get`，该接口可通过传入的类型名称获取TypeInfo。
 
 <!-- code_check_manual -->
 
@@ -69,7 +69,7 @@ public class TypeInfo {
 }
 ```
 
-请注意，传入参数需要符合 `module.package.type` 的完全限定模式规则。对于编译器预导入的类型，包含 core 包中的类型和编译器内置类型，例如 `primitive type`、`Option`、`Iterable` 等，查找的字符串需要直接使用其类型名，不能带包名和模块名前缀。当运行时无法查询到对应类型的实例，则会抛出 `InfoNotFoundException`。
+请注意，传入参数需要符合 `module.package.type` 的完全限定模式规则。对于编译器预导入的类型，包含core包中的类型和编译器内置类型，例如 `primitive type`、`Option`、`Iterable` 等，查找的字符串需要直接使用其类型名，不能带包名和模块名前缀。当运行时无法查询到对应类型的实例，则会抛出 `InfoNotFoundException`。
 
 示例：（会运行报错）
 <!-- run.error -->
@@ -84,7 +84,7 @@ main() {
 
 ## 如何使用反射访问成员
 
-在获取到对应的类型信息类即 `TypeInfo` 后，便可以通过其相应接口访问对应类的实例成员以及静态成员。此外 `TypeInfo` 的子类 `ClassTypeInfo` 还提供了接口用于访问类公开的构造函数以及它的成员变量、属性、函数。仓颉的反射被设计为只能访问到类型内 public 的成员，意味着 private 和 protected 修饰的成员在反射中是不可见的。
+在获取到对应的类型信息类即 `TypeInfo` 后，便可以通过其相应接口访问对应类的实例成员以及静态成员。此外 `TypeInfo` 的子类 `ClassTypeInfo` 还提供了接口用于访问类公开的构造函数以及它的成员变量、属性、函数。仓颉的反射被设计为只能访问到类型内public的成员，意味着private和protected修饰的成员在反射中是不可见的。
 
 例如当想要在运行时对类的某一实例成员变量进行获取与修改。
 
