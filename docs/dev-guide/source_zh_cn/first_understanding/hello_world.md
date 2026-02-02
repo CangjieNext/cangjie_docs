@@ -70,7 +70,7 @@ main(): Int64 {
 }
 ```
 
-另外执行 `cjpm init --path hello_cjpm`，`cjpm` 会自动创建 `hello_cjpm` 文件夹并在其中完成初始化。
+此外执行 `cjpm init --path hello_cjpm`，`cjpm` 会自动创建 `hello_cjpm` 文件夹并在其中完成初始化。
 
 在项目根目录下（即 `cjpm.toml` 所在目录），直接执行以下命令即可编译并运行程序：
 
@@ -81,7 +81,7 @@ cjpm run
 `cjpm` 会自动处理依赖检查、编译构建以及运行可执行文件的全过程。命令行将显示如下输出：
 
 ```text
-Hello World
+hello world
 
-cjpm run success
+cjpm run finished
 ```

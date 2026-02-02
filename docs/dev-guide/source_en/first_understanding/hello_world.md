@@ -81,7 +81,7 @@ cjpm run
 `cjpm` will automatically handle dependency checks, compilation, and the execution of the program. The following output will be shown on the command line:  
 
 ```text
-Hello World
+hello world
 
-cjpm run success
+cjpm run finished
 ```
