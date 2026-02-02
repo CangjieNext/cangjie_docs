@@ -4,6 +4,8 @@ Everything is ready—let's start writing and running your first Cangjie program
 
 ## Compiling with cjc
 
+## Compiling with cjc
+
 First, create a new text file named `hello.cj` in an appropriate directory and write the following Cangjie code into it:
 
 <!-- verify -->
