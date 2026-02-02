@@ -196,7 +196,7 @@ main() {
 }
 ```
 
-当静态成员变量的赋值出现在函数或 [lambda](../function/lambda.md#lambda-表达式) 内时，编译器在编译期无法确定该函数或 `lambda` 是否会被执行，因此通常采用保守策略报错。示例如下：
+当静态成员变量的赋值出现在函数或 [lambda](../function/lambda.md) 内时，编译器在编译期无法确定该函数或 `lambda` 是否会被执行，因此通常采用保守策略报错。示例如下：
 
 <!-- compile.error -->
 

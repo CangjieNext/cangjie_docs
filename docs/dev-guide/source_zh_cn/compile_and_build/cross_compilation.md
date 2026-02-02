@@ -93,8 +93,8 @@ $ adb shell "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/main"
 当前仓颉支持从 `aarch64` 架构环境交叉编译生成 iOS 模拟器静态库：`aarch64` 架构可在 Xcode 中直接运行，x86_64 架构需要依赖 Xcode 的 Rosetta 运行。在编译过程中需指定以下选项：
 
 - `--target`
-  - `--target=aarch64-apple-ios-simulator` 适用于aarch64目标架构
-  - `--target=x86_64-apple-ios-simulator` 适用于x86_64目标架构
+    - `--target=aarch64-apple-ios-simulator` 适用于 aarch64 目标架构
+    - `--target=x86_64-apple-ios-simulator` 适用于 x86_64 目标架构
 - `--output-type=staticlib` 指定输出文件的类型为静态库
 
 编译产物需要添加至 Xcode 工程中，并通过 Xcode 构建 `iOS` 应用。
