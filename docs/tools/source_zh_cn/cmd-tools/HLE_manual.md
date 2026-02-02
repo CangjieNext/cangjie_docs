@@ -3,7 +3,7 @@
 ## 功能简介
 
 `HLE (HyperlangExtension)` 是一个仓颉调用 ArkTS 或者 C 语言的互操作代码模板自动生成工具。
-该工具的输入是 ArkTS 或者 C 语言的接口声明文件，例如后缀 .d.ts，.d.ets 或者 .h 结尾的文件，输出为 cj 文件，其中存放生成的互操作代码。如果生成的是 ArkTS 到仓颉的胶水层代码，工具也会输出包含 ArkTS 文件的所有信息的 json 文件。ArkTS 转换到仓颉的转换规则请参见：[ArkTS 三方模块生成仓颉胶水代码的规则](cj-dts2cj-translation-rules.md)。C 语言转换到仓颉的转换规则请参见：[C 语言转换到仓颉胶水代码的规则](cj-c2cj-translation-rules.md)。
+该工具的输入是 ArkTS 或者 C 语言的接口声明文件，例如后缀为 .d.ts，.d.ets 或者 .h 结尾的文件，输出为 cj 文件，其中存放生成的互操作代码。如果生成的是 ArkTS 到仓颉的胶水层代码，工具也会输出包含 ArkTS 文件的所有信息的 json 文件。ArkTS 转换到仓颉的转换规则请参见：[ArkTS 三方模块生成仓颉胶水代码的规则](cj-dts2cj-translation-rules.md)。C 语言转换到仓颉的转换规则请参见：[C 语言转换到仓颉胶水代码的规则](cj-c2cj-translation-rules.md)。
 
 ## 使用说明
 
