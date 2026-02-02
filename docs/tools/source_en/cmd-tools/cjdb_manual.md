@@ -6,7 +6,7 @@ CJDB is a command-line debugging tool for Cangjie programs developed based on `l
 
 ### Acquisition Method
 
-Obtain it through the `Cangjie` `SDK`. The acquisition path is: Daily Build.
+Obtain it through the `Cangjie` `SDK`.
 
 The path of the `cjdb` tool in the `SDK`: `cangjie\tools\bin`.
 
@@ -681,7 +681,7 @@ Architecture set to: x86_64-unknown-linux-gnu.
 
 4. The Cangjie `cjdb` is built upon `lldb`, thus supporting all native basic functionalities of `lldb`. For details, refer to the [lldb official documentation](https://lldb.llvm.org).
 
-5. If developers run cjdb on system environments newer than this version, compatibility issues and risks may arise, such as in C language interoperability scenarios where cjdb cannot properly resolve C code file and line number information.
+5. If developers run cjdb on system environments newer than the version of `llvm15.0.4` , compatibility issues and risks may arise, such as in C language interoperability scenarios where `cjdb` cannot properly resolve C code file and line number information.
 
     ```c
     int32_t cfoo()
