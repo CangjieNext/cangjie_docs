@@ -81,6 +81,7 @@ import pkgf
 import org2::{
     pkga.{foo, bar} // 错误，多导入不能嵌套
 }
+import {org1::b.c, org1::b.d} // 错误，多导入不能使用组织名
 
 public func f1() {}
 

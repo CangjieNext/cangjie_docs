@@ -71,6 +71,7 @@ import pkgf
 import org2::{
     pkga.{foo, bar} // Error: nested imports are not allowed
 }
+import {org1::b.c, org1::b.d} // Error: organization name cannot be used in multiple imports
 
 public func f1() {}
 
