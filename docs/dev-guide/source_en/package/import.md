@@ -61,6 +61,13 @@ package pkgc
 import pkga.C // Error, 'C' is not accessible in package 'pkga'.
 import pkga.R // OK, R is an external top-level declaration of package pkga.
 import pkgc.f1 // Error, package 'pkgc' should not import itself.
+import org::* // Error: a package name must immediately follow '*'.
+import org::pkgf
+import pkgf
+import org2::{
+    pkga.{foo, bar} // Error: nested multi-imports are not allowed.
+}
+import {a::b.c, a::b.d} // Error: multi-imports cannot use an organization name.
 
 public func f1() {}
 
