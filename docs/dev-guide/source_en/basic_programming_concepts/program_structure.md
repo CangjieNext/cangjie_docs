@@ -231,15 +231,16 @@ The following example defines a `struct` to record a planet's mass and radius, a
 struct Planet {
     const Planet(let mass: Float64, let radius: Float64) {}
 
-    const func gravity(m: Float64, r: Float64) {
-        G * mass * m / r**2
+    const func gravity(objectMass: Float64) {
+        (G * this.mass * objectMass) / (this.radius ** 2)
     }
 }
 
 main() {
     const myMass = 71.0
     const earth = Planet(5.972e24, 6.378e6)
-    println(earth.gravity(myMass, earth.radius))
+
+    println(earth.gravity(myMass))
 }
 ```
 
