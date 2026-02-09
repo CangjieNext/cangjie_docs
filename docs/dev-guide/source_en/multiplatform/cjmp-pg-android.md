@@ -387,7 +387,7 @@ APIStrategy="Full"       # expose everything
 ```
 
 Furthermore, for each package you can use either the `included_apis`
-or `excluded_apis` property to respectivly expose or hide particular types
+or `excluded_apis` property to respectively expose or hide particular types
 and/or members:
 
 ```toml
@@ -565,7 +565,7 @@ package tuples
 import interoplib.interop
 
 public class SimpleTupleExample {
-    public static func z: (Int, Int) {
+    public static func z(): (Int, Int) {
         (0, 0)
     }
 }
@@ -589,17 +589,17 @@ package tuples;
 final public class TupleOfInt64Int64 {
     // Glue code
     public TupleOfInt64Int64(long item0, long item1) {
-        // Glue code constructing a Cagnjie (Int, Int) tuple and associating it
+        // Glue code constructing a Cangjie (Int, Int) tuple and associating it
         // with the Java object being constructed, i.e. 'this'.
     }
 
     public long item0() {
-        // Glue code retieving the 0th element from the Cangjie (Int, Int)
+        // Glue code retrieving the 0th element from the Cangjie (Int, Int)
         // tuple associated with 'this' and returning it.
     }
 
     public long item1() {
-        // Glue code retieving the 1th element from the Cangjie (Int, Int)
+        // Glue code retrieving the 1th element from the Cangjie (Int, Int)
         // tuple associated with 'this' and returning it.
     }
     // Glue Code
@@ -655,7 +655,7 @@ The current implementation has the following limitations:
     #   .   .  .
     ```
 
-  The compiler reports an error upon encounterihng a tuple type that must be
+  The compiler reports an error upon encountering a tuple type that must be
   mirrored but is not listed in the `tuple_configuration` array for the
   respective Cangjie package.
 
@@ -747,7 +747,8 @@ public class IntFuncBox {
 // Glue code
 
     public IntFuncBox(Int64ToInt64 f) {
-        // Glue code creating an instance of a class bla blu
+        // Glue code creating an instance of the Cangjie class IntFuncBox
+        // and associating it with the object being constructed, i.e. 'this'.
     }
 
     public Int64ToInt64 unbox() {
@@ -763,7 +764,7 @@ public class IntFuncBox {
 A function type `(`_`T1`_`, `_`T2`_`,... `_`Tn`_`) -> U` is mirrored into a
 Java functional interface with the following properties:
 
-- If any _`Ti`_ is a type alias, the function type is mirrored as if that `Ti`_
+- If any _`Ti`_ is a type alias, the function type is mirrored as if that _`Ti`_
   was the aliased type. For instance, `(Int) -> Int` is processed as if it was
   actually `(Int64) -> Int64`.
 
@@ -1014,8 +1015,8 @@ public class Singleton implements Valuable {
     }
 
     public long value() {
-        // Glue code that retieves the associated Cangjie Singleton class
-        // instance, calls its memeber function value() and returns the result
+        // Glue code that retrieves the associated Cangjie Singleton class
+        // instance, calls its member function value() and returns the result
     }
 
     // Glue code
@@ -1078,7 +1079,7 @@ Generally, only the following entities are subject to mirroring:
 
 * `public` constructors and members of the above listed kinds
 * `protected` `open` members of `open` classes (this includes `protected`
-  abstract nethods), as they can be overridden on the Java side.
+  abstract member functions), as they can be overridden on the Java side.
 
 **Member variables** and **Member operator functions** are currently not
 mirrored.
@@ -1092,7 +1093,7 @@ and interface types that can be mirrored, to the extent that it may be
 fair to say that such types need to be designed specifically for exposing
 them to Cangjie:
 
-* `abstract `classes are not mirrored.
+* `abstract` classes are not mirrored.
 
 * Member variables are not mirrored and no means for accessing them
   is provided. This limitation will be removed in a future version.
@@ -1131,21 +1132,21 @@ public final class TimeUnit {
 
     public static TimeUnit Year(long p1) {
          // Glue code creating a Cangjie Year(p1) enum and associating it
-         // with a newly creasted Java TimeUnit instance
+         // with a newly created Java TimeUnit instance
     }
 
     public static TimeUnit Month(long p1) {
          // Glue code creating a Cangjie Month(p1) enum and associating it
-         // with a newly creasted Java TimeUnit instance
+         // with a newly created Java TimeUnit instance
     }
 
     public static TimeUnit Year =
         // Glue code creating a Cangjie Year enum and associating it
-        // with a newly creasted Java TimeUnit instance
+        // with a newly created Java TimeUnit instance
 
     public static TimeUnit Month =
         // Glue code creating a Cangjie Year enum and associating it
-        // with a newly creasted Java TimeUnit instance
+        // with a newly created Java TimeUnit instance
 
     /* More glue code */
 }
@@ -1516,13 +1517,17 @@ Each entry of the array has the following two mandatory properties:
 
 `name`
 
-A string containing the name of a public generic Cangjie type or global
-function defined in the current package.
+A string containing the name of a public generic Cangjie type defined
+in the current package.
 
-`types`
+`type_arguments`
 
 An array of strings, each containing valid type arguments for the generic
 type the name of which is specified in the `name` property.
+
+**NOTE:** The current version only supports numeric types, `Bool`, and
+`Unit` as type arguments for monomorphization. Specifying any other type
+in a `types` array element results in a compile time error.
 
 > Simply put, "valid" means that the type/function can be instantiated
 > with the given string between the angle brackets `< >`.
