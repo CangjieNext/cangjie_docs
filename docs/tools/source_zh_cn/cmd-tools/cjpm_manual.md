@@ -1,15 +1,15 @@
-# 包管理工具
+# 项目管理工具
 
 ## 功能简介
 
-`CJPM（Cangjie Package Manager）` 是仓颉语言的官方包管理工具，用于对仓颉项目模块系统进行管理与维护，涵盖模块初始化、依赖检查与更新等操作。它提供统一的编译入口，支持增量编译、并行编译等，支持自定义编译命令。
+`CJPM（Cangjie Project Manager）` 是仓颉语言的官方项目管理工具，用于对仓颉项目模块系统进行管理与维护，涵盖模块初始化、依赖检查与更新等操作。它提供统一的编译入口，支持增量编译、并行编译等，支持自定义编译命令。
 
 ## 使用说明
 
-执行 `cjpm -h` 命令，查阅包管理工具的使用说明，如下所示。
+执行 `cjpm -h` 命令，查阅项目管理工具的使用说明，如下所示。
 
 ```text
-Cangjie Package Manager
+Cangjie Project Manager
 
 Usage:
   cjpm [subcommand] [option]
@@ -40,7 +40,7 @@ Use "cjpm [subcommand] --help" for more information about a command.
 cjpm build --help
 ```
 
-`cjpm` 是主程序的名称， `build` 是当前执行的可用命令， `--help` 是当前可用命令可用的配置项（配置项通常有长和短两种写法，效果相同）。
+`cjpm` 是主程序的名称，`build` 是当前执行的可用命令，`--help` 是当前可用命令可用的配置项（配置项通常有长和短两种写法，效果相同）。
 
 成功执行后会显示如下结果：
 
@@ -62,6 +62,7 @@ Available options:
   --target <value>              generate code for the given target platform
   --target-dir <value>          specify target directory
   -o, --output <value>          specify product name when compiling an executable file
+  -l, --lint                    enable cjlint code check
   --mock                        enable support of mocking classes in tests
   --skip-script                 disable script 'build.cj'.
 ```
@@ -242,11 +243,12 @@ cjpm tree success
 - `-V, --verbose` 用于展示编译日志
 - `-g` 用于生成 `debug` 版本的输出产物
 - `--coverage` 用于生成覆盖率信息，默认情况下不开启覆盖率功能
-- `--cfg` 指定后，能够透传 `cjpm.toml` 中的自定义 `cfg` 选项，`cjpm.toml` 中的配置可参考 [profile.customized-option](#profile.customized-option) 章节
+- `--cfg` 指定后，能够透传 `cjpm.toml` 中的自定义 `cfg` 选项，`cjpm.toml` 中的配置可参考 [profile.customized-option](#profilecustomized-option) 章节
 - `-m, --member <value>` 仅可在工作空间下使用，可用于指定单个模块作为编译入口
 - `--target <value>` 指定后，可交叉编译代码到目标平台，`cjpm.toml` 中的配置可参考 [target](#target) 章节
 - `--target-dir <value>` 用于指定输出产物的存放路径
 - `-o, --output <value>` 用于指定输出可执行文件的名称，默认名称为 `main`（`Windows` 系统下则默认为 `main.exe`）。注意，当前不支持编译名称为 `cjc` 的可执行文件
+- `-l, --lint` 用于在编译时调用仓颉语言静态检查工具进行代码检查
 - `--mock` 带有此选项的构建版本中的类可用于在测试中进行 `mock` 测试
 - `--skip-script` 配置后，将会跳过构建脚本的编译运行
 
@@ -256,6 +258,7 @@ cjpm tree success
 > - `-i, --incremental` 选项目前仅支持基于源码的增量分析。如果导入的库内容有变更，需要开发者重新使用全量方式构建。
 
 编译生成的中间文件默认会存放在 `target` 文件夹，而可执行文件会根据编译模式存放到 `target/release/bin` 或 `target/debug/bin` 文件夹。运行可执行文件的方式可参考 `run`。
+
 为了提供可复制的构建，此命令会创建 `cjpm.lock` 文件，该文件包含所有可传递依赖项的确切版本，这些依赖项将用于所有后续构建，需要更新该文件时请使用 `update` 命令。如果有必要保证每个项目参与者都有可复制的构建，那么此文件应提交到版本控制系统中。
 
 例如：
@@ -478,7 +481,7 @@ Error: cjpm build failed
 - `-g` 用于生成 `debug` 版本的单元测试产物，此时的产物存放在 `target/debug/unittest_bin` 文件夹
 - `-i, --incremental` 用于指定测试代码的增量编译，默认情况下是全量编译
 - `--no-run` 用于仅编译单元测试产物
-- `--skip-build` 用于仅执行单元测试产物
+- `--skip-build` 用于仅运行单元测试产物
 - `--coverage` 用于生成覆盖率原始数据。使用 `cjpm test --coverage` 统计覆盖率时，源代码中的 `main` 不会再作为程序入口执行，因此会显示为未被覆盖。建议使用 `cjpm test` 之后，不再手写多余的 `main`
 - `--cfg` 指定后，能够透传 `cjpm.toml` 中的自定义 `cfg` 选项
 - `--module <value>` 用于指定目标测试模块，指定的模块需要被当前模块直接或间接依赖（或者是该模块本身），也可以通过 `--module "module1 module2"` 的方式指定多个符合要求的模块。不指定时默认只测试当前模块
@@ -491,7 +494,7 @@ Error: cjpm build failed
     - `--filter=*.*` 匹配所有测试类的所有测试用例（结果和*相同）
     - `--filter=*.*Test,*.*case*` 匹配所有测试类中以 `Test` 结尾的用例，或者所有测试类中名字中带有 `case` 的测试用例
     - `--filter=MyTest*.*Test,*.*case*,-*.*myTest` 匹配所有 `MyTest` 开头测试类中以 `Test` 结尾的用例，或者名字中带有 `case` 的用例，或者名字中不带有 `myTest` 的测试用例
-- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。 `value` 的形式如下：
+- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。`value` 的形式如下：
     - `--include-tags=Unittest` 运行所有标记为 `@Tag[Unittest]` 的测试
     - `--include-tags=Unittest,Smoke` 运行所有标记为 `@Tag[Unittest]`、`@Tag[Smoke]` 任一或同时都有的测试
     - `--include-tags=Unittest+Smoke` 运行所有标记为 `@Tag[Unittest]`、`@Tag[Smoke]` 同时都有的测试
@@ -504,11 +507,12 @@ Error: cjpm build failed
 - `--no-color` 关闭控制台颜色显示
 - `--random-seed <N>` 用于指定随机种子的值
 - `--timeout-each <value>` value 的格式为 `%d[millis|s|m|h]`，为每个测试用例指定默认的超时时间
-- `--parallel` 用于指定测试用例并行执行的方案， `value` 的形式如下所示：
+- `--parallel` 用于指定测试用例并行执行的方案，`value` 的形式如下所示：
     - `<BOOL>` 可为 `true` 或 `false`，指定为 `true` 时，测试类可被并行运行，并行进程个数将受运行系统上的 CPU 核数控制
     - `nCores` 指定了并行的测试进程个数应该等于可用的 CPU 核数
     - `NUMBER` 指定了并行的测试进程个数值。该数值应该为正整数
     - `NUMBERnCores` 指定了并行的测试进程个数值为可用的 CPU 核数的指定数值倍。该数值应该为正数（支持浮点数或整数）
+- `--show-tags` 用于在测试报告中显示测试用例中 `@Tag` 的信息。在 `--dry-run` 模式下，并且测试报告为 `xml` 格式时，将始终包含 `Tag` 信息
 - `--show-all-output` 启用测试输出打印，包括通过的测试用例
 - `--no-capture-output` 禁用测试输出捕获，输出将在测试执行期间立即打印
 - `--report-path <value>` 指定测试执行后的报告生成路径
@@ -525,8 +529,9 @@ Error: cjpm build failed
 ```text
 输入：
 cjpm test src --coverage
+cjcov --root=./ --html-details -o html_output
 输出：cjpm test success
-覆盖率数据生成：在 cov_output 目录下对应模块的目录中，会生成 gcno 和 gcda 文件
+覆盖率生成：在 html_output 目录下会生成 html 文件，总的覆盖率报告文件名固定为 index.html
 ```
 
 ```text
@@ -588,10 +593,10 @@ Summary: TOTAL: 1
 - `--dry-run` 配置后，将不执行用例，仅打印
 - `--filter <value>` 用于过滤测试的子集，`value` 的形式如下所示：
     - `--filter=*` 匹配所有测试类
-    - `--filter=*.*` 匹配所有测试类所有测试用例(结果和*相同)
+    - `--filter=*.*` 匹配所有测试类所有测试用例（结果和*相同）
     - `--filter=*.*Test,*.*case*` 匹配所有测试类中以 `Test` 结尾的用例，或者所有测试类中名字中带有 `case` 的测试用例
     - `--filter=MyTest*.*Test,*.*case*,-*.*myTest` 匹配所有 `MyTest` 开头测试类中以 `Test` 结尾的用例，或者名字中带有 `case` 的用例，或者名字中不带有 `myTest` 的测试用例
-- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。 `value` 的形式如下：
+- `--include-tags <value>` 用于获取由 `@Tag` 宏指定的测试类别的子集。`value` 的形式如下：
     - `--include-tags=Unittest` 运行所有标记为 `@Tag[Unittest]` 的测试
     - `--include-tags=Unittest,Smoke` 运行所有标记为 `@Tag[Unittest]`、`@Tag[Smoke]` 任一或同时都有的测试
     - `--include-tags=Unittest+Smoke` 运行所有标记为 `@Tag[Unittest, Smoke]` 同时都有的测试
@@ -602,6 +607,7 @@ Summary: TOTAL: 1
     - `--exclude-tags=Unittest+Smoke+JiraTask3271` 运行所有未被标记为 `@Tag[Unittest, Smoke, JiraTask3271]` 同时都有的测试
     - `--include-tags=Unittest --exclude-tags=Smoke` 运行所有被标记为 `@Tag[Unittest]` 且不带有 `@Tag[Smoke]` 的测试
 - `--no-color` 关闭控制台颜色显示
+- `--show-tags` 用于在测试报告中显示测试用例中 `@Tag` 的信息。在 `--dry-run` 模式下，并且测试报告为 `xml` 格式时，将始终包含 `Tag` 信息
 - `--random-seed <N>` 用来指定随机种子的值
 - `--report-path <value>` 指定执行后生成报告的路径。与 `test` 子命令不同，它具有默认值 `bench_report`
 - `--report-format <value>` 性能测试报告仅支持 `csv` 和 `csv-raw` 格式
@@ -627,11 +633,11 @@ Summary: TOTAL: 1
 > **注意：**
 >
 > 带有 `cjpm bench` 并不包含完全的 `mock` 支持，以避免在基准测试中由于在编译器中的 `mock` 处理而增加的任何开销。
-> 使用 `cjpm bench` 选项时，如果使用 `mock` ，编译器不会报错，以便能够将常规测试和基准测试一起编译。但是要避免运行使用 `mock` 的基准测试，否则会抛出运行时异常。
+> 使用 `cjpm bench` 选项时，如果使用 `mock`，编译器不会报错，以便能够将常规测试和基准测试一起编译。但是要避免运行使用 `mock` 的基准测试，否则会抛出运行时异常。
 
 ### clean
 
-`clean` 用于清理构建过程中的临时产物（`target` 文件夹）。该命令支持通过短选项 `-g` 指定仅清理 `debug` 版本的产物。该命令支持通过长选项 `--target-dir <value>` 用于指定清理的产物存放路径，开发者需自身保证清理该目录行为的安全性。如果使用了 `cjpm build --coverage` 或者 `cjpm test --coverage` 功能，还会清除 `cov_output` 文件夹，以及当前目录下的 `*.gcno` 文件和 `*.gcda` 文件。同时，该命令也支持通过 `--skip-script` 配置跳过构建脚本的编译运行。
+`clean` 用于清理构建过程中的临时产物（`target` 文件夹）。该命令支持短选项 `-g` 指定仅清理 `debug` 版本的产物，以及长选项 `--target-dir <value>` 用于指定清理的产物存放路径（开发者需自行保证清理该目录行为的安全性）。如果使用了 `cjpm build --coverage` 或 `cjpm test --coverage` 功能，还会清除 `cov_output` 文件夹以及当前目录下的 `*.gcno` 和 `*.gcda` 文件。同时，该命令也支持 `--skip-script` 配置来跳过构建脚本的编译运行。
 
 例如：
 
@@ -708,7 +714,7 @@ cjpm install --git url              # 从 git 对应地址安装
 
 配置文件代码如下所示：
 
-```text
+```toml
 [package] # 单模块配置字段，与 workspace 字段不能同时存在
   cjc-version = "1.0.0" # 所需 `cjc` 的最低版本要求，必需
   name = "demo" # 模块名及模块 root 包名，必需
@@ -865,7 +871,15 @@ target-dir = "temp"
 
 ### "package-configuration"
 
-每个模块的单包可配置项。该选项是个 `map` 结构，需要配置的包名作为 `key`，单包配置信息作为 `value`。当前可配置的信息包含输出类型和条件选项（`output-type`,`compile-option`），这几个选项可缺省按需配置。如下所示，`demo` 模块中的 `demo.aoo` 包的输出类型会被指定为动态库类型，`-g` 命令会在编译时透传给 `demo.aoo` 包。
+每个模块的单包可配置项。该选项是个 `map` 结构，需要配置的包名作为 `key`，单包配置信息作为 `value`。当前可配置的信息包含：
+
+- `output-type`：包编译产物类型，取值同 [`output-type`](#output-type)
+- `compile-option`：仅用于该包的额外编译选项
+- `combine-all-deps`：工程级编译产物合并开关，取值为 `true/false`，仅可配置于 `root` 包
+
+上述选项均可按需配置。
+
+如下所示，`demo` 模块中的 `demo.aoo` 包的输出类型会被指定为动态库类型，`-g` 命令会在编译时透传给 `demo.aoo` 包。
 
 ```text
 [package.package-configuration."demo.aoo"]
@@ -925,6 +939,16 @@ src
 |-- demo.boo
 `-- demo
 ```
+
+`combine-all-deps = true` 配置后，可以开启工程级别的编译产物合并。该配置仅在以下条件下生效：
+
+- 开启模块级动态库合并 `profile.build.combined` 和 `LTO` 编译优化 `profile.build.lto` （参考 [`profile.build` 字段](#profilebuild)）；
+- 配置的模块为当前执行的 `cjpm build` 命令对应的模块，并且配置的包为该模块的 `root` 包。配置在当前模块的非 `root` 包中，或配置在被依赖的模块中的该字段将被忽略。
+
+在满足上述配置条件后，该模块会按照如下方式编译：
+
+- 除该模块 `root` 包以外的所有包（该模块下的所有子包，以及该模块直接、间接依赖的其他模块的包含 `root` 包的所有包），会以 `LTO` 优化编译模式编译成 `.bc` 文件；
+- 该模块的 `root` 包会被编译成动态库，并且链入上述所有 `.bc` 文件，无论对应的包是否被该 `root` 包导入。
 
 ### "workspace"
 
@@ -1021,11 +1045,11 @@ abc = { path = "libs" }
   pro1 = { git = "https://gitee.com/example", branch = "dev"}
 ```
 
-在这种情况下， `cjpm` 将下载对应存储库的最新版本，并将当前 `commit-hash` 保存在 `cjpm.lock` 文件中。所有后续的 `cjpm` 调用都将使用保存的版本，直到使用 `cjpm update`。
+在这种情况下，`cjpm` 将下载对应存储库的最新版本，并将当前 `commit-hash` 保存在 `cjpm.lock` 文件中。所有后续的 `cjpm` 调用都将使用保存的版本，直到使用 `cjpm update`。
 
-通常需要一些身份验证才能访问 `git` 存储库。 `cjpm` 不要求提供所需的凭据，因此应使用现有的 `git` 身份验证支持。如果用于 `git` 的协议是 `https` ，则需要使用一些现有的 git 凭据帮助程序。在 `Windows` 上，可在安装 `git` 时一起安装凭据帮助程序，默认使用。在 `Linux/macOS` 上，请参见 `git` 官方文档中 `git-config` 的配置说明，了解有关设置凭据帮助程序的详细信息。如果协议是 `ssh` 或 `git` ，则应使用基于密钥的身份验证。如果密钥受密码短语保护，则开发者应确保 `ssh-agent` 正在运行，并且在使用 `cjpm` 之前通过 `ssh-add` 添加密钥。
+通常需要一些身份验证才能访问 `git` 存储库。`cjpm` 不要求提供所需的凭据，因此应使用现有的 `git` 身份验证支持。如果用于 `git` 的协议是 `https`，则需要使用一些现有的 git 凭据帮助程序。在 `Windows` 上，可在安装 `git` 时一起安装凭据帮助程序，默认使用。在 `Linux/macOS` 上，请参见 `git` 官方文档中 `git-config` 的配置说明，了解有关设置凭据帮助程序的详细信息。如果协议是 `ssh` 或 `git`，则应使用基于密钥的身份验证。如果密钥受密码短语保护，则开发者应确保 `ssh-agent` 正在运行，并且在使用 `cjpm` 之前通过 `ssh-add` 添加密钥。
 
-`dependencies` 字段可以通过 `output-type` 属性指定编译产物类型，指定的类型可以与源码依赖自身的编译产物类型不一致，且仅能为 `static` 或者 `dynamic`， 如下所示：
+`dependencies` 字段可以通过 `output-type` 属性指定编译产物类型，指定的类型可以与源码依赖自身的编译产物类型不一致，且仅能为 `static` 或者 `dynamic`，如下所示：
 
 ```text
 [dependencies]
@@ -1072,7 +1096,7 @@ abc = { path = "libs" }
   bbb = { path = "new/path/to/bbb" }
 ```
 
-配置后，编译 `demo` 模块时实际使用的间接依赖 `bbb` 即为`new/path/to/bbb` 下的 `bbb` 模块，`aaa` 中配置的 `path/to/bbb` 下的 `bbb` 模块不会被编译。
+配置后，编译 `demo` 模块时，实际使用的间接依赖 `bbb` 为 `new/path/to/bbb` 下的 `bbb` 模块。`aaa` 中配置的 `path/to/bbb` 下的 `bbb` 模块不会被编译。
 
 > **注意：**
 >
@@ -1179,7 +1203,7 @@ demo = "dynamic"
 > - 目前 `profile.build.combined` 配置项为实验特性，暂不稳定，开发者若想启用该配置，需要注意如下限制：
 >     - 如果配置了该字段的模块直接或间接依赖了其他源码模块，那么这些依赖模块也需要配置该字段；
 >     - 构建脚本依赖的源码模块中，若配置了 `profile.build.combined`，不会生效；
->     - 编译产物目标平台为 `macOS` 时，暂不支持 `profile.build.combined` 选项。
+>     - `profile.build.combined` 选项仅支持 `Linux/OpenHarmonyOS/Windows` 平台。
 
 若启用了 `combined` 配置，可能会出现无法通过导入关系识别的循环依赖，导致出现 `cyclic dependency` 循环依赖报错，解决方式如下：
 
@@ -1222,7 +1246,7 @@ PATH = { value = "/usr/bin", splice-type = "prepend" }
     - `random-seed` 用来指定随机种子的值，参数值类型为正整数
     - `no-color` 指定执行结果在控制台中是否无颜色显示，值为 `true` 或 `false`
     - `report-path` 指定测试执行后的报告生成路径（不能通过 `@Configure` 配置）
-    - `report-format` 指定报告输出格式，当前当前单元测试报告仅支持 `xml` 格式（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置），性能测试报告仅支持 `csv` 和 `csv-raw` 格式
+    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 格式（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置），性能测试报告仅支持 `csv` 和 `csv-raw` 格式
     - `verbose` 指定显示编译过程详细信息，参数值类型为 `BOOL`，即值可为 `true` 或 `false`
 
 #### "profile.test.build"
@@ -1263,13 +1287,13 @@ verbose = true
     - `random-seed` 用来指定随机种子的值, 参数值类型为正整数
     - `no-color` 指定执行结果在控制台中是否无颜色显示，值为 `true` 或 `false`
     - `report-path` 指定测试执行后的报告生成路径（不能通过 `@Configure` 配置）
-    - `report-format` 指定报告输出格式，当前当前单元测试报告仅支持 `xml` 格式（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置）, 性能测试报告仅支持 `csv` 和 `csv-raw` 格式
+    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 格式（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置）, 性能测试报告仅支持 `csv` 和 `csv-raw` 格式
     - `verbose` 指定显示编译过程详细信息，参数值类型为 `BOOL`, 即值可为 `true` 或 `false`
     - `baseline-path` 与当前性能结果进行比较的现有报告的路径。默认情况下它使用 `--report-path` 值。
 
 #### "profile.bench.build"
 
-用于指定为 `cjpm bench` 构建可执行文件时使用的附加编译选项。与 `profile.test.build` 具有相同的配置。
+用于指定为 `cjpm bench` 构建可执行文件时使用的附加编译选项。配置与 `profile.test.build` 相同。
 
 #### "profile.bench.env"
 
@@ -1321,7 +1345,7 @@ cfg3 = "-O2"
 
 开发者可以通过配置 `target.target-name` 字段为某个 `target` 添加一系列配置项。`target` 的名称可以在相应的仓颉环境下通过命令 `cjc -v` 获取，命令输出中的 `Target` 项目即为该环境对应的 `target` 名称。上述用例应用于 `Linux` 系统，其他平台也适用，同样可以通过命令 `cjc -v` 获取 `target` 名称。
 
-可为特定 `target` 配置的专用配置项，将会适用于该 `target` 下的编译流程，同时也会适用于其他 `target` 指定该 `target` 作为目标平台的交叉编译流程。配置项列表如下：
+为特定 `target` 配置的专用配置项，将作用于该 `target` 的编译流程，也能被其他以该 `target` 为目标平台的交叉编译流程使用。配置项列表如下：
 
 - `compile-option`：额外编译命令选项
 - `override-compile-option`：额外全局编译命令选项
@@ -1798,11 +1822,12 @@ cj_project
 - 新建仓颉项目并编写源码 `xxx.cj` 文件，如示例结构所示的 `koo` 包和 `main.cj` 文件。
 
     ```shell
-    cjpm init --name test --path .../cj_project
-    mkdir koo
+    cjpm init --name test --path ./cj_project
+    cd cj_project
+    mkdir src/koo
     ```
 
-    此时，会自动生成 `src` 文件夹和默认的 `cjpm.toml` 配置文件。
+    此时，会在当前执行命令的目录下创建 `cj_project` 目录，并在该目录中自动生成 `src` 文件夹和默认的 `cjpm.toml` 配置文件。开发者可以自行在源码目录 `src` 中新建子包（如 `src/koo`），或是自行在各包中新增源码文件和测试文件。
 
 - 当前模块需要依赖外部的 `pro0` 模块时，可以新建 `pro0` 模块及该模块的配置文件，接下来编写该模块的源码文件，需要自行在 `pro0` 下新建 `src` 文件夹，在 `src` 下新建 `pro0` 的 root 包 `pro0.cj`，并将编写的仓颉包放置在 `src` 下，如示例结构所示的 `zoo` 包。
 
