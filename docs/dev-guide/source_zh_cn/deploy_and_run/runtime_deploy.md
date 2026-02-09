@@ -6,7 +6,7 @@
 
 本节介绍仓颉运行时的部署。
 
-**值得注意的是**，编译时使用[全静态链接](../Appendix/compile_options.md#static)仓颉库，运行时模块已在编译时嵌入到可执行文件中，因此无需在运行环境额外部署运行时，可直接在运行环境中运行编译所得的可执行文件。
+**值得注意的是**，编译时使用[全静态链接](../Appendix/compile_options.md#--static)仓颉库，运行时模块已在编译时嵌入到可执行文件中，因此无需在运行环境额外部署运行时，可直接在运行环境中运行编译所得的可执行文件。
 
 ## Linux
 
@@ -24,7 +24,7 @@
 3. 请在运行环境执行如下命令完成 `runtime` 的部署（其中 `${CANGJIE_HOME}` 请修改为 `cangjie` 目录所在的路径，`${hw_arch}` 请修改为对应的硬件架构）：
 
     ```bash
-    export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/linux_${hw_arch}_llvm:${LD_LIBRARY_PATH}
+    export LD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/linux_${hw_arch}_cjnative:${LD_LIBRARY_PATH}
     ```
 
 ## macOS
@@ -43,7 +43,7 @@
 3. 请在运行环境执行如下命令完成 `runtime` 的部署（其中 `${CANGJIE_HOME}` 请修改为 `cangjie` 目录所在的路径，`${hw_arch}` 请修改为对应的硬件架构）：
 
     ```bash
-    export DYLD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_llvm:${DYLD_LIBRARY_PATH}
+    export DYLD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_cjnative:${DYLD_LIBRARY_PATH}
     ```
 
 ## Windows
@@ -63,17 +63,17 @@
     - 若使用 Windows 命令提示符（CMD）环境，请执行：
 
         ```bash
-        set "PATH=${CANGJIE_HOME}\runtime\lib\windows_x86_64_llvm;%PATH%;"
+        set "PATH=${CANGJIE_HOME}\runtime\lib\windows_x86_64_cjnative;%PATH%;"
         ```
 
     - 若使用 PowerShell 环境，请执行：
 
         ```bash
-        $env:PATH = "${CANGJIE_HOME}\runtime\lib\windows_x86_64_llvm;" + $env:Path
+        $env:PATH = "${CANGJIE_HOME}\runtime\lib\windows_x86_64_cjnative;" + $env:Path
         ```
 
     - 若使用 MSYS shell、bash 等环境，请执行：
 
         ```bash
-        export PATH=${CANGJIE_HOME}/runtime/lib/windows_x86_64_llvm
+        export PATH=${CANGJIE_HOME}/runtime/lib/windows_x86_64_cjnative
         ```

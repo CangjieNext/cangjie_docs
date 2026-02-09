@@ -1,6 +1,6 @@
 # 安装仓颉工具链
 
-在开发仓颉程序时，必用的工具之一是仓颉编译器，它可以将仓颉源代码编译为可运行的二进制文件，但现代编程语言的配套工具并不止于此，实际上，仓颉为开发者提供了编译器、调试器、包管理器、静态检查工具、格式化工具和覆盖率统计工具等一整套仓颉开发工具链，同时提供了友好的安装和使用方式，基本能做到“开箱即用”。
+在开发仓颉程序时，必用的工具之一是仓颉编译器，它可以将仓颉源代码编译为可运行的二进制文件，但现代编程语言的配套工具并不止于此，实际上，仓颉为开发者提供了编译器、调试器、项目管理工具、静态检查工具、格式化工具和覆盖率统计工具等一整套仓颉开发工具链，同时提供了友好的安装和使用方式，基本能做到“开箱即用”。
 
 目前仓颉工具链已适配部分版本的 Linux、macOS 和 Windows 平台，但是仅针对部分 Linux 发行版做了完整功能测试，详情可参阅附录[Linux 版本工具链的支持与安装](../Appendix/linux_toolchain_install.md)章节，在暂未进行过完整功能测试的平台上，仓颉工具链的功能完整性不受到保证。此外，当前 Windows 平台上的仓颉编译器基于 MinGW 实现，相较于 Linux 版本的仓颉编译器，功能会有部分欠缺。
 
@@ -14,7 +14,7 @@ Linux 版仓颉工具链的系统环境要求如下：
 
 | 架构    | 环境要求                                                     |
 | ------- | ------------------------------------------------------------ |
-| x86_64  | glibc 2.22，Linux Kernel 4.12 或更高版本，系统安装 libstdc++ 6.0.24 或更高版本 |
+| x86_64  | glibc 2.27，Linux Kernel 4.15 或更高版本，系统安装 libstdc++ 6.0.24 或更高版本 |
 | aarch64 | glibc 2.27，Linux Kernel 4.15 或更高版本，系统安装 libstdc++ 6.0.24 或更高版本 |
 
 除此之外，对于 Ubuntu 18.04，还需要安装相应的依赖软件包：
@@ -148,7 +148,7 @@ $ rm -rf <path>/<to>/cangjie
 
         1. 在 “用户变量”（为当前用户进行配置）或 “系统变量”（为系统所有用户进行配置）区域中，找到并选择 Path 变量，单击 “编辑” 按钮，进入 “编辑环境变量” 窗口。
 
-        2. 分别单击 “新建” 按钮，并分别输入 `%CANGJIE_HOME%\bin` 、 `%CANGJIE_HOME%\tools\bin` 、 `%CANGJIE_HOME%\tools\lib` 、 `%CANGJIE_HOME%\runtime\lib\windows_x86_64_llvm` (`%CANGJIE_HOME%` 为仓颉安装包的解压路径)。例如，仓库安装包解压在 `D:\cangjie` ，则新建的环境变量分别为： `D:\cangjie\bin` 、 `D:\cangjie\tools\bin` 、 `D:\cangjie\tools\lib` 、 `D:\cangjie\runtime\lib\windows_x86_64_llvm` 。
+        2. 分别单击 “新建” 按钮，并分别输入 `%CANGJIE_HOME%\bin` 、 `%CANGJIE_HOME%\tools\bin` 、 `%CANGJIE_HOME%\tools\lib` 、 `%CANGJIE_HOME%\runtime\lib\windows_x86_64_cjnative` (`%CANGJIE_HOME%` 为仓颉安装包的解压路径)。例如，仓库安装包解压在 `D:\cangjie` ，则新建的环境变量分别为： `D:\cangjie\bin` 、 `D:\cangjie\tools\bin` 、 `D:\cangjie\tools\lib` 、 `D:\cangjie\runtime\lib\windows_x86_64_cjnative` 。
 
         3. （仅适用于为当前用户设置）单击 “新建” 按钮，并输入当前用户目录路径，并在路径后面添加 `.cjpm\bin` 。例如用户路径在 `C:\Users\bob` ，则输入 `C:\Users\bob\.cjpm\bin` 。
 
@@ -158,7 +158,7 @@ $ rm -rf <path>/<to>/cangjie
            D:\cangjie\bin
            D:\cangjie\tools\bin
            D:\cangjie\tools\lib
-           D:\cangjie\runtime\lib\windows_x86_64_llvm
+           D:\cangjie\runtime\lib\windows_x86_64_cjnative
            C:\Users\bob\.cjpm\bin
            ```
 
