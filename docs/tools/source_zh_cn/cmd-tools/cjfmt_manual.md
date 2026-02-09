@@ -61,9 +61,9 @@ cjfmt -f ../../../test/uilang/Thread.cj -o ../../../test/formated/Thread.cj
 - 选项 `-d` 让开发者指定扫描仓颉源代码目录，对文件夹下的仓颉源码格式化，支持相对路径和绝对路径。
 
 ```shell
-cjfmt -d test/              // 源文件目录为相对目录
+cjfmt -d test/              # 源文件目录为相对目录
 
-cjfmt -d /home/xxx/test     // 源文件目录为绝对目录
+cjfmt -d /home/xxx/test     # 源文件目录为绝对目录
 ```
 
 - 选项 `-o` 为输出目录，可以是已存在的路径，若不存在则会创建相关的目录结构，支持相对路径和绝对路径；目录的最大长度 MAX_PATH 不同的系统之间存在差异，如 `Windows` 上这个值一般不能超过 260；在 `Linux` 上这个值一般建议不能超过 4096。
@@ -73,7 +73,7 @@ cjfmt -d test/ -o /home/xxx/testout
 
 cjfmt -d /home/xxx/test -o ../testout/
 
-cjfmt -d testsrc/ -o /home/../testout   // 源文件文件夹testsrc/不存在；报错：error: Source file path not exist!
+cjfmt -d testsrc/ -o /home/../testout   # 源文件文件夹testsrc/不存在；报错：error: Source file path not exist!
 ```
 
 ### 格式化配置文件
@@ -121,7 +121,8 @@ multipleLineMethodChainOverLineLength = true
 > **说明：**
 >
 > 若客制化的格式化工具配置文件读取失败，则读取 CANGJIE_HOME 环境下的默认格式化工具配置文件 `cangjie-format.toml`。
-> 若 CANGJIE_HOME 环境下的默认格式化工具配置文件 `cangjie-format.toml` 同样读取失败，则使用 `cjfmt` 内置格式化配置选项。
+> CANGJIE_HOME 环境下的默认格式化工具配置文件路径为 `CANGJIE_HOME/tools/config` 。
+> 若 CANGJIE_HOME 内置的默认格式化工具配置文件 `cangjie-format.toml` 同样读取失败，则使用 `cjfmt` 内置格式化配置选项。
 > 若格式化工具配置文件中的某个配置选项读取失败，则该配置选项使用 `cjfmt` 内置格式化配置选项。
 
 ### 片段格式化
@@ -331,7 +332,7 @@ static
 
 - 多行注释的格式化行为
 
-以 `*` 开头的注释， `*` 会互相对齐， 不以 `*` 开头的注释，则会保持注释原样。若 `*` 后存在多余空格，则会将多余空格删除。
+以 `*` 开头的注释，`*` 会互相对齐，不以 `*` 开头的注释，则会保持注释原样。若 `*` 后存在多余空格，则会将多余空格删除。
 
 ```cangjie
 // 格式化前

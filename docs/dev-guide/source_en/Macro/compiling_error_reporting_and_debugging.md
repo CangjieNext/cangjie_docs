@@ -88,7 +88,7 @@ If the macro package depends on other dynamic libraries, ensure these dependenci
 
 > **Note:**
 >
-> The macro substitution process depends on the Cangjie runtime. During macro substitution, the Cangjie runtime's initialization configuration uses the default settings provided by macros. Configuration parameters can be queried using Cangjie runtime operational logs. Among these, `cjHeapSize` and `cjStackSize` can be modified by users, while others currently cannot. For Cangjie runtime initialization configurations, refer to the [Runtime Initialization Optional Configurations](../Appendix/runtime_env.md#runtime-initialization-optional-configurations) section.
+> The macro substitution process depends on the Cangjie runtime. During macro substitution, the Cangjie runtime's initialization configuration uses the default settings provided by macros. Configuration parameters can be queried using Cangjie runtime operational logs. Among these, `cjHeapSize` and `cjStackSize` can be modified by users, while others currently cannot. Note that all parameters are invalid on the OpenHarmonyOS platform. The Cangjie runtime uses default values on the OpenHarmonyOS platform. For Cangjie runtime initialization configurations, refer to the [Runtime Initialization Optional Configurations](../Appendix/runtime_env.md#runtime-initialization-optional-configurations) section.
 
 ## Parallel Macro Expansion
 
@@ -139,11 +139,14 @@ The custom error interface mimics the native compiler's error output format, sup
 
 The `diagReport` function prototype is as follows:
 
+<!-- code_no_check -->
+
 ```cangjie
 public func diagReport(level: DiagReportLevel, tokens: Tokens, message: String, hint: String): Unit
 ```
 
 Parameter meanings:
+
 - `level`: Error message severity level
 - `tokens`: Tokens corresponding to the source code referenced in the error message
 - `message`: Primary error message
@@ -287,13 +290,15 @@ cjc --debug-macro demo.cj --import-path ./target
 
 > **Note:**
 >
-> If using the Cangjie `CJPM` package manager for compilation, add the `--debug-macro` compilation option in the `cjpm.toml` configuration file to enable macro debug mode.
+> If using the Cangjie `CJPM` project manager for compilation, add the `--debug-macro` compilation option in the `cjpm.toml` configuration file to enable macro debug mode.
 >
 > ```text
 > compile-option = "--debug-macro"
 > ```
 
 In debug mode, a temporary file `demo.cj.macrocall` will be generated, containing the macro-expanded code as follows:
+
+<!-- code_no_check -->
 
 ```cangjie
 // demo.cj.macrocall
@@ -313,6 +318,8 @@ If the expanded macro code contains semantic errors, the compiler's error messag
 
 - The _debug_ mode of macros will rearrange the source code's line and column information and is not suitable for certain special line-breaking scenarios. For example:
 
+  <!-- code_no_check -->
+
   ```cangjie
   // before expansion
   @M{} - 2 // macro M returns 2
@@ -328,6 +335,8 @@ If the expanded macro code contains semantic errors, the compiler's error messag
 
 - Debugging macro calls within macro definitions is not supported and will result in compilation errors.
 
+  <!-- code_no_check -->
+
   ```cangjie
   public macro M(input: Tokens) {
       let a = @M2(1+2) // M2 is inside macro M, not suitable for debug mode.
@@ -336,6 +345,8 @@ If the expanded macro code contains semantic errors, the compiler's error messag
   ```
 
 - Debugging macros with parentheses is not supported.
+
+  <!-- code_no_check -->
 
   ```cangjie
   // main.cj
@@ -346,4 +357,3 @@ If the expanded macro code contains semantic errors, the compiler's error messag
       let t = @M(1+2)
   }
   ```
-```
