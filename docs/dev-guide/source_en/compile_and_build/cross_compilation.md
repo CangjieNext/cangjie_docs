@@ -2,11 +2,14 @@
 
 Developers can cross-compile their Cangjie programs to run on different architecture platforms. Cangjie supports the following cross-compilation scenarios:
 
-- Cross-compilation from `Linux/macOS` platform to `android-aarch64` platform
-- Cross-compilation from `Linux/macOS` platform to `android-x86_64` platform
-- Cross-compilation from `macOS` platform to `ios-aarch64` platform
-- Cross-compilation from `macOS` platform to `ios-simulator-aarch64` platform
-- Cross-compilation from `macOS` platform to `ios-simulator-x86_64`  platform
+|  Compilation  Platform        | Target Platform     | Common Scenarios / Tools              | Corresponding SDK Installation Package                          |
+|-------------------------|-----------------------|-------------------------------|-------------------------------------------------|
+| Windows (x64)             | Android (aarch64)          | Android physical devices | cangjie-sdk-windows-x64-android.x.y.z.zip (or .exe) |
+| Linux (x64)               | Android (aarch64)         | Android physical devices  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz       |
+| macOS (aarch64/x64)     | Android (aarch64)          |  Android physical devices and Android Studio Emulator     | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz     |
+| macOS (aarch64)         | iOS (aarch64)              | iOS physical devices              | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
+| macOS (aarch64)         | iOS Simulator (aarch64/x86_64)   |Xcode Simulator        | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
+
 
 The Cangjie programming language now supports cross-compilation to `Android API 26+` and `iOS`, enabling developers to build applications across different platforms.
 
@@ -88,8 +91,12 @@ In addition to the cross-compilation supported Cangjie package, you also need to
 
 Currently, Cangjie cross-compilation to iOS only supports compiling static libraries. When cross-compiling Cangjie code to `iOS` devices, specify the following additional options:
 
-- `--target=aarch64-apple-ios` specifies the target platform `ios` for cross-compilation
+- `--target=aarch64-apple-ios<version>` specifies the target platform `ios` for cross-compilation
 - `--output-type=staticlib` specifies the output file type as a static library
+
+> **Notes：**
+>
+> The version number specified by \<version> is recommended to align with the SDK version supported by the installed Xcode (e.g., 17.5).
 
 Currently, Cangjie supports cross-compiling to the x86_64 architecture iOS simulator from an aarch64 architecture environment (the compiled product for this architecture requires Rosetta in Xcode to run).For running on iOS simulators, specify:
 
