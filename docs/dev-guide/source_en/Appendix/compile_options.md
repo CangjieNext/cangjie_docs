@@ -486,12 +486,13 @@ This option only takes effect when compiling dynamic libraries or executable fil
 4. When `--dy-libs` is used alone, the `--dy-std` option is enabled by default, and a warning message will be displayed.
 5. Platform support capabilities are as follows:
 
-| Target Platform | Static Linking | Dynamic Linking |
+| Target Platform | --static-std | --dy-std |
 | :-------------: | :------------: | :-------------: |
 |      Linux      |    Supported   |    Supported    |
 |      macOS      |    Supported   |    Supported    |
 |     Windows     |    Supported   |    Supported    |
 |  OpenHarmony  |  Not Supported |    Supported    |
+|     Android       |      Supported         |     Supported      |
 
 
 ### `--stack-trace-format=[default|simple|all]`
