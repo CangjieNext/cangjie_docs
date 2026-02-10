@@ -2,11 +2,13 @@
 
 Developers can cross-compile their Cangjie programs to run on different architecture platforms. Cangjie supports the following cross-compilation scenarios:
 
-- Cross-compilation from `Linux/macOS` platform to `android-aarch64` platform
-- Cross-compilation from `Linux/macOS` platform to `android-x86_64` platform
-- Cross-compilation from `macOS` platform to `ios-aarch64` platform
-- Cross-compilation from `macOS` platform to `ios-simulator-aarch64` platform
-- Cross-compilation from `macOS` platform to `ios-simulator-x86_64`  platform
+|  Host Platform        | Target Platform| Target Architecture     | Common Scenarios / Tools              | Corresponding SDK Installation Package                          |
+|-------------------------|-------------------|-----------------------|-------------------------------|-------------------------------------------------|
+| Windows x64             | Android           | aarch64, x86_64       | Android 真机 / Android Studio 模拟器 | cangjie-sdk-windows-x64-android.x.y.z.zip (或 .exe) |
+| Linux x64               | Android           | aarch64, x86_64       | Android 真机 / 自动化构建环境  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz       |
+| macOS (aarch64/x64)     | Android           | aarch64, x86_64       | macOS 下 Android 应用开发     | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz     |
+| macOS (aarch64)         | iOS               | aarch64               | iOS 真机应用开发              | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
+| macOS (aarch64)         | iOS Simulator     | aarch64, x86_64       | Xcode 模拟器运行与调试        | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
 
 The Cangjie programming language now supports cross-compilation to `Android API 26+` and `iOS`, enabling developers to build applications across different platforms.
 
