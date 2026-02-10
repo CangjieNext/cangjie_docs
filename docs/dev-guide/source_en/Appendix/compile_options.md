@@ -408,7 +408,7 @@ This option only applies when compiling executables.
 
 **Note:**
 
-`--static` is only effective on Linux and has no effect on other platforms.
+`--static` is effective on Linux, Windows and MacOS.
 
 ### `--static-std`
 
