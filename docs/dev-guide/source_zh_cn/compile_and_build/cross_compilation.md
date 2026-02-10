@@ -2,11 +2,13 @@
 
 开发者编码的仓颉程序通过交叉编译将其运行于不同体系架构平台上，仓颉支持交叉编译的场景：
 
-- `Linux/macOS` 平台到 `android-aarch64` 平台的交叉编译构建。
-- `Linux/macOS` 平台到 `android-x86_64` 平台的交叉编译构建。
-- `macOS` 平台到 `ios-aarch64` 平台的交叉编译构建。
-- `macOS` 平台到 `ios-simulator-aarch64` 平台的交叉编译构建。
-- `macOS` 平台到 `ios-simulator-x86_64` 平台的交叉编译构建。
+| 编译平台       | 目标平台       | 常用场景/工具                | 对应 SDK 安装包                        |
+|-------------------------|-----------------------|-------------------------------|-------------------------------------------------|
+| Windows (x64)             | Android (aarch64)          | Android 真机 | cangjie-sdk-windows-x64-android.x.y.z.zip (或 .exe) |
+| Linux (x64)               | Android (aarch64)          | Android 真机  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz       |
+| macOS (aarch64/x64)     | Android (aarch64)         |  Android 真机以及 Android Studio 模拟器     | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz     |
+| macOS (aarch64)         | iOS (aarch64)              |  iOS 真机              | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
+| macOS (aarch64)         | iOS Simulator (aarch64/x86_64)     | Xcode 模拟器        | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
 
 仓颉编程语言现已支持交叉编译至 `Android API 26+` 和 `iOS`，方便开发者在不同平台上进行应用开发。
 
@@ -87,8 +89,12 @@ $ adb shell "LD_LIBRARY_PATH=/data/local/tmp /data/local/tmp/main"
 
 当前仓颉交叉编译至 `iOS` 仅支持编译静态库，交叉编译仓颉代码至 `iOS` 设备时需要额外指定以下选项：
 
-- `--target=aarch64-apple-ios` 指定目标平台 `ios` 进行交叉编译
+- `--target=aarch64-apple-ios<version>` 指定目标平台 `ios` 进行交叉编译
 - `--output-type=staticlib`指定输出文件的类型为静态库
+
+> **注意：**
+>
+> 版本号 \<version> 建议参考所安装的 Xcode 支持的 SDK 版本（如 17.5 等）。
 
 当前仓颉支持从 `aarch64` 架构环境交叉编译生成 iOS 模拟器静态库，既适配 `aarch64` 架构模拟器，也可编译至 x86_64 架构模拟器（该架构产物需依赖 Xcode 的 Rosetta 运行）。若需在 iOS 模拟器上运行，需指定以下选项：
 
