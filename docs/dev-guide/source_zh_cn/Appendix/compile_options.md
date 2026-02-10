@@ -421,7 +421,7 @@ cjc --scan-dependency pkgA.cjo
 
 **值得注意的是：**
 
-`--static` 选项仅适用于 Linux 平台，在其他平台不生效。
+`--static` 选项适用于 Linux Windows MacOS 平台。
 
 ### `--static-std`
 
