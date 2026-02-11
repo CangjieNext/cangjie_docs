@@ -1120,7 +1120,7 @@ To specify `C` library configurations for different platforms, refer to [target]
 
 ```text
 [profile.build]
-lto = "full"  # Whether to enable `LTO` (Link Time Optimization) compilation mode. This feature is only supported on `Linux` platforms.
+lto = "full"  # Whether to enable `LTO` (Link Time Optimization) compilation mode. This feature is only supported on target platforms of `Linux/OHOS`.
 performance_analysis = true # Enable compilation performance analysis.
 incremental = true # Whether to enable incremental compilation by default.
 [profile.build.combined]
@@ -1247,7 +1247,7 @@ Test configuration supports specifying options during test compilation and execu
 Specifies supported compilation options, including:
 
 - `compile-option`: A string containing additional `cjc` compilation options, supplementing the top-level `compile-option` field.
-- `lto`: Specifies whether to enable `LTO` optimization. Can be `thin` or `full`. Only supported on `Linux` platforms.
+- `lto`: Specifies whether to enable `LTO` optimization. Can be `thin` or `full`. This feature is only supported on target platforms of `Linux/OHOS`.
 - `mock`: Explicitly sets the `mock` mode. Possible values: `on`, `off`, `runtime-error`. The default value for `test`/`build` subcommands is `on`, and for `bench` subcommands, it is `runtime-error`.
 
 #### "profile.test.env"
