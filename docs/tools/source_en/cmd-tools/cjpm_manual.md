@@ -69,6 +69,10 @@ Available options:
   --skip-script                 disable script 'build.cj'.
 ```
 
+> **Note:**
+>
+> When using cjpm central repository features, external dependencies are required. Please refer to the `stdx.net.tls` library documentation and follow the instructions to install the necessary external dependencies.
+
 ## Command Descriptions
 
 ### init

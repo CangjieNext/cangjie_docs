@@ -20,7 +20,7 @@ The fields in `cjpm.toml` related to artifact package creation and publishing ar
 | `documentation` | URL of the artifact documentation page | No |
 | `tag` | Artifact tags | No |
 | `category` | Officially provided artifact categories; see the relevant section of the cjpm documentation for the value range | No |
-| `license` | List of licenses | No |
+| `license` | List of licenses, values must comply with the [SPDX](https://spdx.org/licenses/) Identifier specification, which is licensed under the [Creative Commons Attribution License](https://creativecommons.org/licenses/by/3.0/) | No |
 | `include` | Specifies the bundling scope | No |
 | `exclude` | Specifies the bundling exclusion scope | No |
 | `dependencies` | Project dependencies; format: `aoo = "1.0.0"` or `"org::boo" = { version = "2.0.0" }` | No |

@@ -20,7 +20,7 @@
 | `documentation` | 制品文档页 url | 否 |
 | `tag` | 制品标签 | 否 |
 | `category` | 官方提供的制品分类，取值范围详见 cjpm 文档相关章节 | 否 |
-| `license` | 协议列表 | 否 |
+| `license` | 协议列表，取值需遵循 [SPDX官网](https://spdx.org/licenses/) Identifier 规范，该规范遵循 [知识共享署名许可证](https://creativecommons.org/licenses/by/3.0/) | 否 |
 | `include` | 指定打包范围 | 否 |
 | `exclude` | 指定打包排除范围 | 否 |
 | `dependencies` | 项目依赖，格式如：`aoo = "1.0.0"` 或 `“org::boo” = { version = “2.0.0” }` | 否 |
