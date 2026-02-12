@@ -716,6 +716,8 @@ to Cangjie:
   They are mirrored, but incorrect glue code is generated in some
   circumstances.
 
+* Memeber functions may not have any type parameters.
+
 * Mirroring of structs that implement interfaces other than `Any`
   is not supported. An attempt to mirror a struct that explicitly
   implements an interface results in a compile-time error.
