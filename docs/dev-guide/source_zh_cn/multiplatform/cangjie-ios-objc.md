@@ -704,9 +704,7 @@ class A <: M {
     public init() {}
 
     public func acceptFoo(foo: ?Foo) {
-        match (foo) {
-            case Some(x) => x.foo()
-        }
+        foo?.foo()
     }
 }
 ```
@@ -758,10 +756,10 @@ class A <: M {
 ```objc
 int main(int argc, char** argv) {
     @autoreleasepool {
-        M* a = [[A alloc] init:1.0];
-        [a goo:1.0];
-        M* b = [[A alloc] init:1.0];
-        [b goo:1.0];
+	M* a = [[A alloc] initWithM: 1.0];
+	[a gooWithArg0: 1.0];
+	M* b = [[A alloc] initWithM: 1.0];
+	[b gooWithArg0: 1.0];
     }
     return 0;
 }
