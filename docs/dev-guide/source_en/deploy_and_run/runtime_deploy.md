@@ -31,7 +31,6 @@ This section describes the deployment of the Cangjie runtime.
 
 1. First, visit the official Cangjie distribution channels to download the installation package compatible with your platform architecture:
 
-    - `cangjie-sdk-mac-x64-x.y.z.tar.gz`: For x86_64 architecture macOS systems.
     - `cangjie-sdk-mac-aarch64-x.y.z.tar.gz`: For aarch64/arm64 architecture macOS systems.
 
 2. Extract the downloaded package to an appropriate directory.
