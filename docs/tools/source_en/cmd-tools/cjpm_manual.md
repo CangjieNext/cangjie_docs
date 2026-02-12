@@ -172,16 +172,15 @@ For example, the source code directory structure of module `a` is as follows:
 src
 ├── main.cj
 ├── aoo
-│   └── a.cj
+│   └── a.cj
 ├── boo
-│   └── b.cj
+│   └── b.cj
 ├── coo
-│   └── c.cj
+│   └── c.cj
 ├── doo
-│   └── d.cj
-├── eoo
-│   └── e.cj
-└── cjpm.toml
+│   └── d.cj
+└── eoo
+    └── e.cj
 ```
 
 The dependency relationships are: package `a` imports packages `a.aoo` and `a.boo`; subpackage `aoo` imports package `a.coo`; subpackage `boo` imports package `coo`; subpackage `doo` imports package `coo`.
@@ -296,9 +295,8 @@ src
 │   └── a.cj
 ├── boo
 │   └── b.cj
-├── coo
-│   └── c.cj
-└── cjpm.toml
+└── coo
+    └── c.cj
 ```
 
 The dependency relationships are: package `demo.aoo` imports package `demo.boo`, package `demo.boo` imports package `demo.coo`, and package `demo.coo` imports package `demo.aoo`. The mutual imports between these three packages form a cycle, resulting in a cyclic dependency:

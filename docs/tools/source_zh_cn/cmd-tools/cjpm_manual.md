@@ -181,16 +181,15 @@ Error: can not find the following dependencies
 src
 ├── main.cj
 ├── aoo
-│   └── a.cj
+│   └── a.cj
 ├── boo
-│   └── b.cj
+│   └── b.cj
 ├── coo
-│   └── c.cj
+│   └── c.cj
 ├── doo
-│   └── d.cj
-├── eoo
-│   └── e.cj
-└── cjpm.toml
+│   └── d.cj
+└── eoo
+    └── e.cj
 ```
 
 依赖关系为：包 `a` 导入包 `a.aoo`、`a.boo`，子包 `aoo` 导入包 `a.coo`，子包 `boo` 导入包 `coo`，子包 `doo` 导入包 `coo`。
@@ -305,9 +304,8 @@ src
 │   └── a.cj
 ├── boo
 │   └── b.cj
-├── coo
-│   └── c.cj
-└── cjpm.toml
+└── coo
+    └── c.cj
 ```
 
 依赖关系为：包 `demo.aoo` 导入包 `demo.boo`，包 `demo.boo` 导入包 `demo.coo`，包 `demo.coo` 导入包 `demo.aoo`，三个包之间的依赖导入形成闭环，导致循环依赖：
