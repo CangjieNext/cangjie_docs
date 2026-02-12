@@ -31,7 +31,6 @@
 
 1. 首先请前往仓颉官方发布渠道，下载适配平台架构的安装包：
 
-    - `cangjie-sdk-mac-x64-x.y.z.tar.gz`：适用于 x86_64 架构 macOS 系统的仓颉工具链。
     - `cangjie-sdk-mac-aarch64-x.y.z.tar.gz`：适用于 aarch64/arm64 架构 macOS 系统的仓颉工具链。
 
 2. 请将下载的安装包解压到合适的目录。
