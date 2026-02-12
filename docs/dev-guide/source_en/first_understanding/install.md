@@ -43,7 +43,6 @@ First, visit the official Cangjie release channel to download the installation p
 
 - `cangjie-sdk-linux-x64-x.y.z.tar.gz`: For x86_64 architecture Linux systems
 - `cangjie-sdk-linux-aarch64-x.y.z.tar.gz`: For aarch64 architecture Linux systems
-- `cangjie-sdk-mac-x64-x.y.z.tar.gz`: For x86_64 architecture macOS systems
 - `cangjie-sdk-mac-aarch64-x.y.z.tar.gz`: For aarch64/arm64 architecture macOS systems
 
 Assuming you have selected `cangjie-sdk-linux-x64-x.y.z.tar.gz`, after downloading it locally, execute the following command to extract it:
