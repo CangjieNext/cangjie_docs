@@ -759,6 +759,7 @@ to Cangjie:
 * A mirrored struct may have direct and/or interface extensions,
   but they are ignored during mirror generation.
 
+* Memeber functions may not have any type parameters.
 
 ## Classes and Interfaces {#cangjie-classes-and-interfaces}
 

@@ -10,3 +10,4 @@
     - [语言服务器工具](source_zh_cn/cangjie-language-server/LSPServer_manual.md)
     - [CHIR 反序列化工具](source_zh_cn/cmd-tools/chir_dis_manual.md)
     - [异常堆栈信息还原工具](source_zh_cn/cmd-tools/cjtrace_recover_manual.md)
+    - [ObjCInteropGen工具](source_en/multiplatform/cjmp-pg-ios.md#cangjie-mirror-generation-reference)
