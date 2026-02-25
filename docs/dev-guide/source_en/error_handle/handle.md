@@ -102,9 +102,12 @@ Additionally, when the value of a `try` expression is unused, its type is `Unit`
 <!-- compile -->
 
 ```cangjie
-open class C { }
-open class D <: C { }
-class E <: D { }
+open class C {}
+
+open class D <: C {}
+
+class E <: D {}
+
 main () {
     let x = try {
         E()
@@ -220,8 +223,8 @@ The types in `ResourceSpecification` of a try-with-resources expression must imp
 
 ```cangjie
 interface Resource {
-    func isClosed(): Bool  // Determines whether the `close` function should be called to release resources when exiting the try-with-resources scope.
-    func close(): Unit  // Releases resources when `isClosed` returns false.
+    func isClosed(): Bool // Determines whether the `close` function should be called to release resources when exiting the try-with-resources scope.
+    func close(): Unit // Releases resources when `isClosed` returns false.
 }
 ```
 

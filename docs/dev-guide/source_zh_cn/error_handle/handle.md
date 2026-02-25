@@ -102,10 +102,13 @@ try 表达式可以出现在任何允许使用表达式的地方。try 表达式
 <!-- compile -->
 
 ```cangjie
-open class C { }
-open class D <: C { }
-class E <: D { }
-main () {
+open class C {}
+
+open class D <: C {}
+
+class E <: D {}
+
+main() {
     let x = try {
         E()
     } catch (e: Exception) {
@@ -220,8 +223,8 @@ try-with-resources 表达式中的 `ResourceSpecification` 的类型必须实现
 
 ```cangjie
 interface Resource {
-    func isClosed(): Bool  // 离开 try-with-resources 作用域时，判断是否需要调用 close 函数释放资源
-    func close(): Unit  // 在 isClosed 返回 false 的场景下释放资源。
+    func isClosed(): Bool // 离开 try-with-resources 作用域时，判断是否需要调用 close 函数释放资源
+    func close(): Unit // 在 isClosed 返回 false 的场景下释放资源。
 }
 ```
 
