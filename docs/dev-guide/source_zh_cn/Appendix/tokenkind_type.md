@@ -1,5 +1,11 @@
 # TokenKind 类型
 
+[test](./runtime_env.md#mrt_log_file_size)
+
+[test1](./runtime_env.md#runtime-环境变量使用手册)
+
+[test2](./runtime_env.md#runtime-初始化可选配)
+
 ```cangjie
 public enum TokenKind <: ToString {
     DOT|                      /*  "."           */
