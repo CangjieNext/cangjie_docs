@@ -521,9 +521,12 @@ $ cjc test.cj --lto=[full|thin] --compile-as-exe
 $ cjc test.cj --compile-as-exe
 ```
 
-### `--pgo-instr-gen`
+### `--pgo-instr-gen`, `--pgo-instr-gen=<.profraw>`
 
 Enables instrumentation compilation, generating an executable program with instrumentation information.
+
+- If `<.profraw>` is provided, profile information will be written to the specified path file.
+- If `<.profraw>` is not provided, profile information will be written to `default.profraw` in the current directory where the Cangjie program is executed.
 
 This feature is temporarily unsupported when compiling for macOS and Windows targets.
 
@@ -537,6 +540,11 @@ This feature is temporarily unsupported when compiling for macOS and Windows tar
 # Generate an executable program `test` with instrumentation information for execution statistics
 $ cjc test.cj --pgo-instr-gen -o test
 # Run the executable program `test` to generate the `default.profraw` profile
+$ ./test
+
+# Generate an executable program `test` with instrumentation information and specific profile file path and name
+$ cjc test.cj --pgo-instr-gen=./cjpgo/cj.profraw -o test
+# Run the executable program `test` to generate the `./cjpgo/cj.profraw` profile
 $ ./test
 ```
 
