@@ -12,11 +12,11 @@
 
 ```toml
 [repository.cache]
-  path = "/path/to/repository/cache"              # 本地存放路径
+  path = "/path/to/repository/cache"                  # 本地存放路径
 
 [repository.home]
-  registry = "https://pkg.cangjie-lang.cn/cjpm"   # 中心仓 url
-  token = "user-token"                            # 用户个人 token
+  registry = "https://pkg.cangjie-lang.cn/registry"   # 中心仓 url
+  token = "user-token"                                # 用户个人 token
 ```
 
 其中，各配置字段含义如下：
@@ -25,7 +25,7 @@
     - 配置的路径可以为绝对路径或相对路径，若为相对路径，则为相对当前 `cangjie-repo.toml` 的路径；
     - 若配置项为空，则 `Linux/macOS` 上最终生效的路径为 `$HOME/.cjpm`，`Windows` 上最终生效的路径为 `%USERPROFILE%\.cjpm`；
     - 假设最终生效的路径为 `CACHE_PATH`，则从中心仓下载的制品包源码及其他中心仓相关内容会存放在 `${CACHE_PATH}/repository` 目录下。
-- `repository.home.registry`: 配置中心仓仓库地址 (https://pkg.cangjie-lang.cn/cjpm)，用于与中心仓进行上传下载相关的通信。
+- `repository.home.registry`: 配置中心仓仓库地址 (https://pkg.cangjie-lang.cn/registry)，用于与中心仓进行上传下载相关的通信。
 - `repository.home.token`: 配置用户个人 token，用于在上传制品包时进行用户认证。
 
 用户可在如下三个位置配置 `cangjie-repo.toml`，在用户执行 `cjpm` 相关指令后，`cjpm` 将按照如下的顺序依次搜索对应位置是否存在 `cangjie-repo.toml`，直到找到为止：

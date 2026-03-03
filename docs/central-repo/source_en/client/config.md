@@ -12,11 +12,11 @@ Please refer to the [Cangjie SDK Installation Guide](https://gitcode.com/Cangjie
 
 ```toml
 [repository.cache]
-  path = "/path/to/repository/cache"              # Local storage path
+  path = "/path/to/repository/cache"                  # Local storage path
 
 [repository.home]
-  registry = "https://pkg.cangjie-lang.cn/cjpm"   # Central repository URL
-  token = "user-token"                            # User personal token
+  registry = "https://pkg.cangjie-lang.cn/registry"   # Central repository URL
+  token = "user-token"                                # User personal token
 ```
 
 The meanings of each configuration field are as follows:
@@ -25,7 +25,7 @@ The meanings of each configuration field are as follows:
     *   The configured path can be an absolute or relative path. If it's a relative path, it is relative to the current `cangjie-repo.toml` file.
     *   If the configuration item is empty, the effective path on `Linux/macOS` will be `$HOME/.cjpm`, and on `Windows` it will be `%USERPROFILE%\.cjpm`.
     *   Assuming the final effective path is `CACHE_PATH`, the artifact package source code and other central repository-related content downloaded from the central repository will be stored in the `${CACHE_PATH}/repository` directory.
-*   **`repository.home.registry`**: Configures the central repository storage address (https://pkg.cangjie-lang.cn/cjpm), used for upload/download communication with the central repository.
+*   **`repository.home.registry`**: Configures the central repository storage address (https://pkg.cangjie-lang.cn/registry), used for upload/download communication with the central repository.
 *   **`repository.home.token`**: Configures the user personal token, used for user authentication when uploading artifact packages.
 
 Users can configure `cangjie-repo.toml` in the following three locations. After a user executes a `cjpm` related command, `cjpm` will search for the presence of `cangjie-repo.toml` in the corresponding locations in the following order until found:
