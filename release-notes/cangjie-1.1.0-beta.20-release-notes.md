@@ -76,6 +76,10 @@
 
 ### IDE插件
 
+#### 新增特性
+
+- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。
+
 #### 修复问题
 
 - 【[cangjie_tools/issues/245](https://gitcode.com/Cangjie/cangjie_tools/issues/245)】修复在 prop 名字位置输入符号不触发补全的问题。
@@ -85,7 +89,8 @@
 
 #### 新增特性
 
-    注意该节按需提供，若没有，则删除
+- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。
+- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增流水线并行编译特性。
 
 #### 变更特性
 
