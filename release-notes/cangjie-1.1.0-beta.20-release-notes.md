@@ -14,6 +14,8 @@
 
 - 修复了 xxx 等若干 bug。
 
+- 新增中心仓功能，扩展中心仓依赖项类型，使用 `version` 字段标注，与现有 `path` 和 `git` 类型无法同时配置；旧工程中如果在依赖项中配置了冗余 `version` 字段，可能会导致 `cjpm` 报错，解决方法详见 `cjpm` 新增特性章节。
+
 详见后续章节介绍。
 
 ## 编译器
@@ -78,7 +80,7 @@
 
 #### 新增特性
 
-- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。
+- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。若出现 `only one of 'git' or 'path' or 'version' fields can exist` 的报错信息，请删除对应条目中配置的冗余 `version` 字段。
 
 #### 修复问题
 
@@ -89,7 +91,7 @@
 
 #### 新增特性
 
-- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。
+- 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增中心仓特性，新增中心仓依赖项，用 `version` 字段标注，与现有的 `path` 和 `git` 依赖项类型无法同时配置。若出现 `only one of 'git' or 'path' or 'version' fields can exist` 的报错信息，请删除对应条目中配置的冗余 `version` 字段。
 - 【[cangjie_tools/issues/360](https://gitcode.com/Cangjie/cangjie_tools/issues/360)】新增流水线并行编译特性。
 
 #### 变更特性
