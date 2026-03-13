@@ -139,12 +139,18 @@ import std.reflect.*
 public class Foo {
     public let _p1: Int64 = 1
     public prop p1: Int64 {
-        get() { _p1 }
+        get() {
+            _p1
+        }
     }
     public var _p2: Int64 = 2
     public mut prop p2: Int64 {
-        get() { _p2 }
-        set(v) { _p2 = v }
+        get() {
+            _p2
+        }
+        set(v) {
+            _p2 = v
+        }
     }
 }
 

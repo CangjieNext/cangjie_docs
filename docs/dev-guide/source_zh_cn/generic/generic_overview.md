@@ -21,7 +21,7 @@ class List<T> {
     var tail: Option<List<T>> = None
 }
 
-func sumInt(a: List<Int64>) {  }
+func sumInt(a: List<Int64>) {}
 ```
 
 其中 `List<T>` 中的 `T` 被称为类型形参。对于 `elem: Option<T>` 中对 `T` 的引用称为类型变元，同理 `tail: Option<List<T>>` 中的 `T` 也称为类型变元。函数 `sumInt` 的参数中 `List<Int64>` 的 `Int64` 被称为 `List` 的类型实参。 `List` 就是类型构造器，`List<Int64>` 通过 `Int64` 类型实参构造出了一个类型 `Int64` 的列表类型。

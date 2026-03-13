@@ -76,7 +76,7 @@ func add(a: Int64, b: Int64): Int64 {
 ```cangjie
 func add(a: Int64, b: Int64): Int64 {
     var a_ = a // OK
-    var b = b  // Error, redefinition of declaration 'b'
+    var b = b // Error, redefinition of declaration 'b'
     return a
 }
 ```
@@ -168,6 +168,7 @@ func foo(): Unit {
 
 ```cangjie
 let r = 0
+
 func add(a: Int64, b: Int64) {
     var r = 0
     r = a + b
