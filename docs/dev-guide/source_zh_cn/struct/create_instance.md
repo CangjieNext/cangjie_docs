@@ -18,10 +18,11 @@ struct Rectangle {
         width * height
     }
 }
+
 let r = Rectangle(10, 20)
-let width = r.width   // width = 10
+let width = r.width // width = 10
 let height = r.height // height = 20
-let a = r.area()      // a = 200
+let a = r.area() // a = 200
 ```
 
 如果希望通过 `struct` 实例去修改成员变量的值，需要将 `struct` 类型的变量定义为可变变量，并且被修改的成员变量也必须是可变成员变量（使用 `var` 定义）。举例如下：
@@ -45,9 +46,9 @@ struct Rectangle {
 
 main() {
     var r = Rectangle(10, 20) // r.width = 10, r.height = 20
-    r.width = 8               // r.width = 8
-    r.height = 24             // r.height = 24
-    let a = r.area()          // a = 192
+    r.width = 8 // r.width = 8
+    r.height = 24 // r.height = 24
+    let a = r.area() // a = 192
 }
 ```
 
@@ -72,10 +73,10 @@ struct Rectangle {
 
 main() {
     var r1 = Rectangle(10, 20) // r1.width = 10, r1.height = 20
-    var r2 = r1                // r2.width = 10, r2.height = 20
-    r1.width = 8               // r1.width = 8
-    r1.height = 24             // r1.height = 24
-    let a1 = r1.area()         // a1 = 192
-    let a2 = r2.area()         // a2 = 200
+    var r2 = r1 // r2.width = 10, r2.height = 20
+    r1.width = 8 // r1.width = 8
+    r1.height = 24 // r1.height = 24
+    let a1 = r1.area() // a1 = 192
+    let a2 = r2.area() // a2 = 200
 }
 ```
