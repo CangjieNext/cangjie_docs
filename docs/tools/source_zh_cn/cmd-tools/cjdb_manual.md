@@ -816,6 +816,7 @@ attach 29551
 
     ```cangjie
     foreign func cfoo(): Int32
+
     unsafe main() {
         cfoo()
     }

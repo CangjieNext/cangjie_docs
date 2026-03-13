@@ -56,7 +56,10 @@ common 全局函数，可以包含函数实现，也可以不包含函数实现�
 <!-- compile -->
 ```cangjie
 common func foo(): Int64
-common func goo(a: Int64): Int64 { 1 }
+
+common func goo(a: Int64): Int64 {
+    1
+}
 ```
 
 如上示例，定义了两个 common 全局函数，其中函数 foo 不包含函数体，goo 包含函数体，都是合法的 common 全局函数定义。
@@ -115,8 +118,6 @@ specific func printValue1<R>(value: R): Unit  where R <: ToString {
     println(value)
 }
 specific func printValue2<T>(value: T): Unit {}
-
-
 ```
 
 #### class
@@ -164,7 +165,9 @@ specific class A {
     specific init() {}
     specific func foo(): Unit {}
     specific prop p: Int64 {
-        get() { a }
+        get() {
+            a
+        }
     }
 }
 ```
@@ -178,7 +181,9 @@ package cmp
 
 common class Container<T> where T <: Comparable<T> {
     common var value: T
-    common init(value: T) { this.value = value }
+    common init(value: T) {
+        this.value = value
+    }
     common func get(): T
     common func set(newValue: T): Unit
     common func map<R>(convert: (T) -> R): Container<R> where R <: Comparable<R>
@@ -192,9 +197,15 @@ package cmp
 
 specific class Container<T> where T <: Comparable<T> {
     specific var value: T
-    specific init(value: T) { this.value = value }
-    specific func get(): T { value }
-    specific func set(newValue: T): Unit { value = newValue }
+    specific init(value: T) {
+        this.value = value
+    }
+    specific func get(): T {
+        value
+    }
+    specific func set(newValue: T): Unit {
+        value = newValue
+    }
     specific func map<R>(convert: (T) -> R): Container<R> where R <: Comparable<R> {
         return Container<R>(convert(value))
     }
@@ -276,7 +287,9 @@ specific class A {
     specific let a: Int64 = 2
     specific let b: Int64 = 2
 
-    init(input: Int64) { c = input }
+    init(input: Int64) {
+        c = input
+    }
 }
 ```
 
@@ -309,9 +322,15 @@ common class A {
 package cmp
 
 specific class A {
-    specific func foo1(a: Int64): Unit { println(a) }
-    specific func foo3(): Unit { println("specific") }
-    func foo5(): Int64 { 1 }
+    specific func foo1(a: Int64): Unit {
+        println(a)
+    }
+    specific func foo3(): Unit {
+        println("specific")
+    }
+    func foo5(): Int64 {
+        1
+    }
 
     init() {}
 }
@@ -352,13 +371,19 @@ package cmp
 
 specific class A {
     specific prop a: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     specific prop c: Int64 {
-        get() { 2 }
+        get() {
+            2
+        }
     }
     prop e: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 
     init() {}
@@ -380,19 +405,20 @@ common/specific class 支持继承，其继承关系的处理与 common/specific
 // common file
 package cmp
 
-public common interface I {
-}
+common public interface I {}
 
-public open common class A <: I {
+common public open class A <: I {
     public init() {}
-    public open func foo5(): Unit { println("A::foo5 common") }
+    public open func foo5(): Unit {
+        println("A::foo5 common")
+    }
 }
 
-public common class A2 <: A {
+common public class A2 <: A {
     public init() {}
 }
 
-public common class B <: I {
+common public class B <: I {
     public init() {}
 }
 
@@ -410,18 +436,21 @@ public func runCommonA2(a: A2) {
 // specific
 package cmp
 
-public specific interface I {
-    func foo5(): Unit { println("I::foo5 specific") }
+specific public interface I {
+    func foo5(): Unit {
+        println("I::foo5 specific")
+    }
 }
 
-public open specific class A <: I {
+specific public open class A <: I {}
+
+specific public class A2 <: A {
+    public func foo5(): Unit {
+        println("A2::foo5 specific")
+    }
 }
 
-public specific class A2 <: A {
-    public func foo5(): Unit { println("A2::foo5 specific") }
-}
-
-public specific class B <: I {}
+specific public class B <: I {}
 
 public class C <: I {}
 
@@ -522,29 +551,57 @@ A2::foo5 specific
 
 ```cangjie
 // common part
-public common abstract class A {
+common public abstract class A {
     init() {}
-    public common func a(): Int{1}
-    public open func b(): Int{2}
-    public common open func c(): Int {3}
-    public common func d(): Int
-    public common abstract func e(): Int
-    public common abstract func f(): Int
+    common public func a(): Int {
+        1
+    }
+    public open func b(): Int {
+        2
+    }
+    common public open func c(): Int {
+        3
+    }
+    common public func d(): Int
+    common public abstract func e(): Int
+    common public abstract func f(): Int
     public abstract func g(): Int
 
-    public common open prop prop_a: Int{ get() { 1 } }
-    public common prop prop_b: Int { get() { 1 } }
+    common public open prop prop_a: Int {
+        get() {
+            1
+        }
+    }
+    common public prop prop_b: Int {
+        get() {
+            1
+        }
+    }
     public abstract prop prop_c: Int
 }
 
 public class B <: A {
-  public func b(): Int { a() + 10 }
-  public func c(): Int { a() + 20 }
-  public func e(): Int { a() + 30 }
-  public func f(): Int { a() + 40 }
-  public func g(): Int { a() + 50 }
+    public func b(): Int {
+        a() + 10
+    }
+    public func c(): Int {
+        a() + 20
+    }
+    public func e(): Int {
+        a() + 30
+    }
+    public func f(): Int {
+        a() + 40
+    }
+    public func g(): Int {
+        a() + 50
+    }
 
-  public prop prop_c: Int { get() { 10 } }
+    public prop prop_c: Int {
+        get() {
+            10
+        }
+    }
 }
 ```
 
@@ -552,14 +609,26 @@ public class B <: A {
 
 ```cangjie
 // specific part
-public specific abstract class A {
-    public specific func a(): Int{4}
-    public specific open func c(): Int {5}
-    public specific func d(): Int {6}
-    public specific open func e(): Int {7}
-    public specific abstract func f(): Int
+specific public abstract class A {
+    specific public func a(): Int {
+        4
+    }
+    specific public open func c(): Int {
+        5
+    }
+    specific public func d(): Int {
+        6
+    }
+    specific public open func e(): Int {
+        7
+    }
+    specific public abstract func f(): Int
 
-    public specific open prop prop_a: Int { get() { 2 } }
+    specific public open prop prop_a: Int {
+        get() {
+            2
+        }
+    }
 }
 ```
 
@@ -608,7 +677,9 @@ specific struct A {
     specific init() {}
     specific func foo(): Unit {}
     specific prop p: Int64 {
-        get() { a }
+        get() {
+            a
+        }
     }
 }
 ```
@@ -639,7 +710,10 @@ package cmp
 specific struct Point<T> where T <: Add {
     specific var x: T
     specific var y: T
-    specific init(x: T, y: T) { this.x = x; this.y = y }
+    specific init(x: T, y: T) {
+        this.x = x
+        this.y = y
+    }
 }
 ```
 
@@ -715,7 +789,9 @@ specific struct A {
     specific let a: Int64 = 2
     specific let b: Int64 = 2
 
-    init(input: Int64) { c = input }
+    init(input: Int64) {
+        c = input
+    }
 }
 ```
 
@@ -748,9 +824,15 @@ common struct A {
 package cmp
 
 specific struct A {
-    specific func foo1(a: Int64): Unit { println(a) }
-    specific func foo3(): Unit { println("specific") }
-    func foo5(): Int64 { 1 }
+    specific func foo1(a: Int64): Unit {
+        println(a)
+    }
+    specific func foo3(): Unit {
+        println("specific")
+    }
+    func foo5(): Int64 {
+        1
+    }
 
     init() {}
 }
@@ -791,13 +873,19 @@ package cmp
 
 specific struct A {
     specific prop a: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     specific prop c: Int64 {
-        get() { 2 }
+        get() {
+            2
+        }
     }
     prop e: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 
     init() {}
@@ -815,6 +903,7 @@ package cmp
 
 common enum A {
     | ELEMENT
+
     common func foo(): Unit
     common prop p: Int64
 }
@@ -827,9 +916,12 @@ package cmp
 
 specific enum A {
     | ELEMENT
+
     specific func foo(): Unit {}
     specific prop p: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -852,18 +944,32 @@ specific enum A {
 // common file
 package cmp
 
-common enum A { ELEMENT1 | ELEMENT2 }
-common enum B { ELEMENT1 | ELEMENT2 }
-common enum C { ELEMENT1 | ELEMENT2 }
-common enum D { ELEMENT1 | ELEMENT2 | ... }
-common enum E { ELEMENT1 | ELEMENT2 | ... }
+common enum A {
+    ELEMENT1 | ELEMENT2
+}
+
+common enum B {
+    ELEMENT1 | ELEMENT2
+}
+
+common enum C {
+    ELEMENT1 | ELEMENT2
+}
+
+common enum D {
+    ELEMENT1 | ELEMENT2 | ...
+}
+
+common enum E {
+    ELEMENT1 | ELEMENT2 | ...
+}
 
 common enum Either<L, R> where L <: Equatable<L>, R <: Equatable<R> {
     | Left(L)
     | Right(R)
 
-    common func goo(x:L): Unit
-    common func foo<M>(x:M): Unit
+    common func goo(x: L): Unit
+    common func foo<M>(x: M): Unit
 }
 ```
 
@@ -872,18 +978,32 @@ common enum Either<L, R> where L <: Equatable<L>, R <: Equatable<R> {
 // specific file
 package cmp
 
-specific enum A { ELEMENT1 | ELEMENT2 }                   // ok
-specific enum B { ELEMENT1 | ELEMENT2 | ELEMENT3 }        // error: exhaustive enum cannot add new constructor
-specific enum C { ELEMENT1 | ELEMENT2 | ... }             // error: exhaustive 'common' enum cannot be matched with non-exhaustive 'specific' enum
-specific enum D { ELEMENT1 | ELEMENT2 | ELEMENT3 }        // ok
-specific enum E { ELEMENT1 | ELEMENT2 | ELEMENT3 | ... }  // ok
+specific enum A {
+    ELEMENT1 | ELEMENT2
+} // ok
+
+specific enum B {
+    ELEMENT1 | ELEMENT2 | ELEMENT3
+} // error: exhaustive enum cannot add new constructor
+
+specific enum C {
+    ELEMENT1 | ELEMENT2 | ...
+} // error: exhaustive 'common' enum cannot be matched with non-exhaustive 'specific' enum
+
+specific enum D {
+    ELEMENT1 | ELEMENT2 | ELEMENT3
+} // ok
+
+specific enum E {
+    ELEMENT1 | ELEMENT2 | ELEMENT3 | ...
+} // ok
 
 specific enum Either<L, R> where L <: Equatable<L>, R <: Equatable<R> {
     | Left(L)
     | Right(R)
 
-    specific func goo(x:L): Unit {}
-    specific func foo<M>(x:M): Unit{}
+    specific func goo(x: L): Unit {}
+    specific func foo<M>(x: M): Unit {}
 }
 ```
 
@@ -920,9 +1040,15 @@ package cmp
 specific enum A {
     | ELEMENT
 
-    specific func foo1(a: Int64): Unit { println(a) }
-    specific func foo3(): Unit { println("specific") }
-    func foo5(): Int64 { 1 }
+    specific func foo1(a: Int64): Unit {
+        println(a)
+    }
+    specific func foo3(): Unit {
+        println("specific")
+    }
+    func foo5(): Int64 {
+        1
+    }
 }
 ```
 
@@ -945,13 +1071,19 @@ common enum A {
 
     common prop a: Int64
     common prop b: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     common prop c: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     prop d: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -965,13 +1097,19 @@ specific enum A {
     | ELEMENT
 
     specific prop a: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     specific prop c: Int64 {
-        get() { 2 }
+        get() {
+            2
+        }
     }
     prop e: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -999,7 +1137,9 @@ package cmp
 specific interface A {
     specific func foo(): Unit {}
     specific prop p: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -1039,7 +1179,7 @@ specific interface Entity {
 }
 
 specific interface Repository<T> where T <: Entity {
-    specific func save(entity: T): Unit { }
+    specific func save(entity: T): Unit {}
 }
 ```
 
@@ -1072,9 +1212,15 @@ common interface A {
 package cmp
 
 specific interface A {
-    specific func foo1(a: Int64): Unit { println(a) }
-    specific func foo3(): Unit { println("specific") }
-    func foo5(): Int64 { 1 }
+    specific func foo1(a: Int64): Unit {
+        println(a)
+    }
+    specific func foo3(): Unit {
+        println("specific")
+    }
+    func foo5(): Int64 {
+        1
+    }
 }
 ```
 
@@ -1097,7 +1243,9 @@ common interface A {
     common prop a: Int64
     common prop b: Int64
     common prop c: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     prop d: Int64
 }
@@ -1110,13 +1258,19 @@ package cmp
 
 specific interface A {
     specific prop a: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     specific prop c: Int64 {
-        get() { 2 }
+        get() {
+            2
+        }
     }
     prop e: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -1134,7 +1288,7 @@ specific interface A {
 // common file
 package cmp
 
-class A{}
+class A {}
 
 common extend A {
     common func foo(): Unit
@@ -1150,7 +1304,9 @@ package cmp
 specific extend A {
     specific func foo(): Unit {}
     specific prop p: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -1170,15 +1326,21 @@ specific extend A {
 ```cangjie
 // common file
 package cmp
+
 common extend Int32 {}
+
 common extend Int32 {}
+
 common extend Int64 {}
 
 interface I {}
+
 class A {}
+
 common extend A <: I {}
 
 class C {}
+
 common extend C <: I {}
 ```
 
@@ -1186,10 +1348,13 @@ common extend C <: I {}
 ```cangjie
 // specific file
 specific extend Int32 {} // ok
+
 specific extend Int64 {}
+
 specific extend Int64 {} // error: direct extension of Int64 redefinition
 
 interface B {}
+
 specific extend A <: I {} // ok
 
 specific extend C <: B {} // error: the interfaces of specific extend do not match those on common extend
@@ -1242,10 +1407,11 @@ class A {}
 
 common extend A {
     common func foo1(a: Int64): Unit
-    common func foo2(): Unit { println("common") }
+    common func foo2(): Unit {
+        println("common")
+    }
     func foo3(): Unit {}
 }
-
 ```
 
 <!-- compile -->
@@ -1254,9 +1420,15 @@ common extend A {
 package cmp
 
 specific extend A {
-    specific func foo1(a: Int64): Unit { println(a) }
-    specific func foo2(): Unit { println("specific") }
-    func foo4(): Int64 { 1 }
+    specific func foo1(a: Int64): Unit {
+        println(a)
+    }
+    specific func foo2(): Unit {
+        println("specific")
+    }
+    func foo4(): Int64 {
+        1
+    }
 }
 ```
 
@@ -1279,10 +1451,14 @@ class A {}
 common extend A {
     common prop a: Int64
     common prop b: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     prop c: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -1294,13 +1470,19 @@ package cmp
 
 specific extend A {
     specific prop a: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
     specific prop b: Int64 {
-        get() { 2 }
+        get() {
+            2
+        }
     }
     prop d: Int64 {
-        get() { 1 }
+        get() {
+            1
+        }
     }
 }
 ```
@@ -1316,18 +1498,23 @@ common 和 specific 的声明支持导入与导出，其规则与其他类型的
 // common file
 package cmp
 
-public common func foo() { println("common func foo") }
+common public func foo() {
+    println("common func foo")
+}
 ```
 
 <!-- compile -->
 ```cangjie
 // specific file
 package cmp
+
 public import std.sort.*
 
-public specific func foo() { println("specific func foo") }
+specific public func foo() {
+    println("specific func foo")
+}
 
-public func goo(){
+public func goo() {
     println("specific func goo")
     sort([1, 4, 3])
 }
@@ -1351,7 +1538,7 @@ import cmp.*
 main() {
     foo() // 来自 specific 的 foo
     goo() // 仅在 specific 可见
-    sort([1,4,3]) // 仅在 specific 可见，由于仅在 specific 做了 public import
+    sort([1, 4, 3]) // 仅在 specific 可见，由于仅在 specific 做了 public import
 }
 ```
 
@@ -1407,7 +1594,7 @@ cjmp_project(package cjmp)
 // common.cj
 package example.cmp
 // 获取平台信息
-public common func Platform(): String
+common public func Platform(): String
 ```
 
 Linux 平台文件。
@@ -1416,7 +1603,8 @@ Linux 平台文件。
 ```cangjie
 // linux.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Linux"
 }
 ```
@@ -1427,7 +1615,8 @@ Windows 平台文件。
 ```cangjie
 // windows.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Win64"
 }
 ```
@@ -1438,7 +1627,8 @@ macOS 平台文件。
 ```cangjie
 // macos.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Mac"
 }
 ```
