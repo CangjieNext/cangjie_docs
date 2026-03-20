@@ -713,7 +713,8 @@ The `uninstall` command removes a Cangjie project, deleting its executables and 
 
 > **Note:**
 >
-> `cjpm` does not support Chinese paths on Windows. If issues arise, modify the directory name.
+> - `cjpm` does not support Chinese paths on `Windows`. If issues arise, modify the directory name;
+> - `cjpm` does not support paths containing `\` on `Linux/macOS`. If issues arise, modify the directory name.
 
 ## Module Configuration File Description
 
