@@ -1960,7 +1960,7 @@ XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与�
 @ObjCMirror
 open class MyContainer <: NSObject {
        .  .  .
-    public open fund addItemWithUuid(item: MyItem, uuid: NSString): Unit
+    public open func addItemWithUuid(item: MyItem, uuid: NSString): Unit
     public open func itemWithUuid(uuid: NSString): ?MyItem
     public open func uuidForItem:(item: MyItem): ?NSString
     public open prop allItems: NSArray
