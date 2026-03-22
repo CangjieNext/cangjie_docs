@@ -1,52 +1,123 @@
-# 仓颉-ObjC 互操作
+---
+author: Huawei Technologies Co., Ltd.
+title: Cangjie Multiplatform Programmer's Guide
+subtitle: for iOS™
+titlepage: true
+numbersections: true
+toc-own-page: true
+listings-no-page-break: true
+textables: false
+---
 
-仓颉跨平台方案支持开发者将仓颉语言接入 Android/iOS 应用开发，无论是项目中尚未实现的新逻辑，还是已存在的存量逻辑，都可通过仓颉语言完成开发与适配。
+# Introduction
 
-镜像类型是仓颉跨平台实现跨语言、跨运行时互操作的核心机制。它允许一门语言中定义的类型向另一门语言暴露接口，进而实现该类型在不同语言环境中的直接使用。
+The **Cangjie Multiplatform** technology enables Cangjie developers
+to incorporate their code into new Android/iOS applications and/or gradually
+replace the Java/Objective-C parts of existing applications with Cangjie code.
+The central mechanism that enables the cross-language, cross-runtime
+interoperability is _[mirror types](#mirror-types)_, which expose the types
+of one language to the other.
 
-在仓颉侧，借助镜像类型，开发者无需脱离仓颉语法与语义规范，即可让仓颉类继承 Java 类/Objective-C 类，实现 Java 接口 /Objective-C 协议，而在 Java/Objective-C 侧，镜像类型同样能够让仓颉类型以对应语言的原生类型形式呈现。
+On the Cangjie side, mirror types enable the inheritance of Java/Objective-C
+classes with method overriding, as well as the implementation of Java
+interfaces and Objective-C protocols, all while using conventional Cangjie
+syntax. On the Java/Objective-C side, the mirror types that represent Cangjie
+types are expressed in terms of the respective language's own types.
+All in all, this enables seamless transitions between the Java/Objective-C
+and Cangjie parts of the application, which includes usage of the target
+O/S APIs in Cangjie code.
 
-在仓颉侧，镜像类型使得在依旧遵循仓颉语法和语义的情况下，仓颉 class 能够继承 Java 的 class/Objective-C 的 interface，实现 Java 的 interface/Objective-C 的 protocol。而在 Java/Objective-C 侧，镜像类型同样能够使得仓颉类型以各自语言的类型表示出来。总体来说，仓颉跨平台让仓颉和 Java/Objective-C 在 Android/iOS 应用工程中做到尽可能无缝衔接，同时也意味着，开发者可以在仓颉代码中，通过跨语言互操作直接调用对应操作系统提供的 API。
 
-## 挑战与解决方法
+## The Challenge and the Solution
 
-仓颉、Java 和 Objective-C 虽然都是支持继承和多态的面向对象范式语言，但其各自的语义、底层实现的对象模型和执行模型等却存在显著差异，因此，试图在 Java/Objective-C 代码中直接使用仓颉语言，或反之在仓颉代码中直接使用 Java/Objective-C，均无法实现。
+Java, Objective-C and Cangjie are object-oriented languages that support
+inheritance and polymorphism. However, the differences in their semantics,
+object models, and execution models preclude direct usage of Cangjie
+objects in Java or Objective-C code and vice versa.
 
-三种语言均各自拥有不同于其他两种语言的托管运行时，自动内存管理、线程模型、异常处理等底层特性各不相同。让两个复杂编程语言的运行时通过相互感知来实现互操作，无疑会让整个应用的复杂度剧增。
+Then, all three languages have managed runtimes that support automatic memory
+management, threading, exception handling and other low-level features,
+but again they do that differently. Making two separately designed complex
+language runtimes aware of each other might push the complexity of the entire
+system beyond human comprehension.
 
-因此，仓颉跨平台对于仓颉与 Java 的互操作的实现思路是分别站在仓颉和 Java 侧，均将另一方视作低级语言。具体来说，仓颉与 Java 通过 Java 本地接口 (JNI) 实现互通。众所周知，JNI 用于使能 Java 调用例如 C/C++ 开发的本地接口，虽然功能强大，但作为底层 API，手写绑定层费时费力，不过好在 CJMP 提供了相应工具链，有效地消减了使用复杂度。
+Instead, the interoperability between Cangjie and Java is achieved
+by disguising them both as low-level languages. Cangjie and Java parts
+of the application see each other through the lens of the Java Native Interface
+(JNI), originally designed to facilitate the development of Java `native`
+methods in languages such as C and C++. JNI is a rich, but low-level API,
+and writing `native` Java methods is known to be cumbersome. Fortunately,
+CJMP automates away the complexity of JNI.
 
-Objective-C 的运行时模块 API 在 iOS 平台上担任了与 JNI 在安卓平台上类似的角色，其也是为实现 Objective-C 与其他语言之间的桥接层。与上述的 JNI 的情况一样，CJMP 同样为开发者消减了其使用时繁琐的部分。
+The Objective-C Runtime module API serves a similar role on iOS. It is also
+designed specifically to enable the creation of bridge layers between
+Objective-C and other languages. And just like with JNI, CJMP takes care
+about the cumbersome parts.
 
-### 前置步骤
 
-当前版本的 iOS 版仓颉 SDK 需要开发者手动到仓颉开源代码仓中下载获得`Cangjie.h`头文件：
+## Additional Setup
+
+The current version of the Cangjie SDK for iOS requires you to download
+the `Cangjie.h` header file from the Cangjie open source repository:
 
 [https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
 
-然后将此头文件集成进 XCode 项目中，本文档后续将阐述的 Objective-C 互操作功能依赖此文件。
+and integrate it into your XCode project in order to use the interoperability
+features described in this document.
 
-## 核心概念
 
-### 镜像类型
+# Key Concepts
 
-不妨这样理解什么是镜像类型：仓颉和 Objective-C 一对语言之间进行互操作，若一种语言 A 的源码中定义有镜像类型`T'`，则意味着在另一种语言 B 的源码中实际存在由 B 语言定义的类型`T`。于是，在语言 A 的源码中就可以通过直接使用镜像类型`T'`来实现间接使用类型`T`，最终实现语言 A 仿佛直接使用语言 B 的类型的效果。该操作存在特定限制，将在下文中详细说明。
+## Mirror Types
 
-Objective-C 视角下，其`int`类型就是仓颉`Int32`类型在 Objective-C 侧的镜像类型；反过来，仓颉视角下，其`Int32`类型就是 Objective-C 的`int`类型在仓颉侧的镜像类型。不过，对于部分无法建立对应关系的数值类型来说，这个镜像关系就是不存在的了，例如仓颉的`Float16`在 Objective-C 侧就没有任何类型能够与之对应，故在 Objective-C 视角下就不存在一种镜像类型来匹配仓颉的`Float16`类型，也可以理解为，仓颉的`Float16`类型无法被镜像为任何 Objective-C 基本类型。
+Considering Cangjie and Objective-C as a pair of interoperating languages,
+a _mirror type_ _`T'`_ defined in one language of the pair is a type that
+represents an existing type _`T`_ defined in the other language, enabling
+the code written in the first language to use that type, possibly with some
+limitations.
 
-对于`class`、`struct`、`interface`和`enum`等用户自定义类型，语言 A 中的类型 `T` 在另一门语言 B 中的镜像类型`T'`，是在语言 B 中所能找到的尽可能最佳的等价类型。举例来说，仓颉的`struct`类型在 Objective-C 中所能找到的最佳等价类型是附加了`objc_subclassing_restricted`属性的 Objective-C`interface`。
+The Boolean types and numeric types that are essentially the same in both
+languages naturally mirror each other: the Objective-C mirror type for the
+Cangjie type `Int32` is `int` and vice versa. Mirroring of numeric types
+that the other language does not naturally support is not currently possible,
+so e.g. the Cangjie type `Float16` cannot be mirrored to an Objective-C
+primitive type.
 
-若要在语言 B 中通过镜像类型使用语言 A 定义的类型，该镜像类型仅会暴露语言 A 原生类型中“理论上可被语言 B 访问和调用”的成员与构造函数。举例来说：若某个仓颉成员函数的返回类型为`Float16`，由于`Float16`无法被镜像为 Objective-C 类型，该仓颉成员函数也无法生成对应的镜像，导致 Objective-C 侧无法通过镜像类型调用此函数，这类场景需根据实际情况采用特定技巧解决。
+For a user-defined type such as class, struct, protocol, or interface,
+the mirror type would be its closest equivalent in the other language.
+For instance, the only Objective-C type that can approximate a Cangjie struct
+type with reasonable accuracy is an Objective-C class attributed
+with `objc_subclassing_restricted`.
 
-正常情况下，无论是仓颉类型的镜像类型还是 Objective-C 类型的镜像类型，以及镜像类型本身依赖的其他类型的镜像类型，都能够以某种方式自动生成获得。CJMP 提供了一个独立的工具——[Objective-C 镜像生成器](#objective-c-镜像生成器参考)，来实现为 Objective-C 类型自动生成镜像类型；为仓颉类型生成镜像类型也同样是自动完成的，加上特定编译选项的 cjc 编译过程会将仓颉类型的镜像类型定义作为副产品生成，具体步骤将在本文档中详细解释。
+A mirror type exposes the members and constructors of the original user-defined
+type that are accessible _and_ can be used in the other language, so again
+a Cangjie function that returns a value of type `Float16` cannot be mirrored
+straight to Objective-C.
 
-#### 将 Objective-C 类型镜像为仓颉类型
+Normally you would obtain mirror type definitions for a type that you want
+to use in the other language _and_ its required dependencies automatically.
+For Objective-C types, a standalone
+[mirror generator](#objective-c-mirror-generator-reference) is provided,
+whereas Objective-C mirrors of Cangjie types are generated by the
+[`cjc` compiler](#cangjie-mirror-generation-reference) as a byproduct
+of the normal compilation process.
 
-cjc 在编译过程中会将所有仓颉源码中用到的 Objective-C 镜像类型替换为相应的胶水代码，这意味着，真正对编译结果起作用的核心信息只有两点：一是被使用的 Objective-C 镜像类型的名称，二是该镜像类型中各可用成员的名称及其类型。因此在编写仓颉代码时，Objective-C 镜像类型定义中只需要包含各个可用成员的声明就够了，换句话说，Objective-C 镜像类型中并不需要保留构造函数体、成员函数体和成员属性体，成员变量也不需要初始化器。另一方面，Objective-C 类型中定义的`@private`成员对仓颉侧来说不可见，因此这类成员同样不会出现在 Objective-C 镜像类型定义中。
 
-显然，上述 Objective-C 镜像类型定义的写法是不符合仓颉语法/语义规格的，故 Objective-C 镜像类型定义必须带有`@ObjCMirror`注解，该注解用于在编译期协助 cjc 区分正常的仓颉类型定义与 Objective-C 镜像类型定义，从而对后者进行特殊处理。
+### Mirroring Objective-C Types to Cangjie
 
-示例如下，假设存在如下的 Objective-C `interface`：
+The `cjc` compiler replaces any uses of Objective-C mirror types with the
+appropriate glue code, so only the names of types themselves and names and
+types of their accessible members matter. Therefore, mirrors of Objective-C
+types only contain member declarations, not definitions: constructors and
+member functions/properties have no bodies and member variables have no
+initializers. For the same reason, `@private` members are omitted.
+
+For such an extension of the regular Cangjie syntax to work, each mirror type
+must be marked with an `@ObjCMirror` annotation. It helps the compiler
+distinguish between mirror type declarations and normal Cangjie type
+definitions.
+
+For example, a mirror class for the following Objective-C class:
 
 ```objectivec
 @interface Node : NSObject {
@@ -56,7 +127,7 @@ cjc 在编译过程中会将所有仓颉源码中用到的 Objective-C 镜像类
 @end
 ```
 
-其对应的 Objective-C 镜像类型定义可能如下：
+might look like this:
 
 ```cangjie
 @ObjCMirror
@@ -67,11 +138,19 @@ public open class Node <: NSObject {
 }
 ```
 
-#### 将仓颉类型镜像为 Objective-C 类型
 
-由于 cjc 专门的处理，Objective-C 镜像类型定义只需要保留最核心的信息即可，但仓颉镜像类型定义则必须是完整的正常的 Objective-C 类型定义，因为 iOS 工具链不会提供任何额外的特殊处理。在编译过程中，cjc 会将仓颉镜像类型定义生成为 Objective-C 源文件形式，该类型定义中包含完整的胶水层代码，这部分代码实现了仓颉与 Objective-C 两个运行环境之间的交互衔接。
+### Mirroring Cangjie Types to Objective-C
 
-假设前一个例子中的`Node`类型是由仓颉定义实现的，示例如下：
+Unlike the mirrors of Objective-C types, for which `cjc` has dedicated support,
+mirrors of Cangjie types must look exactly like normal Objective-C types
+from the outside, for the iOS toolchain to pick them up. The `cjc` compiler
+therefore generates those mirrors in the form of Objective-C source code
+files containing glue code responsible for linking the Objective-C and Cangjie
+worlds together.
+
+For instance, if the class `Node` from the example in the
+[previous section](#mirroring-objective-c-types-to-cangjie) was originally defined
+in Cangjie as follows:
 
 ```cangjie
 public class Node {
@@ -81,7 +160,8 @@ public class Node {
 }
 ```
 
-那么 cjc 在编译上述代码块时将为其自动生成以下的仓颉镜像类型定义：
+the `cjc` compiler could generate the following Objective-C mirror for it
+(glue code mostly omitted for brevity):
 
 ```objectivec
 // Node.h
@@ -107,15 +187,26 @@ public class Node {
 @end
 ```
 
-### 全局函数镜像
 
-Objective-C 和仓颉均支持顶级全局函数，此类函数不是任何其他类型的成员。它们以镜像函数的形式暴露给另一种语言，本质上就是自动生成的胶水层代码，用于在语言间传递控制权和数据。
+## Mirror Functions
 
-### 互操作类
+Both Objective-C and Cangjie support top-level, global functions that are not
+members of any other type. They are exposed to the other language as _mirror
+functions_, which are essentially automatically generated pieces of glue
+code that pass control and data through the inter-language barrier.
 
-互操作类本质上是一个仓颉`class`，其从一到若干个镜像类型派生而来，这种仓颉`class`能够被 Objective-C 侧使用，这是因为其所有构造函数和非继承而来的`public`成员函数，都会通过一个由 cjc 在编译它时自动生成的共轭的 Objective-C 包装`interface`，对 Objective-C 代码暴露。这个 Objective-C 包装`interface`本身可能会定义若干辅助方法，但对于 Objective-C 侧代码来说，能调用的方法只有从仓颉侧暴露而来的，以及该`interface`继承而来的；仓颉侧代码也是同理。
 
-接下来将举例说明，当使用 cjc 编译以下互操作类时：
+## Interop Classes
+
+An _interop class_ is essentially a Cangjie class that is derived from one
+or more [mirror types](#mirror-types) and is usable from Objective-C. All its
+constructors and non-inherited public member functions are exposed
+to Objective-C code via a conjugate _wrapper class_, automatically generated
+by the `cjc` compiler. The wrapper class itself defines no other user-callable
+methods or constructors, but any methods it may have inherited from its
+supertypes may be called from both Objective-C and Cangjie code.
+
+For example, when compiling the following Objective-C interop class:
 
 ```cangjie
 @ObjCImpl
@@ -131,10 +222,11 @@ public class BooleanNode <: Node {
 }
 ```
 
-cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块：
+the `cjc` compiler will also yield a pair of Objective-C source code files
+similar to the following:
 
 ```objectivec
-// BooleanNode.h
+// BooleandNode.h
 @interface BooleanNode : Node
 /* glue code */
 - (id)init:(int32_t)x:(BOOL)flag;
@@ -144,7 +236,7 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 ```
 
 ```objectivec
-// BooleanNode.m
+// BooleandNode.m
 @implementation BooleanNode : Node
 /* glue code */
 - (id)init:(int32_t)x:(BOOL)flag {
@@ -162,44 +254,78 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 @end
 ```
 
-### 外部类型
 
-镜像类型和互操作类均有别于真正原生的自定义类型，故简洁起见，本文档中它们将被统一称作外部类型。
+## Foreign Types
 
-### Objective-C 兼容类型
+The [mirror types](#mirror-types) and [interop classes](interop-classes) are
+not perfectly native to the language in which they are defined. Extending the
+analogy, their status is more like temporary visitors and work visa holders
+respectively, so they are collectively called _foreign types_ throughout
+this document.
 
-以下仓颉类型均为 Objective-C 兼容类型：
 
-* 所有拥有等价的 Objective-C 基本类型的仓颉值类型，例如`Int16`拥有等价的 Objective-C 基本类型`int16_t`，故`Int16`为 Objective-C 兼容类型；而`Float16`无等价的 Objective-C 基本类型，故`Float16`不是 Objective-C 兼容类型
-* 所有外部类型
-* `Option<T>`类型，且其中类型变元`T`为外部类型
+## Objective-C-Compatible Types
 
-显然，外部类型中定义的`public`的成员函数/方法的形参类型和返回类型必须是相应的兼容类型。
+The following Cangjie types are called _Objective-C-compatible_:
 
-互操作类的`public`成员变量的类型可以是任意类型，但只有当成员变量的类型为 Objective-C 兼容类型时，该成员变量才可以在仓颉和 Objective-C 侧均可访问。
+* Value types that have direct equivalents among Objective-C primitive types
+  (`Int16` is included, but `Float16` is not)
+* [Foreign types](#foreign-types)
+* Types of the form `Option<`_`T`_`>` where _`T`_ is a [foreign type](#foreign-types)
+  (see _[`null` Handling](null-handling)_ for reasoning)
 
-### 互操作使用场景
 
-总体来说，共存在两种 Objective-C/仓颉互操作的使用场景：
+For obvious reasons, the parameters and return values of public member functions
+of a foreign type may only have types compatible with the respective language.
 
-* [仓颉侧所定义的类型和函数通过互操作对 Objective-C 侧代码暴露](#在-objective-c-侧使用仓颉)，从而使得 Objective-C 侧可以间接使用仓颉提供的 API、仓颉库与其他应用组件等。
-* [Objective-C 侧所定义的类型通过互操作对仓颉侧代码暴露](#在仓颉侧使用-objective-c)，从而使得仓颉侧可以间接调用 iOS API、Objective-C 三方库与其他尚使用 Objective-C 编写的应用组件。
+The member variables of an interop class may have any types. Their public member
+variables that have Objective-C-compatible types may be accessed from both
+Objective-C and Cangjie.
 
-Objective-C 类可以继承仓颉类，实现仓颉接口，而仓颉类也可以继承 Objective-C 类，实现 Objective-C 协议，这使得在两种使用场景下均并非单向的从仓颉调用 Objective-C 或从 Objective-C 调用仓颉，而是仓颉和 Objective-C 之间灵活地互相调用，控制流得以互相转交。
 
-由于两种场景各自拥有的功能特性、使用限制条件和工具支持情况等具有明显差别，下文将分别对两种使用场景进行阐述。
+## Interop Scenarios
 
-## 在 Objective-C 侧使用仓颉
+There are essentially two Objective-C-Cangjie interoperation scenarios:
 
-Objective-C 侧访问仓颉库、调用仓颉 API 等的前提是开发者提前为所有相关的仓颉类型生成 Objective-C 侧能够使用的镜像类型。cjc 在编译仓颉源码过程中能够自动生成所需的镜像类型定义，详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+* In one scenario,
+  [Cangjie types and functions are exposed to Objective-C](#using-cangjie-in-objective-c),
+  enabling the use of Cangjie APIs, libraries and application components
+  in Objective-C code.
 
-> **注意：**
->
-> 仓颉语言的类型系统比 Objective-C 的更加丰富和灵活，即便是某些共有的语言特性，本质上也存在巨大差异，其中最典型的是[泛型](#为泛型仓颉类型进行镜像)，因此部分仓颉的语言特性完全无法在 Objective-C 中表达，而部分则难以用自然优雅的方式来表达。具体支持和限制情况请参见[仓颉到 Objective-C 的映射](#由仓颉到-objective-c-的映射关系)。
+* In the other scenario,
+  [Objective-C classes and interfaces are exposed to Cangjie](#using-objective-c-in-cangjie),
+  enabling Cangjie code to access iOS APIs, third party Objective-C libraries
+  and components of the application that remain coded in Objective-C.
 
-**例子:**
+The above scenarios are _not_ mutually exclusive, one application may as well
+be utilizing both. Also, class inheritance and interface implementation
+are supported in both scenarios (an Objective-C class may subclass a Cangjie
+class and vice versa). That enables seamless callbacks, so neither scenario is
+unidirectional. However, each scenario has its own feature set, limitations,
+tooling, etc., so they are described separately.
 
-假设存在以下仓颉`struct Vector`类型需要暴露给 Objective-C 侧使用：
+
+# Using Cangjie in Objective-C
+
+To enable access to a Cangjie library, API, or some other piece of code
+from Objective-C, you need to generate Objective-C
+[mirror types](#mirror-types) for the Cangjie types that you want to expose.
+The `cjc` compiler can do that for you as described
+in [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference).
+
+**NOTE:** The type system of the Cangjie language is more versatile than its
+Objectiove-C counterpart. There are also some principal differences in the
+features shared by the two languages, most notably
+[generics](#generic-cangjie-types-mirroring).
+Expressing certain features of Cangjie in Objective-C is therefore impossible,
+and other features can be difficult to express in a natural and compact manner.
+See [Cangjie to Objective-C Mapping](#cangjie-to-objective-c-mapping) for the exact list
+of supported features and associated restrictions.
+
+**Example:**
+
+Suppose you want to expose to Objective-C a Cangjie struct `Vector` defined
+as follows:
 
 ```cangjie
 package cj
@@ -224,13 +350,17 @@ public struct Vector {
 }
 ```
 
-首先开发者需要在`Vector`所定义的源文件中导入包`interoplib.objc`：
+First, you need to import the `interoplib.objc` package into the source code
+file where `Vector` is defined:
 
 ```cangjie
 import interoplib.objc.*
 ```
 
-在编译上述代码块时需为 cjc 新增两个额外的编译选项：`--experimental`和`--enable-interop-cjmapping=ObjC`，编译成功后将额外生成一对 Objective-C 源文件`Vector.h`和`Vector.m`，其中的内容类似如下：
+When compiling `Vector.cj`, you would invoke the `cjc` compiler with two
+additional options: `--experimental --enable-interop-cjmapping=ObjC`.
+The compiler would then generate two extra files, `Vector.h` and `Vector.m`,
+similar to the following:
 
 ```objectivec
 // Vector.h
@@ -266,7 +396,7 @@ __attribute__((objc_subclassing_restricted))
 /* glue code */
 
 - (id)init:(int32_t)x:(int32_t)y {
-    /* Glue code constructing an instance of Cangjie Vector(x, y) and associating
+    /* Glue code constructing an instance of Cangjie Vector(x,y) and associating
      * it with 'self'.
      */
 }
@@ -293,77 +423,106 @@ __attribute__((objc_subclassing_restricted))
 @end
 ```
 
-将`Vector.h`和`Vector.m`集成进 Xcode 项目中，接着就可以将这个`Vector`类型当作本来就是 Objective-C 编写的一样的类型来使用了：在 Objective-C 代码中定义`Vector*`类型的变量，创建`Vector`类型的实例，将实例作为方法入参，例如调用`[Vector add]`方法并将`Vector`类型的实例传入等。
+Now you can add `Vector.h` and `Vector.m` to your XCode project and use the
+class `Vector` in your Objective-C code as if it was a normal Objective-C class:
+define variables of the type `Vector*`, create instances, pass them around,
+including to Cangjie code via `[Vector add]`, etc.
 
-**重要提示：当前版本的 iOS 版仓颉 SDK 要求使用者手动从仓颉开源仓中下载`Cangjie.h`头文件并将其添加到 XCode 项目中：**
+**IMPORTANT: The current version of the Cangjie SDK for iOS also requires
+downloading and integrating into the XCode project the `Cangjie.h` header
+file from the Cangjie open source repository:**
 
 [https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
 
-### 限制暴露面
 
-cjc 编译选项`--enable-interop-cjmapping`使得其所编的仓颉包中所有的`public`用户自定义类型均生成仓颉镜像类型，且这些用户自定义类型中的所有`public`成员和构造函数都会被暴露给 Objective-C 侧。但在实际开发场景中，这种全盘暴露的方式通常没有必要，因为 Objective-C 侧需要直接调用的仓颉接口，往往仅占整个仓颉库的很小一部分。
+## Limiting the Exposure
 
-开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循[TOML](https://toml.io)语法。
+The option `--enable-interop-cjmapping` instructs the `cjc` compiler
+to generate mirror types for _all_ `public` Cangjie types that it compiles,
+and expose _all_ `public` member functions and constructors of those types.
+Oftentimes, however, such total exposure is undesirable, as what you want
+to use in Objective-C may be just a small percentage of the functionality
+provided by a Cangjie library or framework.
 
-该配置文件的`[default]`配置块中，开发者可以指定对所有仓颉包的默认 API 暴露策略，如果需要，还可以在对应的`[[packages]]`配置块中对特定的仓颉包的暴露策略进行修改，示例如下：
+You may precisely control the exposure of Cangjie types and their members
+by passing the pathname of a dedicated configuration file to `cjc` via the
+option `--import-interop-cj-package-config-path`. That file is a plain
+text file the contents of which must conform to the [TOML](https://toml.io)
+syntax.
+
+In the `[default]` section of that file, you can specify the default API
+exposure strategy for all Cangjie packages, and then modify it
+for particular packages in the respective `[[package]]` entries. For example:
 
 ```toml
 [default]
-APIStrategy="None"       ## Expose nothing by default
+APIStrategy="None"       # Expose nothing by default
 
 [[packages]]
-name="com.example.pkg1"  ## From this specific package,
-APIStrategy="Full"       ## expose everything
-##   .  .  .
+name="com.example.pkg1"  # From this specific package,
+APIStrategy="Full"       # expose everything
+#   .  .  .
 ```
 
-而对于每个仓颉包，开发者可以使用`included_apis`或`exluded_apis`配置项来指定暴露哪些类型/成员，隐藏哪些类型/成员，示例如下：
+Furthermore, for each package you can use either the `included_apis`
+or `excluded_apis` property to respectively expose or hide particular types
+and/or members:
 
 ```toml
-##   .  .  .
+#   .  .  .
 [[packages]]
-name="com.example.pkg2"          ## From this specific package,
-included_apis = [ "Vector",      ## Only the type 'Vector'
-                  "Vector.add"   ## and its member function 'add'
-                ]                ## are exposed
+name="com.example.pkg2"          # From this specific package,
+included_apis = [ "Vector",      # Only the type 'Vector'
+                  "Vector.add"   # and its member function 'add'
+                ]                # are exposed
 
 [[packages]]
-name="com.example.pkg3"          ## From this specific package,
-APIStrategy="Full"               ## everything
-excluded_apis = [ "TopSecret",   ## but the type 'TopSecret' and
-                  "Auth.getPwd"  ## member function 'Auth.getPwd'
-                ]                ## are exposed
+name="com.example.pkg3"          # From this specific package,
+APIStrategy="Full"               # everything
+excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
+                  "Auth.getPwd"  # member function 'Auth.getPwd'
+                ]                # are exposed
 ```
 
-详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+Refer
+to [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+for more details.
 
-### 为泛型仓颉类型进行镜像
 
-由于仓颉和 Objective-C 的泛型特性的实现存在根本性差异，仓颉泛型类型无法直接映射到 Objective-C 泛型类型以得到仓颉镜像类型。作为替代方案，CJMP 支持了仓颉镜像类型的单态化：用户通过配置文件为每个给定的仓颉泛型类型指定一个类型实参组合的列表，cjc 根据这个列表，对每个类型实参组合分别单独为该仓颉泛型类型生成一个非泛型的仓颉镜像类型，于是在 Objective-C 侧使用的都是非泛型的仓颉镜像类型。
+## Generic Cangjie Types Mirroring
 
-> **注意：**
->
-> 当前版本仅支持基本数据类型作为类型实参来单态化仓颉泛型类型。
+Many important Cangjie types are parameterized. Unfortunately, certain
+fundamental differences between Cangjie and Objective-C generics preclude
+mirroring of the former into the latter. As a workaround, the Cangjie SDK
+supports _monomorphization_ of mirror types: it generates a separate
+_non-generic_ Objective-C mirror type for each supplied set of valid type
+arguments for the given parameterized Cangjie type.
 
-举例来说，假设仓颉侧定义有如下泛型类型：
+**NOTE:** The current version only supports mirroring of generic
+types instantiated with primitive types used as type arguments.
+
+For instance, if you have a generic Cangjie class `p.Pair<T,U>`:
 
 ```cangjie
 package p
-public class Pair<T, U> { . . . }
+public class Pair<T,U> { . . . }
 ```
 
-如果希望在 Objective-C 侧能够使用`Pair<Int, Bool>`类型的实例，开发者可以在配置文件中`p`包所对应的`[[packages]]`配置块中添加`generic_object_configuration`配置项，具体配置内容如下：
+and want to manipulate instances of `Pair<Int, Bool>` in your Objective-C code,
+you would add a `generic_object_configuration` property to the `[[package]]`
+entry for `p` in the `cjc` mirror generation configuration file,
+with the following content:
 
 ```toml
-##   .  .  .
-[[packages]]
+#   .  .  .
+[[package]]
 name = "p"
 generic_object_configuration = [
     { name = "Pair", type_arguments = [ "Int, Bool" ] },
-##       .  .  .
+#       .  .  .
 ```
 
-cjc 将生成以下非泛型的 Objective-C 类：
+`cjc` would then generate a non-generic Objective-C class:
 
 ```objectivec
 @interface PairIntBool
@@ -371,31 +530,53 @@ cjc 将生成以下非泛型的 Objective-C 类：
 @end
 ```
 
-对应的是`Pair<T, U>`这个泛型类型的特定实例化结果的类型的仓颉镜像类型。
+representing that particular _instantiation_ of the type `Pair<T,U>`.
 
-详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)的泛型实例化相关部分。
+Refer to [Generics Instantiations](#cangjie-mirror-generation-reference)
+for more details.
 
-## 由仓颉到 Objective-C 的映射关系
 
-当前版本的 cjc 采用本章所描述的仓颉到 Objective-C 的映射规则。关于相关的 cjc 命令行选项请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+# Cangjie to Objective-C Mapping
 
-### 一般注意事项
+The current version of the `cjc` compiler uses Cangjie → Objective-C mapping
+described in this chapter. See
+[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+for applicable `cjc` command-line options.
 
-仓颉语言的类型系统较 Objective-C 而言更为丰富，不少仓颉类型及其相应的特性在 Java 中并不存在直接对应的等价的类型，有些则甚至连近似的类型也不存在，故在当前 CJMP 版本中，部分仓颉类型仅提供有限支持，而部分则完全不支持。
 
-由于上述的限制，如果用户自定义类型中的`public`成员函数/成员属性/构造函数的形参类型/返回类型不存在对应的镜像类型，该成员函数/成员属性/构造函数本身也无法被镜像，但 cjc 并不会报错，而仅仅是忽略对其生成镜像。
+## General Considerations {#cangjie-general-considerations}
 
-仓颉镜像类型需要被独立编译成动态库，并禁用 ARC（通过为-objective-c-编译器指定`-fno-objc-arc`编译选项禁用）。
+The Cangjie type system is different from that of the Objective-C language.
+Certain Cangjie types and their features do not have direct or even reasonably
+close equivalents in Objective-C, so they have limited support in the
+current version, and some are not supported at all.
 
-### 仓颉名称
+Consequently, if the type of a public member, function/constructor parameter,
+or function return type is not supported, the respective member, function
+or constructor cannot be mirrored. The current compiler does not report such
+usages as errors, the respective entity is simply not mirrored.
 
-仓颉包名、函数名、类型名称和类型成员的名称在镜像结果中都会完整保留原名，这也意味着，可能存在镜像后与 Objective-C 关键字冲突的情况，例如`int`等，或镜像类型中包含 Objective-C 禁止的用于构成名称的字符。
+Mirror types should be compiled into a separate dynamic library with ARC
+support disabled (`-fno-objc-arc` Objective-C compiler option). For details,
+see the notice in the [Classes and Interfaces(#cangjie-classes-and-interfaces)
+section.
 
-### 仓颉布尔类型和数值类型
 
-对于仓颉布尔类型和数值类型，如果在 Objective-C 中存在对应等价类型，将被镜像为其对应类型，否则不支持镜像，详情请参见下表：
+## Names {#cangjie-names}
 
-仓颉类型  | Objective-C 类型
+The original names of Cangjie packages, functions, types and type members
+are currently preserved, which means that some of them may clash
+with Objective-C keywords, such as "`int`", or contain characters that
+are not permitted in Objective-C names.
+
+
+## Boolean and Numeric Types
+
+Cangjie Boolean and numeric types that have equivalents among Objective-C
+types are mirrored to those equivalent; those that don't (`Float16`)
+are not supported:
+
+Cangjie type  | Objective-C type
 ------------- | -----------------
 `Bool`        | `BOOL`
 `Int8`        | `int8_t`
@@ -410,37 +591,50 @@ cjc 将生成以下非泛型的 Objective-C 类：
 `UInt64`      | `uint64_t`
 `UInt`        | `uint64_t`
 `UIntNative`  | `size_t`
-`Float16`     | 不支持
+`Float16`     | Not supported
 `Float32`     | `float`
 `Float64`     | `double`
 
-关于如何处理不支持的类型，请参见[由仓颉到 Objective-C 的映射关系](#由仓颉到-objective-c-的映射关系)章节的一般注意事项。
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-### 仓颉`Rune`类型
 
-不支持仓颉`Rune`类型。
+## Rune
 
-关于如何处理不支持的类型，请参见[由仓颉到 Objective-C 的映射关系](#由仓颉到-objective-c-的映射关系)章节的一般注意事项。
+The type `Rune` is not supported.
 
-### 仓颉特殊类型
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-仓颉`Unit`类型仅当作为函数返回类型时，被映射为 Objective-C 的`void`类型。
 
-仓颉`Nothing`类型完全无法被映射，故不支持。
+## Special Types
 
-仓颉`Any`类型当前尚不支持。
+The type `Unit` is only supported as a function return type, mapped
+to Objective-C `void`.
 
-关于如何处理不支持的类型，请参见[由仓颉到 Objective-C 的映射关系](#由仓颉到-objective-c-的映射关系)章节的一般注意事项。
+The type `Nothing` cannot be supported.
 
-### 仓颉元组类型
+The type `Any` is not supported yet.
 
-仓颉元组类型当前尚不支持。
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-关于如何处理不支持的类型，请参见[由仓颉到 Objective-C 的映射关系](#由仓颉到-objective-c-的映射关系)章节的一般注意事项。
 
-### 仓颉`struct`类型
+## Tuple
 
-`public`仓颉`struct`类型定义将被映射为带有`objc_subclassing_restricted`属性的 Objective-C 类。相应的 Objective-C 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Objective-C 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+Tuple types are not supported yet.
+
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
+
+
+## Struct Types
+
+Public Cangjie struct type definitions are mirrored into Objective-C class
+definitions attributed with `objc_subclassing_restricted`.
+Those definitions are generated automatically by the `cjc`
+compiler and contain glue code that transfers control and data between
+Objective-C and Cangjie. They should not be modified manually.
 
 ```cangjie
 package cj
@@ -501,53 +695,77 @@ __attribute__((objc_subclassing_restricted))
 @end
 ```
 
-cjc 仅为`public`的`struct`成员和普通构造函数生成镜像。
+Only public struct members and common constructors are mirrored.
 
-**成员函数**将被镜像为方法，其方法名与仓颉成员函数名保持一致，其形参类型和返回类型均被替换为相应镜像类型。返回类型为`Unit`的成员函数将被镜像为返回类型为`void`的方法。实例成员函数将被镜像为实例方法（前缀为减号`-`），静态成员函数则被镜像为类方法（前缀为加号`+`）。
+**Member functions** are mirrored into methods with the respective
+mirror types substituted for parameter types and return value type. Mirrors
+of member functions returning `Unit` are mirrored into `void` methods.
+Instance member functions are mirrored into instance methods (prefixed
+with a minus sign `-`), `static` member functions are mirrored
+into class methods (prefixed with a plus sign `+`).
 
-**成员属性**将被镜像为`@property`声明，其名称与仓颉成员属性名保持一致，其类型为仓颉成员属性的类型的镜像类型，且带有`readonly`属性。仓颉成员属性的`getter`将被镜像为无参方法，其方法名与仓颉成员属性名保持一致，其返回类型为仓颉成员属性的类型的镜像类型。
+**Member properties** of supported types are mirrored into `@property`
+declarations with the same name and with type that mirrors the Cangjie
+property type, attributed with `readonly`. The getter is mirrored
+into a parameterless method with the same name as the property
+and return type that is the mirror of the Cangjie property type.
+**NOTICE:** Setters are currently _not_ mirrored, so mirrors of `mut`
+member properties are also `readonly`.
 
-> **注意：**
->
-> 当前仓颉成员属性的`setter`均不会被镜像，因此`mut`成员属性的镜像依然也是`readonly`的。
+**Member variables** of supported types are mirrored into `@property`
+declarations with the same name and with type that mirrors the Cangjie
+variable type, attributed with `readonly`. A getter is synthesized
+to enable access.
+**NOTICE:** Setters are currently _not_ synthesized for `var` member
+variables, so mirrors of the latter are also `readonly`.
 
-**成员变量**将被镜像为`@property`声明，其名称与仓颉成员变量名保持一致，其类型为仓颉成员变量的类型的镜像类型，且带有`readonly`属性。同时还会自动合成一个`getter`方法用于访问读取。
+**Constructors** are mirrored into constructors with the respective
+mirror types substituted for parameter types. _This includes the default
+constructor that might have been implicitly declared._
 
-> **注意：**
->
-> 当前对于`var`成员变量并不会为其自动合成`setter`方法，因此`var`成员变量的镜像依然也是`readonly`的。
+The current version imposes a number of severe limitations on the struct
+types that can be mirrored, to the extent that it may be fair to say
+that a struct type needs to be designed specifically for exposing it
+to Cangjie:
 
-**构造函数**将被镜像为实例方法，其方法名固定为`init`，其形参类型均被替换为相应镜像类型。
+* Function overloading is not supported: mirrors of overloaded member
+  functions are generated with the same name, which results in a name clash.
 
-> **注意：**
->
-> 默认的隐式定义的仓颉构造函数也将被镜像。
+* Both `let` and `var` member variables are mirrored into `readonly`
+  properties in the current version, so the latter may not be altered
+  from Objective-C code. This limitation will be removed in a future
+  version. In the meantime, you may add setter functions as a workaround.
 
-当前版本对可被镜像的`struct`类型施加了若干重大限制条件，以至于可以说需要针对被暴露给 Objective-C 侧的`struct`类型进行专门设计：
+* Mirroring of `mut` instance member functions is a work in progress.
+  They are mirrored, but incorrect glue code is generated in some
+ circumstances.
 
-* 不支持成员函数构成重载：所有构成重载的成员函数被镜像后得到的所有方法均同名，从而导致命名冲突。
+* Mirrored structs may implement interfaces other than `Any`, but
+  the "implements" relationship is _not_ propagated to Objecttive-C:
+  th generated `@interface` directive does not bear the names
+  of mirrors of implemented interfaces in angle brackets `<>`
+  after the class name.
 
-* 当前版本中，`let`和`var`成员变量均被镜像为`readonly`的`@property`，因此在 Objective-C 侧，即便是`var`成员变量也无法得以修改。该限制将在未来版本中移除，目前开发者可以通过在仓颉侧新增相应的`setter`成员函数作为规避手段。
+* Mirroring of member operator functions is not supported. They are
+  skipped during mirror generation.
 
-* `mut`实例成员函数的镜像尚在实现中。它们会被镜像，但生成的胶水层代码在某些情况下是错误的。
+* Mirroring of generic structs is supported through monomorphization.
+  See [Generics](#cangjie-generics) for details.
 
-* 被镜像的`struct`可能实现有除`Any`以外的其他`interface`，但这些接口实现的子类型关系信息并不会被传播到 Objective-C 侧：`@interface`后的类名后的尖括号对中并不会保留有任何这些被实现的`interface`的镜像类型名称。
+* Struct member functions and constructors with unsupported parameter
+  types, as well as member functions with unsupported return types,
+  are not mirrored.
 
-* 操作符重载函数不会被镜像，在镜像生成过程中它们将被忽略。
+* A mirrored struct may have direct and/or interface extensions,
+  but they are ignored during mirror generation.
 
-* 支持通过单态化为泛型`struct`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* Memeber functions may not have any type parameters.
 
-* `struct`成员函数的形参类型和返回类型中如果含有不支持镜像的类型，cjc 不会报错，但该成员函数不会被镜像。
+## Classes and Interfaces {#cangjie-classes-and-interfaces}
 
-* `struct`构造函数的形参类型中如果含有不支持镜像的类型，cjc 不会报错，但该构造函数不会被镜像。
-
-* 被镜像的`struct`类型可能拥有直接扩展和/或接口扩展，在镜像过程中被扩展的部分将被忽略。互操作并不影响仓颉侧对扩展部分的使用，扩展部分仅对 Objective-C 侧不可见。
-
-* 禁止成员函数拥有类型形参。
-
-### 仓颉`class`和`interface`类型
-
-仓颉`class`和`interface`类型定义分别被镜像为 Objective-C 的类和`protocol`定义。相应的 Objective-C 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Objective-C 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+Cangjie class and interface definitions are mirrored respectively
+into Objective-C class and protocol definitions. Those definitions contain
+automatically generated glue code and should not be altered in any way.
 
 ```cangjie
 package cj
@@ -633,35 +851,60 @@ __attribute__((objc_subclassing_restricted))
 @end
 ```
 
-当前版本中，被镜像的类型的名称及其成员的名称，即便与 Objective-C 关键字冲突，也将得以保留。
+Identifiers that serve as names of mirrored types and their members are
+currently preserved even if they clash with Objective-C keywords such as `int`.
 
-非`open`仓颉`class`将被镜像为带`objc_subclassing_restricted`属性的 Objective-C 类。
 
-`public`成员和构造函数均将被镜像。此外，`open class`的`protected open`实例成员函数也将被镜像，从而使得 Objective-C 侧定义子类时可以对其进行重写。除此之外的其他`class`和`interface`成员均不会被镜像。
+Mirrors of non-`open` classes are attributed
+with `objc_subclassing_restricted`.
 
-> **注意：**
->
-> 在 Objective-C 中没有任何包或命名空间或类似的概念，因此即便是`protected open`成员函数，在 Objective-C 侧的任何地方都可以调用相应方法。该行为不受到也无法受到像在仓颉侧的限制。
+`public` members and constructors are mirrored. In addition, `protected open`
+instance member functions of `open` classes are also mirrored, so that they
+could be overridden in subclasses. No other class or interface members are
+mirrored.
 
-**成员变量**在当前版本中不会被镜像，因此 Objective-C 侧不存在任何直接访问仓颉成员变量的手段。
+> **CAUTION:** As there are neither packages nor namespaces of any other kind
+> in Objective-C, the mirrors of such `protected open` member functions are
+> accessible from anywhere in Objective-C code.
 
-**成员属性**在当前版本中不会被镜像。
+**Member variables** are not mirrored in the current version and no means
+for accessing them from Objective-C is provided.
 
-**成员函数**将被镜像为方法，其方法名与仓颉成员函数名保持一致，其形参类型和返回类型均被替换为相应镜像类型。返回类型为`Unit`的成员函数将被镜像为返回类型为`void`的方法。实例成员函数将被镜像为实例方法（前缀为减号`-`），静态成员函数则被镜像为类方法（前缀为加号`+`）。
+**Member properties** are not mirrored in the current version.
 
-**构造函数**将被镜像为实例方法，其方法名固定为`init`，其形参类型均被替换为相应镜像类型。
+**Member functions** are mirrored into methods with the respective mirror
+types substituted for parameter types and return value type. Mirrors of
+member functions returning `Unit` are mirrored into `void` methods.
+`static` member functions are mirrored into class methods (prefixed
+with "`+`"), instance member functions -- into instance methods (prefixed
+with "`-`").
 
-> **注意：**
->
-> 默认的隐式定义的仓颉构造函数也将被镜像。
->
-> 从外界看来，仓颉`class`和`interface`的镜像类型与正常的 Objective-C 类和`protocol`别无二致：它们可以被继承/实现，它们的方法可以与普通 Objective-C 方法构成重载，被普通 Objective-C 方法重写，可以查询获取它们的实例的类型，诸如此类。但两种语言终究存在差异，使得用户在 Objective-C 侧使用这些镜像类型时，需要特别关注一些潜在问题：
+**Common constructors** are mirrored into constructors with the respective
+mirror types substituted for parameter types. _This includes the default
+constructor that might have been implicitly declared._
 
-1. Objective-C 没有任何属性可以将一个方法标记为无法被重写，因此`open class`的非`open`成员函数虽然在仓颉侧无法被重写，但其镜像在 Objective-C 侧却可以被重写，但明显这么做是不应该的。
+**IMPORTANT:** From the outside, types that mirror Canglie classes and
+interfaces are normal Objective-C classes and protocols in all aspects:
+they can be inherited/implemented, their methods can be overloaded and
+overridden with conventional Objective-C methods, types of their instances
+can be queried, and so on. The differences between the languages, however,
+pose a few potential problems that require extra care when using such types
+in Objective-C code:
 
-2. 当前实现中，`open class`的静态成员函数的镜像在 Objective-C 侧尚不支持重写。它们被镜像为 Objective-C 的类方法，不应该被在子类中重写。编译期无法施加此限制，故需要用户自行遵守。
+1. There is no attribute that would make Objective-C methods non-overrideable,
+   so methods that mirror non-`open` member functions of `open` classes
+   _can_, but obviously should not, be overridden.
 
-3. 仓颉中，构造函数是不会被继承的，而在 Objective-C 中，名为`init`的方法与其他方法一样都是能够被继承的，因为 Objective-C 中没有单独的类似仓颉构造函数的概念，这潜在将导致某些不希望的效果。例如，请考虑如下仓颉类：
+2. The current implementation does not support overriding of mirrors
+   of `static` Cangjie methods of `open` classes. They are mirrored
+   into Objective-C class methods (those prefixed with a plus sign `+`),
+   and should never be overridden in subclasses. There is no way to enforce
+   this restriction at compile-time.
+
+3. Constructors are not inherited in Cangjie, whereas init methods
+   in Objective-C are inherited just like other methods, which may lead
+   to undesirable effects. For instance, consider the following Cangjie
+   classes:
 
     ```cangjie
     public class A {
@@ -673,49 +916,74 @@ __attribute__((objc_subclassing_restricted))
     }
     ```
 
-    在仓颉中，`class B`没有暴露其无参构造函数，然而`B`的镜像类却会从`A`的镜像类中继承得到`A`的无参构造函数。对于`[[B alloc] init];`这个表达式，其能够编译成功并运行，但当调用`init`方法时实际上会在仓颉侧实例化`A`，并将`A`的实例与`B`的镜像类型的实例的`self`关联，然而明显我们正常应该是预期`B`的实例与之关联。
+    In Cangjie, the class `B` does not expose its parameterless common
+    constructor. However, the mirror of `B` will inherit the parameterless
+    `init` method from the mirror of `A`, so the expression
+    `[[B alloc] init]` will compile and run, but the `init` method inherited
+    from `A` will create and associate with `self` an instance of the
+    Cangjie class `A`, not `B`.
 
-> **注意：**
->
-> 仓颉`open class`的镜像在实现上依赖的 Objective-C 底层特性与自动引用计数（ARC）不兼容。这就是为什么一般来说建议将所有镜像类型编译为单独的动态库，编译时指定禁止 ARC（通过`-fno-objc-arc`选项）。
 
-当前版本对可被镜像的`class`和`interface`类型施加了若干重大限制条件，以至于可以说需要针对被暴露给 Objective-C 侧的`class`和`interface`类型进行专门设计：
+**NOTICE**: Mirrors of `open` Cangjie classes rely on low-level Objective-C
+features that are not compatible with Automatic Reference Counting (ARC).
+That is why all mirror types should generally be compiled into a separate
+dynamic library with ARC support disabled (`-fno-objc-arc` Objective-C
+compiler option).
 
-* 不支持对抽象类生成镜像，抽象类将在镜像生成过程中被忽略，cjc 既不报错也不告警。
+The current version imposes a number of severe limitations on the class
+and interface types that can be mirrored, to the extent that it may be
+fair to say that such types need to be designed specifically for exposing
+them to Cangjie:
 
-* 不支持对继承了抽象类的非抽象类生成镜像，如果尝试生成，镜像类源码虽然会被生成，但将编译失败。
+* Abstract classes are not mirrored and mirrors of concrete classes that
+  implement abstract classes won't compile.
 
-* 不支持成员函数构成重载：所有构成重载的成员函数被镜像后得到的所有方法均同名，从而导致命名冲突。
+* Function overloading is not supported: mirrors of overloaded member
+  functions are generated with the same name, which results in a name clash.
 
-* 暂不支持对成员变量生成镜像，因此 Objective-C 侧无法直接访问成员变量。该限制将在未来版本中被移除。当前可以手动在仓颉`class`中新增相应`getter/setter`成员函数来作为规避手段。
+* Member variables are not mirrored and no means for accessing them
+  is provided. This limitation will be removed in a future version.
+  In the meantime, you may add getter/setter functions to Cangjie
+  classes manually as a workaround.
 
-* 暂不支持对实现了除`Any`外的`interface`的仓颉`class`生成镜像，因为接口实现信息在镜像生成过程中被丢失了。
+* Mirroring of classes that implement interfaces other than `Any`
+  is not currently supported in the sense that explicit interface
+  implementation information gets lost during mirror generation.
 
-* 支持通过单态化为泛型`class`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* Mirroring of generic classes is supported via monomorphization.
+  See [Generics](#cangjie-generics) for more information.
 
-* 仓颉`class`如果拥有`public`成员属性、操作符重载函数或主构造函数，将无法被镜像，cjc 既不会报错也不会告警，而是直接忽略之。
+* Mirroring of classes/interfaces that contain public member properties,
+  member operator functions, or primary constructors is not supported.
+  Such entities are simply not mirrored without a warning.
 
-* 仓颉`interface`如果拥有成员属性、操作符重载函数，将无法被镜像，cjc 既不会报错也不会告警，而是直接忽略之。
+* For member functions and constructors, the only universally supported
+  parameter types are `Bool` and numeric types. For member functions,
+  the only universally supported return value types are `Bool`, numeric
+  types and `Unit`. Specifically for member functions and constructors
+  of non-`open` classes, structs, enums, and non-`open` classes are also
+  supportted as parameter and return value types, provided that they are
+  defined in the same package.
+  Member functions and constructors with unsupported parameter types,
+  as well as member functions with unsupported return types, are not mirrored.
 
-* 成员函数形参类型支持`Bool`和数值类型，返回类型支持`Unit`、`Bool`和数值类型。构造函数形参类型支持`Bool`和数值类型。
+* Inheritance relationships between interfaces are not preserved during
+  mirror generation.
 
-* 特别地，对于非`open` `class`中定义的成员函数和构造函数，其形参类型和返回类型支持为定义在同包中的`struct`、`enum`和非`open` `class`类型（当前暂不支持定义在非当前包中的用户自定义类型作为形参或返回类型）。
+* Interface implementation information is not propagated to Objective-C
+  during mirror generation (notice how in the above example the `@interface`
+  directive in `Singleton.h` does _not_ end with `<Valuable>`).
 
-* 成员函数的形参类型和返回类型中如果含有尚不支持的类型，cjc 既不会报错也不会告警，但该成员函数不会被镜像。
+* A mirrored class may have direct and/or interface extensions,
+  but they are ignored during mirror generation.
 
-* 构造函数的形参类型中如果含有尚不支持的类型，cjc 既不会报错也不会告警，但该构造函数不会被镜像。
 
-* `interface`之间的继承关系在镜像生成过程中不被保留。
+## Enums
 
-* `class`与`interface`之间的实现关系在镜像生成过程中不会被传播到 Objective-C 侧，这层信息将被丢失。例如，注意到在上述例子中，`Singleton.h`中定义的`@interface Singleton`之后并 _没有_ `<Valuable>`，也就是说，在仓颉侧`class Singleton`实现`interface Valuable`的实现关系并没有反映在 Objective-C 侧。
-
-* 被镜像的`class`类型可能拥有直接扩展和/或接口扩展，但在镜像过程中，被扩展的部分将被忽略。互操作并不影响仓颉侧对扩展部分的使用，扩展部分仅对 Objective-C 侧不可见。
-
-* 禁止`class`或`interface`的成员函数拥有类型形参。
-
-### 仓颉`enum`类型
-
-`public`仓颉`enum`类型定义将被映射为带有`objc_subclassing_restricted`属性的 Objective-C 类，各构造器被镜像为类方法，Objective-C 类中无任何`public`的`init`方法。相应的 Objective-C 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Objective-C 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+A Cangjie enum is mirrored into an Objective-C class attributed
+with `objc_subclassing_restricted`, with `static` methods matching
+the enum constructors (factory methods) and without a `public`
+constructor.
 
 ```cangjie
 public enum TimeUnit {
@@ -738,41 +1006,63 @@ __attribute__((objc_subclassing_restricted))
 @end
 ```
 
-**构造器**被镜像为类方法，方法名与构造器名保持一致，形参类型列表与构造器关联类型列表一一对应为其镜像类型，各形参名称均自动合成（`p1`、`p2`、...、`pn`）。
+**Enum constructors** are mirrored into `static` factory methods with the same
+names and matching types and numbers of parameters; names of parameters
+are synthesized (`p1`, `p2`, ...).
 
-仅为所有`public`的枚举成员进行镜像。
+Only the `public` enum members are mirrored.
 
-**成员函数**将被镜像为方法，其方法名与仓颉成员函数名保持一致，其形参类型和返回类型均被替换为相应镜像类型。返回类型为`Unit`的成员函数将被镜像为返回类型为`void`的方法。实例成员函数将被镜像为实例方法（前缀为减号`-`），静态成员函数则被镜像为类方法（前缀为加号`+`）。
+**Member functions** are mirrored into methods with the respective mirror
+types substituted for parameter types and return value type. Mirrors of
+member functions returning `Unit` are mirrored into `void` methods.
+`static` member functions are mirrored into class methods (prefixed
+with "`+`"), instance member functions -- into instance methods (prefixed
+with "`-`").
 
-**成员属性**将被镜像为`@property`声明，其名称与仓颉成员属性名保持一致，其类型为仓颉成员属性的类型的镜像类型，且带有`readonly`属性。仓颉成员属性的`getter`将被镜像为无参方法，其方法名与仓颉成员属性名保持一致，其返回类型为仓颉成员属性的类型的镜像类型。
+**Member properties** of supported types are mirrored into `@property`
+declarations with the same name and with type that mirrors the Cangjie
+property type, attributed with `readonly`. The getter is mirrored
+into a parameterless method with the same name as the property
+and return type that is the mirror of the Cangjie property type.
+**NOTICE:** Setters are currently _not_ mirrored, so mirrors of `mut`
+member properties are also `readonly`.
 
-> **注意：**
->
-> 当前仓颉成员属性的`setter`均不会被镜像，因此`mut`成员属性的镜像依然也是`readonly`的。
+The current version imposes a number of limitations on the enum that can be
+mirrored:
 
-当前版本对能被镜像的`enum`类型施加了诸多限制条件：
+* Function overloading is not supported: mirrors of overloaded member
+  functions are generated with the same name, which results in a name clash.
 
-* 不支持成员函数构成重载：所有构成重载的成员函数被镜像后得到的所有方法均同名，从而导致命名冲突。
+* Mirrored enums may implement interfaces other than `Any`, but
+  the "implements" relationship is _not_ propagated to Objecttive-C:
+  th generated `@interface` directive does not bear the names
+  of mirrors of implemented interfaces in angle brackets `<>`
+  after the class name.
 
-* 被镜像的`struct`可能实现有除`Any`以外的其他`interface`，但这些接口实现的子类型关系信息并不会被传播到 Objective-C 侧：`@interface`后的类名后的尖括号对中并不会保留有任何这些被实现的`interface`的镜像类型名称。
+* Mirroring of generic enums is _not_ supported yet; will be supported
+  through monomorphization. See [Generics](#cangjie-generics) for details.
 
-* 当前尚不支持对拥有操作符重载函数的`enum`生成镜像。目前实现下，如果试图对拥有操作符重载函数的`enum`生成镜像，生成的镜像中 Objective-C 代码是无效的。
+* For member functions and constructors, the only supported
+  parameter types are `Bool` and numeric types. For member functions,
+  the only universally supported return value types are `Bool`, numeric
+  types and `Unit`.
+  Member functions and constructors with unsupported parameter types,
+  as well as member functions with unsupported return types, are not mirrored.
 
-* 当前尚不支持为泛型`enum`生成镜像。未来将支持通过单态化为泛型`struct`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* Mirroring of enums that contain member operator functions is not supported.
+  An attempt to mirror an enum containing such an entity currently results
+  in the generation of invalid Objectove-C code.
 
-* 对于`enum`成员函数和构造函数，形参类型仅支持`Bool`和数值类型。
+* Enum member functions and constructors with unsupported parameter
+  types, as well as member functions with unsupported return types,
+  are not mirrored and no warning is issued.
 
-* 对于`enum`成员函数，返回类型仅支持`Unit`、`Bool`和数值类型。
+* A mirrored enum may have direct and/or interface extensions,
+  but they are ignored during mirror generation.
 
-* `enum`成员函数的形参类型和返回类型中如果含有尚不支持的类型，cjc 既不会报错也不会告警，但该成员函数不会被镜像。
 
-* `enum`构造函数的形参类型中如果含有尚不支持的类型，cjc 既不会报错也不会告警，但该构造函数不会被镜像。
 
-* 被镜像的`enum`类型可能拥有直接扩展和/或接口扩展，在镜像过程中被扩展的部分将被忽略。互操作并不影响仓颉侧对扩展部分的使用，扩展部分仅对 Objective-C 侧不可见。
-
-* 禁止成员函数拥有类型形参。
-
-支持递归定义的枚举类型，例如：
+Recursively defined enums are supported:
 
 ```cangjie
 public enum Peano {
@@ -781,29 +1071,36 @@ public enum Peano {
 
     public func toInt(): Int {
         match (this) {
-            case Z => 0
+                    case Z => 0
             case S(x) => 1 + x.toInt()
         }
     }
 }
 ```
 
-### 仓颉泛型
 
-Objective-C 和仓颉的泛型存在本质性的差异，使得仓颉泛型无法被镜像为 Objective-C 泛型。然而，仓颉泛型的具体实例化后的类型（例如`G<Int64>`）是具体类型，而具体类型则可以被镜像为非泛型的 Objective-C 类型。像这样的具体类型被称为单态化了的泛型类型。
+## Generics {#cangjie-generics}
 
-> **注意：**
->
-> 当前版本存在以下限制：
->
-> * 当前能用于单态化泛型类型的类型实参仅支持基本数据类型。
-> * 禁止被镜像的成员函数拥有自己的类型形参。
+Objective-C and Cangjie generics are fundamentally different, so the latter
+cannot be mirrored into the former. However, _specific instantiations_
+of parameterized Cangjie types, such as `G<Int64>`, are concrete types,
+and therefore can be mirrored into non-generic Objective-C types.
+Such types are also called _monomorphized generics_.
 
-开发者可以通过在[配置文件](#仓颉镜像生成配置)中指定需要为哪些泛型类型的哪些实例化的具体类型生成镜像，详情请参见[泛型实例化配置](#为泛型仓颉类型进行镜像)。
+**NOTE:** The current version only supports mirroring of generic
+types instantiated with primitive types used as type arguments.
+Mirroring of member functions that have their own type arguments
+is not supported either.
 
-**例子:**
+Use the respective
+[configuration file](#cangjie-mirror-generation-configuration)
+of the `cjc` compiler to specify which instantiations of which types
+to mirror. Refer to [Generics Instantiations](#generics-instantiations)
+for details.
 
-用 cjc 编译以下仓颉泛型`class`时：
+**Example:**
+
+When compiling the following Cangjie class definition:
 
 ```cangjie
 public class G<T> {
@@ -813,7 +1110,8 @@ public class G<T> {
 }
 ```
 
-在配置文件相应`[[packages]]`配置块中添加以下内容：
+with the following lines in the respective section of the configuration
+file:
 
 ```toml
        .  .  .
@@ -823,13 +1121,20 @@ public class G<T> {
        .  .  .
 ```
 
-cjc 将分别为`G<Bool>`和`G<Int>`生成相应镜像类型，并分别命名为`GBool`和`GInt`。
+the compiler will generate Objective-C mirror classes for `G<Bool>` and
+`G<Int>`, named respectively `GBool` and `GInt`.
 
-上述的完整操作说明请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+Refer to the
+[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+section for complete instructions.
 
-### 仓颉侧`nil`值处理
 
-由于仓颉侧没有`nil`值的概念，任何从 Objective-C 侧传到仓颉侧的`nil`值都将导致从仓颉侧抛出`NullPointerException`异常。
+
+
+## `null` Handling {#cangjie-null-handling}
+
+As Cangjie has no null type, passing `nil` as a parameter to a mirrored
+Cangjie method results in a run-time exception in glue code:
 
 ```cangjie
 public class Node {
@@ -855,283 +1160,399 @@ __attribute__((objc_subclassing_restricted))
      Node *list = [[Node alloc] init:nil];   /* NullPointerException */
 ```
 
-反过来，无法通过返回类型为 Objective-C 兼容类型的`public`成员函数从仓颉侧返回`nil`值到 Objective-C 侧。
+Conversely, there is currently no way to return `nil` from a `public` member
+function of an Objective-C-compatible type.
 
-> **注意**
->
-> 当前版本支持自动的`Option<T>`装/拆包，`nil`值被映射为`None`，但该装/拆包仅支持由 Objective-C 对象指针镜像而来的仓颉类型，而反过来仓颉自定义类型则不支持。详情请参见[Objective-C 侧`nil`值处理](#objective-c-侧-nil-值处理)。
+**NOTICE:** The current version supports automatic `Option<T>` (un)wrapping
+with `nil` mapped to `None`, but only for Objective-C pointers to classes
+and protocols mirrored to Cangjie, not the other way round.
+See [`nil` Handling](#nil-handling) for details.
 
-## 仓颉镜像生成参考
 
-仓颉 SDK 中提供了专门为 Java 类型生成镜像类型的独立工具`java-mirror-gen.jar`，也提供了专门为 Objective-C 类型生成镜像类型的独立工具`ObjCInteropGen`，而为仓颉类型生成镜像类型的职责则直接由 cjc 所承担：cjc 能够在编译仓颉源码的同时为仓颉类型生成镜像类型。
 
-### 命令行选项参考
 
-以下若干 cjc 编译选项将使能并控制如何在编译期为仓颉类型生成镜像类型：
+# Cangjie Mirror Generation Reference
 
-`--experimental`    _(必选)_
+There is no standalone mirror generator facilitating the exposure of Cangjie
+types to Java and Objective-C code in the Cangjie SDK. The `cjc` compiler
+itself is capable of generating Java/Objective-C mirror type definitions
+for Cangjie types right when it compiles the Cangjie source code of those
+types.
 
-当前版本下，该编译选项必须指定，因为整个跨平台互操作特性尚在开发中，待开发完毕后则将不再需要。
 
-`--enable-interop-cjmapping=Java` _或_
-`--enable-interop-cjmapping=ObjC`     _(必选)_
+## Command-line Syntax {#cjc-command-line-syntax}
 
-该编译选项将使能 cjc 为仓颉类型生成镜像类型，当值为`Java`时，生成的是 Java 版本的镜像类型；当值为`ObjC`时，则生成的是 Objective-C 版本的镜像类型。
+The following additional `cjc` options enable and control the generation
+of mirrors for Cangjie types during compilation:
 
-`--output-interop-cjmapping-dir` _`pathname`_     _(可选)_
+`--experimental`    _(mandatory)_
 
-该编译选项指定了一个目录，cjc 将把生成的包含镜像类型定义（Java 或 Objective-C 源码）的源文件放置在该目录下。如果`pathname`所对应的路径尚不存在，cjc 将创建该目录；如果`pathname`路径已存在，且并非目录，cjc 则将不进行镜像类型生成并报错。
+This option must be specified as of the current version, since the whole
+interop feature is still in development, but will not be necessary
+in the future.
 
-该编译选项可选，如果未指定，则默认为`./java-gen`或`./objc-gen`，取决于`--enable-interop-cjmapping`选项值为`Java`或`ObjC`。
+`--enable-interop-cjmapping=Java` _or_  
+`--enable-interop-cjmapping=ObjC`        _(mandatory)_
 
-`--import-interop-cj-package-config-path` _`pathname`_     _(可选)_
+Enables the generation of mirror type definitions for Cangjie types
+respectively in the form of Java or Objective-C source code files.
 
-该编译选项指定了所采用的用于控制镜像生成的配置文件的路径，有关配置文件详情请参见[仓颉镜像生成配置](#仓颉镜像生成配置)章节。
+`--output-interop-cjmapping-dir` _`pathname`_     _(optional)_
 
-### 仓颉镜像生成配置
+The _`pathname`_ must point to a directory into which the `cjc`
+compiler shall place its output Java or Objective-C source code files
+containing mirror type definitions. If _`pathname`_ does not point to
+an existing file system location, `cjc` attempts to create a directory there.
+If _`pathname`_ points to something other than a directory, `cjc`
+terminates with an error message.
 
-仓颉镜像生成配置文件是符合[TOML](https://toml.io)语法的纯文本文件，其中指定了：
+The default value of _`pathname`_ is either `./java-gen` or `./objc-gen`,
+depending on whether `--enable-interop-cjmapping` is set respectively
+to "`Java`" or "`ObjC`".
 
-* 需要为哪些非泛型仓颉类型生成镜像类型
-* 需要为哪些泛型仓颉类型进行单态化以生成相应非泛型的镜像类型
+`--import-interop-cj-package-config-path` _`pathname`_     _(optional)_
 
-#### 默认配置
+The _`pathname`_ must point to a configuration file that defines which
+Cangjie types are exposed to Java or Objective-C as mirror types. See
+[Cangjie Mirror Generation Configuration](#cangjie-mirror-generation-configuration)
+for details.
 
-在`[default]`表下可以指定默认配置。仓颉镜像生成的操作单元是仓颉包，如果某仓颉包相应的[单包配置](#单包配置)表中未指定某配置值，则该配置将默认采用[默认配置](#默认配置)中相应的值；如果在[默认配置](#默认配置)中也没有指定该配置项，则将采用该配置项的默认值。
 
-在默认配置中可以设置以下配置项：
+## Cangjie Mirror Generation Configuration
 
-`APIStrategy`    _(可选)_
+A Cangjie mirror generation configuration file is a plain text file
+in the [TOML](https://toml.io) syntax. It specifies:
 
-该配置项的值为字符串，决定是否为所有`public`实体生成镜像。该配置项的有效值为：
+* Non-generic Cangjie types to mirror
+* Specific instances of generic Cangjie types to mirror
 
-* `"Full"` _(默认)_ - 只为不被列举在`excluded_apis`黑名单中的所有`public`实体生成镜像
-* `"None"` - 只为列举在`included_apis`白名单中的所有`public`实体生成镜像
 
-`GenericTypeStrategy`    _(可选)_
+### Defaults
 
-该配置项的值为字符串，决定是否为泛型实体生成镜像。该配置项的有效值为：
+The `[default]` table defines the default settings for packages for which
+either no [package-specific settings](#packages) are provided at all, or those
+settings don't override the defaults.
 
-* `"Partial"` - 根据`generic_object_configuration`配置项为泛型实体生成镜像
-* `"None"` _(默认)_ - 所有泛型实体均不为其生成镜像
+**Properties:**
 
-#### 单包配置
+`APIStrategy`    _(optional)_
 
-在`[[packages]]`中进行单包配置，首先指定一个包名，接下来该表中的所有配置项均仅对该包生效。该配置块中支持以下配置项：
+A string defining whether all public entities shall be mirrored by default
+or not. Valid values:
 
-* 控制 cjc 为哪些仓颉类型生成或不生成镜像类型的白名单或黑名单。
-* 针对单包的镜像生成策略（如果需要有别于[默认配置](#默认配置)）。
-* 针对单包的泛型类型镜像生成策略（如果需要有别于[默认配置](#默认配置)）。
-* 指定需要为哪些泛型类型单态化为哪些具体类型。
+* `"Full"` - all public entities shall be mirrored by default
+* `"None"` - no public entities shall be mirrored by default
 
-该配置块支持以下配置项：
+`GenericTypeStrategy`    _(optional)_
 
-`name`    _(必选)_
+A string defining whether generic public entities shall be mirrored
+by default or not. Valid values:
 
-该配置项的值为字符串形式的包名，说明其所在`[[packages]]`配置块对哪个仓颉包单独生效，例如：
+* `"Partial"` - instantiations explicitly listed in
+  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
+* `"None"` - no generic public entities shall be mirrored by default
+
+
+### Packages
+
+Each entry in the `[[packages]]` array specifies the name of a separate
+source Cangjie package, and, optionally:
+
+* A filter that defines which types from that package to include in,
+  or exclude from, the set of mirrors
+* API mirroring strategy (if other than the [default](#defaults))
+* Generic type mirroring strategy (if other than the [default](#defaults))
+* Specific generic type instantiations to mirror
+
+**Properties:**
+
+`name`    _(mandatory)_
+
+A string containing the name of the _source_ Cangjie package to which
+the settings in this `[[packages]]` array entry apply.
+
+Example:
 
 ```toml
 name = "com.example.VectorMath"
 ```
 
-`APIStrategy`    _(可选)_
+`APIStrategy`    _(optional)_
 
-该配置项的值为字符串，决定是否为所有`public`实体生成镜像。该配置项的有效值为：
+A string defining whether all public entities of the given package shall
+be mirrored by default or not. Valid values:
 
-* `"Full"` - 只为不被列举在`excluded_apis`黑名单中的所有`public`实体生成镜像
-* `"None"` - 只为列举在`included_apis`白名单中的所有`public`实体生成镜像
+* `"Full"` - all public entities shall be mirrored by default
+* `"None"` - no public entities shall be mirrored by default
 
-该配置项无默认值，如果该配置项未被指定，[默认配置](#默认配置)中的相应配置项将被采用。
+If this property is absent, the [default](#defaults) value is used.
 
-`included_apis`    _(可选)_
+`included_apis`    _(optional)_
 
-该配置项的值为字符串数组，数组中每字符串是一个希望被生成镜像的`public`实体的名称。如果一个类型的限定名称被包含在这个数组中，那么该类型也会被生成镜像。例如：
+An array of strings each containing the name of a public entity that
+needs to be mirrored. If the array contains the qualified name of a type
+member, the type itself is also mirrored. Either `included_apis` or
+`excluded_apis` may be present in a given `[[packages]]` array entry,
+but not both.
+
+Example:
 
 ```toml
 included_apis = [
-   "Vector.product", // 此处 Vector 类型没有被单独指定，但依然会为 Vector 类型其生成镜像
+   "Vector.product", // Vector also exposed
    "HiddenV"
 ]
 ```
 
-`excluded_apis`    _(可选)_
+`excluded_apis`    _(optional)_
 
-该配置项的值为字符串数组，数组中每字符串是一个**不**希望被生成镜像的`public`实体的名称。例如：
+An array of strings each containing the name of a public Cangjie entity
+defined in the given package that has to be _not_ mirrored.
+Either `included_apis` or `excluded_apis` may be present in a given
+`[[packages]]` array entry, but not both.
+
+
+Example:
 
 ```toml
 excluded_apis = [
-   "Vector.product", // 即便 Vector 类型将被生成镜像，但 product 成员却依然不会被生成镜像
+   "Vector.product", // Even if Vector is exposed, product is not
    "HiddenV"
 ]
 ```
 
-> **注意：**
->
-> `excluded_apis`和`included_apis`两个配置项之间互斥，在一个`[[packages]]`表中不能被同时指定。换句话说，在一个`[[packages]]`配置块中，当`APIStrategy`为`Full`时，默认为所有`public`实体生成镜像，进而可以通过配置`excluded_apis`黑名单来排除其中不需要为其生成镜像的实体，但禁止配置`included_apis`；当`APIStrategy`为`None`时，默认不为任何`public`实体生成镜像，进而可以通过配置`included_apis`白名单来选定需要为哪些实体生成镜像，但禁止配置`excluded_apis`。
+`GenericTypeStrategy`    _(optional)_
 
-`GenericTypeStrategy`    _(可选)_
+A string defining whether generic public entities defined in this package
+shall be mirrored by default or not. Valid values:
 
-该配置项的值为字符串，决定是否为泛型实体生成镜像。该配置项的有效值为：
+* `"Partial"` - instantiations explicitly listed in
+  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
+* `"None"` - no generic public entities shall be mirrored by default
 
-* `"Partial"` - 根据`generic_object_configuration`配置项为泛型实体生成镜像
-* `"None"` _(默认)_ - 所有泛型实体均不为其生成镜像
+If this property is absent, the [default](#defaults) value is used.
 
-该配置项无默认值，如果该配置项未被指定，[默认配置](#默认配置)中的相应配置项将被采用。
 
-`generic_object_configuration`    _(可选)_
+`generic_object_configuration`    _(optional)_
 
-该配置项的值是一个数组，数组中的每一个元素是一个表，每个表指定了针对一个泛型类型，需要为其生成哪些具体类型的镜像类型。一个表中包含以下属性：
+A list of tables defining the specific instantiations of generic entities
+to be mirrored. See [Generics Instantiations](#generics-instantiations)
+for details.
+
+
+#### Generics Instantiations
+
+The `generic_object_configuration` property of a `[[packages]]` array
+entry defines which specific instantiations of generic Cangjie entities
+will be mirrored.
+
+The value of the property is a (possibly empty) array of tables.
+Each entry of the array has the following two mandatory properties:
 
 `name`
 
-该属性是一个`public`类型的简单名称，该类型需定义在名为其所在`[[packages]]`的`name`的包中。
+A string containing the name of a public generic Cangjie type or global
+function defined in the current package.
 
 `type_arguments`
 
-该属性是一个字符串数组，每个字符串是一个**有效的**类型实参列表。
+An array of strings, each containing valid type argument(s) for the generic
+type or global function the name of which is specified in the `name` property.
 
-> **注意：**
+> Simply put, "valid" means that the type/function can be instantiated
+> with the given string between the angle brackets `< >`.
 >
-> 当前版本仅支持`Unit`、`Bool`和数值类型作为此处用于泛型单态化的类型实参，如果用到了任何不支持的类型将导致编译报错。
+> Consider the following Cangjie class:
 >
+> ```cangjie
+> public class G<T> {
+>     public func f(t: T): Unit {}
+>     public func f(b: Bool): Unit {}
+> }
+> ```
+>
+> `G<Bool>` cannot be instantiated, so
+>
+> ```toml
+> generic_object_configuration  = [
+>     { name = "G", type_arguments = ["Bool"] }
+> ]
+> ```
+> would trigger a compiler error.
 
-上述中所谓“有效的”类型实参列表，简单来说，就是要求相应的泛型类型理论上能够使用该类型实参列表进行实例化。
+**NOTE:** The current version only supports mirroring of generic
+types instantiated with primitive types used as type arguments.
 
-请考虑以下代码片段：
+**Example:**
+
+Given the following Cangjie definitions
 
 ```cangjie
-public class G<T> {
-    public func f(t: T): Unit {}
-    public func f(b: Bool): Unit {}
-}
+public class G<T> { . . . }
+public func f<T>(): Unit { . . . }
+public struct S<T,U> { . . . }
 ```
 
-`G<Bool>`理论上无法被实例化（否则将导致存在两个完全一样的成员函数），于是以下配置将导致编译报错：
+the property
 
 ```toml
 generic_object_configuration  = [
-    { name = "G", types = ["Bool"] }
+    { name = "G", type_arguments = ["Int32"] },
+    { name = "f", type_arguments = ["Float32", "Float64"] }
+    { name = "S", type_arguments = ["Int, Bool"] }
 ]
 ```
 
-使用示例：
+instructs the `cjc` compiler to generate the following generics
+instantiations and mirrors for them:
 
-1. 假设存在以下仓颉类型定义：
+```cangjie
+    G<Int32>
+    f<Float32>
+    f<Float64>
+    S<Int, Bool>
+```
 
-    ```cangjie
-    public class G<T> { . . . }
-    public func f<T>(): Unit { . . . }
-    public struct S<T, U> { . . . }
-    ```
+naming the mirrors `GInt32`, `fFloat32`, `fFloat64`, and `SIntBool`
+respectively.
 
-    以及以下配置：
 
-    ```toml
-    generic_object_configuration  = [
-        { name = "G", type_arguments = ["Int"] },
-        { name = "f", type_arguments = ["Int", "Bool"] },
-        { name = "S", type_arguments = ["Int, Bool"] }
-    ]
-    ```
+# Using Objective-C in Cangjie
 
-    cjc 根据该配置将为以下单态化了的泛型类型生成镜像类型：
+In the first interoperation scenario, described
+in [Using Cangjie in Objective-C](#using-cangjie-in-objective-c), user-defined
+Cangjie types are mapped to Objective-C types that behave just like any
+conventional Objective-C classes and protocols: classes can be extended,
+protocols implemented, instances created and passed around freely, and so on.
 
-    ```cangjie
-    G<Int> // 镜像类型名为 GInt
-    f<Int> // 镜像类型名为 fInt
-    f<Bool> // 镜像类型名为 fBool
-    S<Int, Bool> // 镜像类型名为 SIntBool
-    ```
+The Cangjie SDK for iOS also supports similar features for the reverse
+scenario, in which Objective-C classes and protocols are mapped to Cangjie
+classes and interfaces and can be extended, implemented, instantiated.
+However, the exact set of features and limitations is different, as well
+as tooling: mirror type and function declarations for Objective-C entities are
+generated by a [standalone tool](#objective-c-mirror-generator-reference),
+not the `cjc` compiler.
 
-## 在仓颉侧使用 Objective-C
+The process of enabling this second scenario is therefore more involved. Here
+are the steps you need to take:
 
-在第一种使用场景中，仓颉侧定义的类型被镜像后，在 Objective-C 侧可以完全自然地使用，例如对`class`实例化并作为入参四处传递等，详细介绍请参见[在 Objective-C 侧使用仓颉](#在-objective-c-侧使用仓颉)。
+1. Design the interoperability layer in terms of Objective-C classes and methods.
 
-而在第二种使用场景中则是反过来的，Objective-C 的类和协议被镜像为仓颉类和接口，在仓颉侧可以对这些镜像类型进行拓展、实现和实例化等操作。然而，第二种使用场景下所支持的特性和限制与第一种显然存在差异，生成镜像所用的工具也是不同的：Objective-C 类型和全局函数的镜像由仓颉 SDK 中所提供的一个[独立工具](#objective-c-镜像生成器参考)所生成，而并非 cjc。
+    developer → `interop layer design` (Objective-C _pseudo-code_)
 
-因此，第二种使用场景的具体操作步骤相较于第一种使用场景来说更为复杂，具体如下：
+2. Generate mirror declarations for any Objective-C classes and protocols used
+   in the design of the interoperability layer.
 
-1. 基于 Objective-C 类型和函数，设计互操作胶水层。
-   开发者 -> 互操作胶水层设计（Objective-C 伪代码）
+    `.h` → mirror generator → `.cj` (mirrors)
 
-2. 根据上一步设计的胶水层，为所有现存相关的 Objective-C 类和协议借助 Objective-C 镜像生成器生成仓颉侧可用的`@ObjCMirror`类型定义。
-    `.h` -Objective-C 镜像生成器-> `.cj`（镜像类型定义）
+3. Write the classes constituting the interoperability layer _in Cangjie_.
+   Use the mirrored Objective-C types as needed: create instances, call member
+   functions, etc.
 
-3. 使用仓颉编写实现互操作层，仓颉代码中按需使用`@ObjCMirror`镜像类型，例如创建镜像类型的实例，调用其成员函数等。
-    互操作胶水层设计 + `.cj`（镜像类型定义）-开发者-> `.cj`（胶水层实现）
+    `interop layer design` + `.cj` (mirrors) → developer → `.cj` (interop layer)
 
-4. 将`@ObjCMirror`镜像类型定义和第 3 步中使用仓颉实现的互操作层一起使用 cjc 编译，编译将得到：
-    * 包含互操作层逻辑的动态库。
-    * 若干 Objective-C 侧可用的镜像类型定义源文件。
-    `.cj`（镜像类型定义 + 胶水层实现）-cjc-> `.dylib` + `.h`/`.m`（胶水层镜像类型定义）
+4. Compile the interoperability layer classes (_interop classes_ for short)
+  and mirror types together with `cjc`. `cjc` will generate:
 
-5. 将以下中间产物添加进 XCode 工程:
-    * 第 4 步中由 cjc 编译产生的若干`.h`/`.m`源文件，其中包含后续 Objective-C 侧可能用到的互操作胶水层代码。
-    * 第 4 步中由 cjc 编译得到的`.dylib`动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-    * 仓颉 SDK 中所有必要的运行时库，包括`.dylib`等。
+    * the necessary glue code for all uses of the mirror types.
+    * the actual Objective-C source for the Objective-C part of the interoperability layer
+      (so called Objective-C _wrappers_ for interop classes)
 
-    接着，在 Objective-C 侧编写必要的对胶水层中提供的镜像类型的实例化和方法调用，完成后重构建工程即可。
-    XCode 工程 + `.h` + `.m` + `.dylib` -iOS 工具链-> iOS 应用
+    `.cj` (mirrors + interop layer) → `cjc`  → `.dylib` + `.h`/`.m` (interop layer)
 
-**重要提示：当前版本的 iOS 版仓颉 SDK 要求用户手动从仓颉开源仓中下载`Cangjie.h`头文件并将其添加到 XCode 项目中：**
+5. Add to your iOS project:
+
+    * `.h` and `.m` files generated by `cjc`
+    * `.dylib` file generated by `cjc`
+    * runtime libraries (`.dylib`) from the Cangjie SDK
+
+    iOS project + `.h`, `.m`, `.dylib` → iOS toolchain → iOS application
+
+6. Now you may start using the interop class wrappers in the Objective-C code
+   of your application, effectively calling Cangjie code from Objective-C.
+
+**IMPORTANT: The current version of the Cangjie SDK for iOS also requires
+downloading and integrating into the XCode project the `Cangjie.h` header
+file from the Cangjie open source repository:**
 
 [https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
 
-### 从零实现互操作层
 
-#### 基础环境配置
+## Initial Interop Class Creation Workflow
 
-1. 安装`llvm@16`：
+### Setup
+
+1. Install the `llvm@16` [Homebrew](https://brew.sh/) formula:
 
     ```bash
     brew install llvm@16
     ```
 
-2. 将`llvm@16/lib/`的路径添加至`DYLD_LIBRARY_PATH`环境变量：
+2. Add the `llvm@16/lib/` subdirectory to the `DYLD_LIBRARY_PATH`
+   environment variable:
 
     ```bash
     export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
     ```
 
-3. 执行仓颉 SDK 中的`envsetup.sh`进行仓颉环境初始化。
+3. Run the `envsetup.sh` script from the Cangjie SDK.
 
-4. 在终端执行以下命令来确认环境是否配置成功：
+4. Verify the installation by running the following command in the terminal:
 
     ```bash
     ObjCInteropGen
     ```
 
-    如果能够正常打印出 Objective-C 镜像生成器的帮助信息，则说明配置成功，可以继续进行下述的步骤了。
+    If mirror generator usage instructions start to appear, you now have everything
+    you need to begin using the iOS interoperability features of the Cangjie SDK.
 
-#### 步骤一：设计互操作层
 
-在这一步，开发者需要**从 Objective-C 源码的视角**，来设计一到若干个[互操作类](#互操作类)。互操作类由仓颉编写实现，但最终会由 cjc 编译生成镜像类以便 Objective-C 侧使用，因此在 Objective-C 侧看来，并不关心互操作类的具体实现，而只需要关心 Objective-C 侧需要哪些功能。因此，对每个[互操作类](#互操作类)，开发者只需要考虑以下要点：
+### Step 1: Design the Interoperability Layer {#step-1}
 
-* 互操作类是继承`NSObject`，还是需要继承其他 Objective-C 类？
-* 互操作类是否需要实现任何 Objective-C 协议？
-* 互操作类中需要拥有哪些`public`/`protected`构造方法/成员方法？开发者目前只需要知道它们的功能以确定其函数签名，真正的实现则是在后续步骤中通过仓颉编写。
+On this step, you design the API of one or more interop classes
+_from the Objective-C code perspective_, i.e. you need to decide, for each
+interop class:
 
-另请参见[互操作类的特性与限制](#互操作类的特性与限制)。
+* What Objective-C class it will extend, e.g. `NSObject`;
+* Which Objective-C protocols it will implement, if any; and
+* What `public`/`protected` methods and/or constructors it will have.
+  You only need to know the types of parameters and, for methods, their names
+  and return value types; the implementations you will write in Cangjie.
 
-在 Objective-C 源码的视角下，互操作层所提供的 Objective-C 类与普通的 Objective-C 类在外观和使用上不存在任何区别，唯一区别在于后者的`@implementation`是用户自己手写的，而前者的`@implementation`则是用户手写仓颉`ObjCImpl class`后，由 cjc 编译之自动生成的。因此，开发者要做的是用伪代码来描述 Objective-C 侧的`@interface`，然后使用仓颉来照着这个`@interface`来依次实现各个方法，详情请参考[步骤三](#步骤三实现互操作类)。
+See also
+[Features and Limitations of Interop Classes](#features-and-limitations-of-interop-classes).
 
-**支持的形参类型：** 任何[被映射](#将-objective-c-类型镜像为仓颉类型)的 Objective-C 类型。
+For the Objective-C part of the application, the interoperability layer is
+indistinguishable from a set of regular Objective-C classes. So you can design
+it in the form of Objective-C pseudo-code. Write down the specifications
+and `@interface` definitions of one or more Objective-C classes. **Note:**
+You do not need to write the respective `@implementation` parts as you would
+re-write them in Cangjie at a [later step](#step-3) anyway.
 
-**支持的返回类型：** 任何[被映射](#将-objective-c-类型镜像为仓颉类型)的 Objective-C 类型或`void`类型。
+**Supported parameter types:** any [mapped](#objective-c-to-cangjie-mapping)
+Objective-C types.
 
-**支持的继承与实现关系：** 互操作类只能继承 Objective-C 类的镜像类`@ObjCMirror class`，不能继承其他互操作类，且只能实现 Objective-C 协议的镜像接口`@ObjCMirror interface`。
+**Supported return types:** any mapped Objective-C type or `void`.
 
-**当前存在的使用限制：**
+**Supported inheritance:** interop classes may only extend mirrored Objective-C
+classes (_not_ other interop classes!), and may only implement interfaces that
+mirror Objective-C protocols.
 
-* 不支持拥有变长形参列表（varargs）的方法。
+**Limitations:**
 
-* 互操作类禁止拥有类型形参，互操作类的非`private`成员函数禁止拥有类型形参。
+* Variable arity (varargs) methods and constructors are not supported.
 
-* 泛型 Objective-C 类型在镜像生成前，其泛型会被擦除，各个类型变元会被替换为各个类型上界。
+* Neither an interop class nor its individual non-private member functions
+  may be generic.
 
-**端到端示例：**
+* Generic Objective-C types are erased before mirror generation;
+  any type variables are replaced with the respective upper bounds.
 
-假设开发者的 iOS 应用源码中存在一个类`M`，类中定义有一个无参且返回类型为`void`的实例方法`foo`：
+**End-to-end Example:**
+
+For the sake of simplicity, suppose that in your iOS application there is
+already a class `M` with a single parameterless `void` instance method
+`foo()`:
 
 ```objectivec
 // M.h
@@ -1153,202 +1574,277 @@ generic_object_configuration  = [
 @end
 ```
 
-开发者希望在仓颉侧定义一个继承类`M`的类`A`，其中对方法`foo`进行重写。
+and you want to override that method `foo()` with a Cangjie implementation
+in a subclass of `M` called `A`.
 
-那么，开发者的互操作类的设计应该类似如下：
+Your interop class design would then look like this:
 
 ```objectivec
 #import "M.h"
-
 @interface A : M
 - (void)foo;
 @end
 ```
 
-#### 步骤二：生成镜像类型
 
-开发者需要为上一步中设计的互操作类所依赖的所有 Objective-C 类型生成其仓颉侧可用的[镜像类型](#镜像类型)，这包括互操作类的父类型、成员属性类型、形参和返回类型等，如果涉及数组类型，则还包括其元素类型。
+### Step 2: Generate Mirror Type Declarations {#step-2}
 
-不过在此之前，请正常构建 iOS 应用项目，不需要改任何东西，确保能够编译构建成功，这样能保证接下来镜像生成器所接收的 Objective-C 头文件是完整且连贯的。
+Now, you need [mirror type](#mirror-types) declarations for all Objective-C
+types on which your interop classes depend: their supertypes, types of member
+properties and local variables, types of method parameters/return values,
+and, if any of the foregoing are array types, their element types.
 
-接着，编写[镜像生成器配置文件](#objective-c-镜像生成器配置文件语法)，并运行镜像生成器：
+Before you proceed further, build your iOS application normally without
+changing anything in it, to ensure that the mirror generator takes
+a complete and consistent set of Objective-C headers as input.
+
+Then write an appropriate
+[mirror generator configuration file](#configuration-file-syntax) and
+run the mirror generator:
 
 ```bash
 ObjCInteropGen --mode=normal <config-file>
 ```
 
-其中`<config-file>`是配置文件的路径。
+where `<config-file>` is the pathname of the configuration file.
 
-**端到端示例（续）：**
+**End-to-end Example (continued):**
 
-类`A`唯一依赖的 Objective-C 类型是其父类`M`，于是配置文件应如下：
+The only immediate dependency of your class `A` is its superclass `M`,
+so the configuration file is pretty simple:
 
-```toml
-## A.toml
-## Place the mirror of M and any dependencies it may have in the 'cjworld' package:
+```
+# A.toml
+# Place the mirror of M and any dependencies it may have in the 'cjworld' package:
 [[packages]]
 filters = { include = ["M", "NS.+"] }
 package-name = "cjworld"
 
-## Write the output files with mirror type definitions to the current directory:
+# Write the output files with mirror type definitions to the current directory:
 [output-roots.default]
 path = "."
 
-## Specify the pathname of the input header:
+# Specify the pathname of the input header:
 [sources.all]
 paths = ["M.h"]
 
 [sources-mixins.default]
 sources = [".*"]
 arguments-append = [
-    ## Uncomment the following line if you get "unknown type name" errors
-    ## "-DTARGET_OS_IPHONE=1",
+    # Uncomment the following line if you get "unknown type name" errors
+    # "-DTARGET_OS_IPHONE=1",
 
-    ## Edit the pathnames below to match the locations of Objective-C headers on your system:
+    # Edit the pathnames below to match the locations of Objective-C headers on your system:
     "-F", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks",
     "-isystem", "/Library/Developer/CommandLineTools/usr/lib/clang/17/include",
     "-isystem", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
 ]
 ```
 
-镜像生成器命令行如下：
+Mirror generator command line:
 
 ```bash
 ObjCInteropGen --mode=normal A.toml
 ```
 
-以上命令将在当前目录生成`cjworld/M.cj`，文件中保存有类`M`的镜像类型定义；以及若干`cjworld/NS*.cj`文件，分别保存有类`M`所依赖的 Foundation 框架中的类和协议的镜像类型定义。
+The above command will generate files `cjworld/M.cj` with a mirror type
+declaration for the class `M` and a bunch of `cjworld/NS*.cj` files
+with mirror type declarations for the Foundation framework classes
+and protocols on which `M` depends.
 
-##### 常见错误配置问题
 
-**镜像生成器无法找到某些标准库的头文件，例如`stdarg.h`或`stdbool.h`等。**
+#### Common Misconfiguration Issues
 
-典型报错信息：
+**The mirror generator is unable to find the standard header files, such as
+`stdarg.h` or `stdbool.h`.**
 
-```bash
+Example error messsage:
+
+```
 ..../CoreFoundation.h:19:10: error: 'stdarg.h' file not found
 ```
 
-一般是由于`[sources-mixins]`表中`arguments-append`数组中的路径设置错误导致的，请仔细检查这些头文件搜索路径下确实存在相应头文件。
+This usially means that the pathnames in `arguments-append` array of the
+`[sources-mixins]` table are not correct. Double check that they match the
+locations of the header files on your system.
 
-**镜像生成器产生“Unknown type name 'NSUInteger'”或类似报错。**
+**The mirror generator reports "Unknown type name 'NSUInteger'" errors or similar.**
 
-典型报错信息：
+Example error messsage:
 
-```bash
+```
 .../NSObjCRuntime.h:626:74: error: unknown type name 'NSUInteger'
 ```
 
-某些时候，开发者需要给 clang 传入额外的参数，要么“`-DTARGET_OS_IPHONE=1`”或“`-DTARGET_OS_OSX=1`”。
+On some systems, you need to pass an additional argument to Clang,
+either "`-DTARGET_OS_IPHONE=1`" or "`-DTARGET_OS_OSX=1`".
 
-将该额外的参数加入`[sources-mixins]`表中的`arguments-append`数组，在上述示例中，该配置被注释了：
+Add it to the `arguments-append` array of the `[sources-mixins]` table.
+In the above example, it is present but commented out:
 
-```toml
+```
    .  .  .
 arguments-append = [
-    ## Uncomment the following line if you get "unknown type name" errors
-    ## "-DTARGET_OS_IPHONE=1",
+    # Uncomment the following line if you get "unknown type name" errors
+    # "-DTARGET_OS_IPHONE=1",
    .  .  .
-]
 ```
 
-#### 步骤三：实现互操作类
 
-对于开发者在[步骤一](#步骤一设计互操作层)中设计的互操作层中的各个 Objective-C 类骨架，现在需要分别为之编写一个仓颉类（即互操作类）：
+### Step 3: Write the Interop Classes {#step-3}
 
-* 创建源文件，选择一个合适的包名。
-* 导入包`interoplib.objc.*`。
-* 导入开发者在[步骤二](#步骤二生成镜像类型)中生成的镜像类型，不过请不要将所有生成的依赖的镜像类型全部导入进来，只需要导入实际将用到的那些镜像类型。
-* 开始编写互操作类，为互操作类添加`@ObjCImpl`注解。
-* 根据开发者的设计，让互操作类继承某`@ObjCMirror open class`；如果并不需要特别继承某父类，则让其继承`NSObject`。
-* 实现互操作类中的构造函数及其他成员，为其中`public`的构造函数和成员函数添加`@ForeignName["`_`foreign-name`_`"]`注解，其中 _`foreign-name`_ 是开发者希望的 Objective-C 方法名，并遵守以下规定：
+For each Objective-C class skeleton that you included in your interop layer
+design on [Step 1](#step-1), write a matching Cangjie class as follows:
 
-    1. 如果一个成员函数重写了父类的成员方法，请不要为该成员函数添加`@ForeignName`注解，否则将导致编译报错。
+* Use the appropriate package and class names (the Objective-C wrapper class
+  that `cjc` will generate for you will have the same fully qualified name).
+* Import `interoplib.objc.*`.
+* Import the mirror types, if you've generated any on [Step 2](#step-2).
+  Do not import all generated dependencies, only the types you actually need.
+* Annotate the interop class with `@ObjCImpl`.
+* Make the interop class inherit the respective `open` mirror class, or `NSObject`
+  if it has no explicit supertype in your design.
+* Annotate `public` class members and constructors
+  with `@ForeignName["`_`foreign-name`_`"]`, where _`foreign-name`_ is the
+  desired Objective-C name for that member or constructor, according
+  to the following rules:
 
-        > Objective-C 中，一个方法重写另一个方法，重写方法名必须与被重写方法名相同，其中，被重写方法的方法名已经从 Objective-C 侧通过镜像生成器自动传播至仓颉侧，保存于镜像类的相应成员函数的`@ForeignName`注解中（详情请参见[Objective-C 类和协议](#objective-c-类和协议)小结），cjc 将从该注解中获取原方法名。
+  1. _Do not_ annotate member functions that override member functions of
+     mirror supertypes. The _presence_ of a `@ForeignName` annotation
+     on such a member function of an interop class triggers a compile-time
+     error.
 
-    2. 对于拥有两个及以上形参的构造函数和非重写成员函数，请为其添加`@ForeignName`注解，否则将导致编译错误。
+     > The Objective-C names of such overriding functions must match
+     > the names of the overridden Objective-C methods. The latter are
+     > propagated _from_ Objective-C to Cangjie automatically
+     > via `@ForeignName` annotations in mirror type declarations
+     > (see [Classes and Protocols](#classes-and-protocols) for details).
+     > The `cjc` compiler picks those annotations up.
 
-        > 对于拥有两个及以上形参的构造函数和成员函数，cjc 无法为其自动推导出一个有效的 Objective-C 方法名。
+  2. _Do_ annotate constructors and non-overriding member functions that have
+     _two or more_ parameters. The _absence_ of a `@ForeignName` annotation
+     on such a member function or constructor triggers a compile-time error.
 
-    3. 对于构成函数重载的构造函数和成员函数，请务必为其通过`@ForeignName`注解赋予不同的 Objective-C 方法名。这是因为 Objective-C 不存在“方法重载”的概念。
+     > The compiler is unable to morph the original Cangjie name
+     > of a member function or constructor with two or more parameters
+     > into a valid Objective-C name automatically. Such names essentially
+     > consist of the respective number of fragments separated with the colon
+     > character `:`.
 
-    4. 对于其他剩下的构造函数和成员函数，可选地为其添加`@ForeignName`注解即可。对于未被`@ForeignName`注解的构造函数或成员函数，如果无参，则其在 Objective-C 侧的方法名与原函数名相同（对于构造函数而言是`init`）；如果有且仅有一个形参，则其在 Objective-C 侧的方法名为原函数名加一个`:`后缀（对于构造函数而言是`init:`）。
+  3. Overloaded member functions and constructors _must_ be given distinctive
+     Objective-C names using `@ForeignName`, as there is no method overloading
+     in Objective-C. Exacly one of such overloaded entities can retain
+     its original Cangjie name, provided it has at most one parameter.
 
-> **注意：**
->
-> 当前版本的 cjc 并不会全面校验 _`foreign-name`_ 的合法性。特别地，cjc 并不会校验 _`foreign-name`_ 中冒号`:`的数量是否与构造函数/成员函数的形参个数一致。
+  4. Annotating the remaining members and constructors with `@ForeignName`
+     is optional. In the absence of a `@ForeignName` annotation,
+     the original Cangjie name of such a member is used as the
+     Objective-C name of the corresponding entity, with colon `:` appended
+     to names of single-parameter methods, whereas the `init`-method
+     matching the sole `public` constructor with one or zero parameters
+     is called respectively `init:` or `init`.
 
-* 请参考以下 Objective-C 类型到仓颉类型的映射关系表（`T'`是对应的值类型或镜像类型）：
+  **NOTE:** The current version of the `cjc` compiler  does _not_ fully
+  validate _`foreign-name`_. In particular, it does not check that the number
+  of colon `:` separators mathes the number of method or constructor
+  parameters.
 
-    Objective-C            | 仓颉       | 备注
+* Use the following Objective-C-to-Cangjie type mapping (`T'` is either the matching
+  value type or the respective mirror type):
+
+    Objective-C            | Cangjie       | Remark
     ---------------------- | ------------  | ------
-    `void`                 | `Unit`        | -
-    `BOOL`                 | `Bool`        | -
-    `signed char`          | `Int8`        | -
-    `short`                | `Int16`       | -
-    `int`                  | `Int32`       | -
-    `long`                 | `Int64`       | -
-    `long long`            | `Int64`       | -
-    `unsigned char`        | `UInt8`       | -
-    `unsigned short`       | `UInt16`      | -
-    `unsigned int`         | `UInt32`      | -
-    `unsigned long`        | `UInt64`      | -
-    `unsigned long long`   | `UInt64`      | -
-    `float`                | `Float32`     | -
-    `double`               | `Float64`     | -
+    `void`                 | `Unit`        |
+    `BOOL`                 | `Bool`        |
+    `signed char`          | `Int8`        |
+    `short`                | `Int16`       |
+    `int`                  | `Int32`       |
+    `long`                 | `Int64`       |
+    `long long`            | `Int64`       |
+    `unsigned char`        | `UInt8`       |
+    `unsigned short`       | `UInt16`      |
+    `unsigned int`         | `UInt32`      |
+    `unsigned long`        | `UInt64`      |
+    `unsigned long long`   | `UInt64`      |
+    `float`                | `Float32`     |
+    `double`               | `Float64`     |
     `struct`               | `@C struct'`  | (\*)
-    `enum`且底层类型为`T` | `T'`          | -
+    `enum` w/base type `T` | `T'`          |
     `id`                   | `ObjCId`      | (†)
 
-    Objective-C  | 仓颉        | `T`是...                              | 备注
+    Objective-C  | Cangjie        | If `T` is...                              | Remark
     ------------ | ------------   | ----------------------------------------- | ------
-    `T*`         | `CPointer<T'>` | ... 基本数据类型或结构体类型         | -
-    `T*`         | `CPointer<U'>` | ... 枚举类型且`U`是其底层类型 | -
-    `T*`         | `CFunc<T'>`    | ... 纯 C 函数类型                | -
-    `T*`         | `T'`           | ... Objective-C 类                          | (†)
+    `T*`         | `CPointer<T'>` | ... a primitive or structure type         |
+    `T*`         | `CPointer<U'>` | ... an enum type and `U` is its base type |
+    `T*`         | `CFunc<T>`     | ... a pure C function type                |
+    `T*`         | `T'`           | ... a class type                          | (†)
 
-    (\*) Objective-C 结构体禁止包含任何非`CType`兼容类型的字段。详情请参见[Objective-C 结构体](#objective-c-结构体类型)。
+    (\*) The Objective-C structure must not contain fields of types that
+    are not `CType`-compatible. See [Structs](#structs) for details.
 
-    (†) 对于可能持有或接受`nil`值的镜像类型或互操作类的形参类型、返回类型及局部变量等，请使用`Option<T'>`。详情请参见[由 Objective-C 到仓颉的映射关系](#由-objective-c-到仓颉的映射关系)章节。
+    (†) Use `?<T'>` (`Option<T'>`) types for parameters, return values, and local
+    variables of mirror types and interop classe types that may receive/hold
+    the Objective-C `nil` value.
 
-**支持的特性：**
+    See [Objective-C to Cangjie Mapping](#objective-c-to-cangjie-mapping)
+    for details.
 
-互操作类中的成员函数：
+**Supported features:**
 
-* 可以重写其父类中的方法。
-* 可以实现其实现的接口中的方法。
-* 可以新定义互操作类中独有的成员函数。
+Member functions of interop classes:
 
-互操作类的构造函数和成员函数：
+* Can override/redefine `open` instance/static member functions
+  of their mirrored superclasses, implement member functions
+  of their mirrored superinterfaces, and be newly introduced member functions.
 
-* 在函数体中，如果纯粹是在操作普通仓颉类型的值，那么实际上可以正常使用所有仓颉语言特性。
-* 可以使用普通仓颉语法来：
-    * 实例化互操作类和`@ObjCMirror`类。
-    * 调用互操作类和`@ObjCMirror`类型的构造函数、实例/静态成员函数，包括通过`super`调用其父类的构造函数和成员函数。
-    * 访问自己的成员属性，和访问其他互操作类和`@ObjCMirror`类型的非`private`成员属性。
+Constructors and member functions of interop classes:
 
-**使用限制：**
+* Can use any Cangjie language features in the body when working solely
+  with (values of) regular Cangjie types.
 
-* 互操作类可以实现`@ObjCMirror`接口，但禁止实现普通仓颉接口。
+* Can use conventional Cangjie syntax to:
 
-* 互操作类禁止被声明为`open`或`abstract`，且禁止被`extend`。
+    - instantiate objects of interop classes and mirrored Objective-C classes
+    - call static and instance methods of interop classes and mirrored
+      Objective-C types (that includes using `super` to call Objective-C
+      superconstructors and superclass methods)
+    - access their own member properties and non-`private` member properties
+      of other interop classes and mirrored Objective-C types
 
-* 互操作类中的非`private`构造函数和成员函数：
+**Limitations:**
 
-    * 形参类型和返回类型只能为上述表中列举的 Objective-C 类型（由于变长参数要求使用仓颉`Array<T>`，而该类型并没有 Objective-C 映射类型，故变长参数并不支持）。
-    * 禁止拥有命名形参。
-    * 禁止拥有类型形参。
+* Interop classes may implement interfaces that are mirrored Objective-C
+  protocols, but not regular Cangjie interfaces.
 
-* 非`private`成员属性的类型只能为前文表中列举的 Objective-C 映射类型。
+* Interop classes may not be declared as `open` or `abstract` and may not be
+  extended using `extend`.
 
-* 泛型 Objective-C 类型将被镜像为非泛型仓颉类型，详情请参见[Objective-C 泛型](#objective-c-泛型)。
+* Non-`private` member functions and constructors of interop classes:
 
-* **重要限制：** 镜像类型和互操作类的实例，即 Objective-C 引用类型的值，禁止逃逸至仓颉全局变量、静态变量，以及任何能够在每次调用之间持久化的数据结构中。
+    - May only use the Objective-C-mapped types listed above as parameter
+      and return value types. (As a consequence, variable-length arguments
+      are not supported as that requires using the Cangjie `Array<T>` type,
+      which has no Objective-C mapping.)
 
-**端到端示例（续）：**
+    - May not have named parameters.
 
-继续上述的例子，开发者可能会如下实现互操作类`A`：
+    - May not have type parameters, i.e. be generic.
+
+* Non-`private` member properties may only have the Objective-C-mapped types
+  listed above.
+
+* Generic Objective-C types are erased; mirror types have upper bounds in place
+  of the respective type parameters.
+
+* **IMPORTANT:** Instances of mirror types and interop classes
+  (in other words, values of Objective-C reference types) must not escape
+  to global or static Cangjie variables or any data structures that persist
+  between calls.
+
+**End-to-end Example (continued):**
+
+To continue the above example, the interop class `A` would look
+like this:
 
 ```cangjie
 package cjworld           // Same package name
@@ -1357,21 +1853,23 @@ import interoplib.objc.*  // Always required
 
 @ObjCImpl
 public class A <: M {
+
     public init() {
         super()
     }
 
     @ForeignName["foo"]
-    public override func foo(): Unit {
+    override public open func foo(): Unit {
         println("Hello from overridden A.foo()")
     }
 
 }
 ```
 
-#### 步骤四：编译互操作类
 
-执行以下命令行以编译互操作类：
+### Step 4: Compile the Interop Classes {#step-4}
+
+Command line:
 
 ```bash
 cjc --target=arm64-apple-ios-simulator \
@@ -1383,23 +1881,27 @@ cjc --target=arm64-apple-ios-simulator \
     --link-options "-undefined dynamic_lookup"
 ```
 
-其中：
+where
 
-`<source-files>`是互操作类的源文件，以及各镜像类型定义的源文件。
+`<source-files>` are the source code files of the interop classes and
+mirror type declarations.
 
-`<target-file>`是得到的包含互操作类逻辑的动态库的文件名，例如`libcjworld.dylib`。
+`<target-file>` is the desired name of the output `.dylib` file with
+compiled Cangjie code for the interop classes, such as `libcjworld.dylib`.
 
-cjc 会同时自动生成 Objective-C 源文件（`.h`和`.m`文件），这些 Objective-C 源文件中包含有 Objective-C 包装类（对应互操作类）。这些源文件默认生成在`./objc-gen`子目录中。
+The compiler will also generate Objective-C source files (`.h` and `.m`)
+for the Objective-C wrappers or the interop classes, placing them in the
+`./objc-gen/` subdirectory.
 
-需要为生成的动态库`.dylib`文件签名：
+The `.dylib` file has to be signed:
 
 ```bash
 xcrun codesign --sign - <dylib-file>
 ```
 
-**端到端示例（续）：**
+**End-to-end example (continued):**
 
-首先编译互操作类源文件：
+Compile the interop class:
 
 ```bash
 cd cjworld
@@ -1412,28 +1914,36 @@ cjc --target=arm64-apple-ios-simulator \
     -o libcjworld.dylib \
     --link-options "-undefined dynamic_lookup"
 ```
+The compiler will produce three files: `./libcjworld.dylib`,
+`./objc-gen/A.h` and `./objc-gen/A.m`.
 
-cjc 将生成三个文件：`./libcjworld.dylib`、`./objc-gen/A.h`和`./objc-gen/A.m`。
-
-然后为动态库签名：
+Sign the generated dynamic library:
 
 ```bash
 xcrun codesign --sign - libcjworld.dylib
 ```
 
-#### 步骤五：整合所有产物
 
-* 在 XCode 项目中创建一个子目录，将`$CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/`目录下的所有动态库文件都拷贝一份到该目录下。
+### Step 5: Put It All Together {#step-5}
 
-* 将这些动态库，以及[前一步骤](#步骤四编译互操作类)中得到的动态库添加进 XCode 项目依赖（“BuildPhases”标签页，添加进“Copy Files”和“Link Binary With Libraries”）。
+* Create another subdirectory in your project and copy all dynamic libraries
+  from the `$CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/`
+  directory into it.
 
-* 将[前一步骤](#步骤四编译互操作类)中生成的`.h`和`.m`文件拷贝到项目根目录以参与编译构建。
+* Add those all dynamic libraries _and_ the `.dylib` file generated
+  on the [previous step](#step-4) to your Xcode project as dependencies
+  (BuildPhases - in both “Copy Files” and “Link Binary With Libraries” lists).
 
-接着重新构建项目即可。
+* Move the `.h` and `.m` files generated on the [previous step](#step-4)
+  to project root.
 
-**端到端示例（续）：**
+Then re-build the project.
 
-在 XCode 工程的根目录创建一个子目录，将仓颉 SDK 中用于 iOS 的所有动态库文件全部拷贝到该目录下：
+
+**End-to-end Example (continued):**
+
+Create a new subdirectory in the root directory of your project and copy
+the dynamic libraries constituting the Cangjie Runtime for iOS into it:
 
 ```bash
 cd ..
@@ -1441,24 +1951,35 @@ mkdir -p CJRuntimeDylibs
 cp $CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/*.dylib CJRuntimeDylibs/
 ```
 
-将这些动态库以及`./cjworld/libcjworld.dylib`作为依赖添加进 XCode 工程，具体操作是，在“BuildPhases”中的“Copy Files”和“Link Binary With Libraries”列表中将它们添加进去。
+Add those dynamic libraries _and_ `./cjworld/libcjworld.dylib` to your Xcode
+project as dependencies (BuildPhases - in both “Copy Files” and “Link Binary
+With Libraries” lists).
 
-将所有 cjc 生成的`.h`和`.m`文件放置到 XCode 工程根目录：
+Move the `.h` and `.m` files generated by `cjc` to project root:
 
-```bash
+```
 mv cjworld/objc-gen/*.h ./
 mv cjworld/objc-gen/*.m ./
 ```
 
-然后重新构建 XCode 工程。
+Rebuild the Xcode project.
 
-### 在 Objective-C 侧调用仓颉
 
-在[上一节](#从零实现互操作层)中开发者设计、实现并编译了互操作层，最后将互操作层集成进 XCode 工程。现在，开发者就可以在 Objective-C 侧实现对仓颉侧实现的逻辑的调用了。互操作类经 cjc 编译自动得到的 Objective-C 包装类可以直接由 Objective-C 代码调用使用，从而间接调用对应的互操作类的逻辑。
+## Calling Objective-C from Cangjie
 
-**端到端示例（续）：**
+Once you have designed, built and integrated the interoperability layer
+as described
+in the [previous section](#initial-interop-class-creation-workflow),
+you can add code that uses Objective-C types to the member functions
+of your interop classes. The type mapping is the same:
 
-在 Objective-C 侧代码中，实例化类`A`，然后调用其`foo`实例方法，如下：
+Add the code invoking a Cangjie function from Objective-C via the respective
+method of an interop class wrapper and re-build your iOS project again.
+
+**End-to-end Example (continued):**
+
+Insert an instantiation of `A` and a call of the method `foo()` of that
+instance into your Objective-C code:
 
 ```objectivec
        .  .  .
@@ -1470,65 +1991,111 @@ mv cjworld/objc-gen/*.m ./
        .  .  .
 ```
 
-重新构建 XCode 工程，然后直接在 iOS 模拟器上运行应用查看效果。
+Rebuild the Xcode project and run your app on the iOS simulator.
 
-## 后续操作步骤
 
-经过[上述操作流程](#从零实现互操作层)的讲解，现在应该已经明白了如何往互操作层中新增更多的互操作类，以及如何在互操作类中使用到更多的 Objective-C 类型，以下是对后续操作步骤的总结，开发者会发现其实依然对应着上述的五个操作步骤：
+# Subsequent Enhancements
 
-**[步骤一](#步骤一设计互操作层)：** 现在开发者可以根据设计，实现更多的互操作类，或者对现存的互操作类进行增强实现，比如实现新成员函数、成员属性等。
+Following [the above process](#initial-interop-class-creation-workflow) should
+have helped you develop a good understanding of how to add more classes
+to the interoperability layer and/or enable the use of more Objective-C
+classes in its Cangjie code. Below please find a brief summary with links
+to the respective subsections:
 
-**[步骤二](#步骤二生成镜像类型)：** 如果开发者在修改互操作层的过程中识别到需要用到某些尚未被镜像的 Objective-C 类型，应该这么做：首先重新构建当前的 XCode 工程看看是否能够编译成功，确保代码的连贯性无问题；然后根据需要编辑镜像生成器配置文件，配置好后调用镜像生成器全量重新生成所有镜像。注意，推荐全量重新生成，以确保镜像代码的连贯性。
+**[Step 1](#step-1):** Add more interop classes to your design and/or enhance
+the existing ones with new methods and/or properties as you wish.
 
-**[步骤三](#步骤三实现互操作类)：** 获得需要的全部 Objective-C 类型的镜像后，开发者就可以继续根据设计实现新的互操作类，或对现存互操作类进行翻修。
+**[Step 2](#step-2):** If any additional, not yet mirrored Objective-C
+reference types will now get involved, build the _current_ version
+of the application to ensure consistency, edit the mirror generator
+configuration file appropriately, and then (re-)generate all mirror
+type declarations.
 
-**[步骤四](#步骤四编译互操作类)：** 编译所有互操作类及其他相关源文件。
+**[Step 3](#step-3):** Implement the newly added interop classes, if any,
+and/or change the code of existing ones, using the mirrored
+Objective-C types as necessary.
 
-**[步骤五](#步骤五整合所有产物)：** 将上一步中 cjc 生成的`.h`、`.m`和`.dylib`文件拷贝到相应的位置，然后重新构建 XCode 工程。
+**[Step 4](#step-4):** Compile all interop classes together.
 
-接着，开发者就可以[在 Objective-C 侧使用](#在-objective-c-侧调用仓颉)刚刚新增的互操作类了。
+**[Step 5](#step-5):** Copy the `.h`, `.m` and `.dylib` files that `cjc` has
+generated on the previous step to their respective locations in the project
+and re-build it.
 
-### 互操作类的特性与限制
+Now you can start [using](#calling-objective-c-from-cangjie) the newly added interop classes and/or methods
+in the Objective-C part of your application.
 
-1. 互操作类必须是一个镜像类的直接子类。
 
-2. 互操作类可以实现一到若干个镜像接口，但禁止实现任何普通仓颉接口。反之，普通仓颉类禁止实现镜像接口，普通仓颉接口也禁止继承镜像接口。
+## Features and Limitations of Interop Classes
 
-3. 互操作类禁止被声明为`open`或`abstract`，且禁止被`extend`。
+1. An interop class _must_ be a direct subclass of a mirror class.
 
-4. 互操作类中可以定义新的实例成员变量，且变量类型可以是任何仓颉类型。互操作类中的成员函数可以对其父类中的成员方法进行重写。
+2. An interop class _may_ implement one or more mirror interfaces, but never
+   a conventional Cangjie interface. Conversely, a conventional Cangjie type
+   may not implement or inherit an interface mirroring an Objective-C protocol.
 
-5. 互操作类中可以定义构造函数，构造函数中可以通过`super()`调用父类的构造方法，且遵循普通仓颉构造函数中`super`和实例成员函数调用的顺序的相关规定，以及同样要求在构造函数中需要对所有无初始化器的实例成员变量初始化。
+3. An interop class may not be declared as `open` or `abstract` and may not be
+   extended using `extend`.
 
-6. 互操作类中的实例成员函数体中，可以调用父类的实例方法，如果父类的实例方法在互操作类中被重写，也同样支持通过`super.`来调用。
+4. An interop class may introduce new instance fields _of any Cangjie type_
+   and override the member functions of its mirrored superclass.
 
-7. 镜像类型和互操作类中定义的构造函数和成员函数的函数签名中所允许使用的类型必须是 (a) 镜像类型或互操作类 (b) 100%与 Objective-C 对应的基本数据类型。详情请参见上述的[步骤三](#步骤三实现互操作类)和[由 Objective-C 到仓颉的映射关系](#由-objective-c-到仓颉的映射关系)章节。
 
-## 由 Objective-C 到仓颉的映射关系
+5. The constructors of an interop class may call superclass constructors
+   using `super()`, but have the same limitation on instance member function
+   calls as the conventional Cangjie constructors, as well as the requirement
+   to initialize all newly introduced member variables.
 
-当前版本的 Objective-C 镜像生成器遵循以下所描述的 Objective-C 到仓颉的类型映射规格。
+6. The instance member functions of an interop class may call instance
+   member functions which that interop class has inherited from its mirrored
+   superclass, and/or use `super.` to call the member functions of that
+   superclass that the interop class overrides.
 
-### 一般注意事项
+7. The signatures of constructors and member functions of all mirror types
+   and interop classes can only use types that are (a) mirror types
+   or interop classes themselves, or (b) are 100% analogous to Objective-C
+   primitive types. See the Type Mapping table in [Step 3](#step-3) above
+   and the Chapter
+   [Objective-C to Cangjie Mapping](#objective-c-to-cangjie-mapping).
 
-Objective-C 镜像生成器调用 clang 解析 Objective-C 源码，特别地，调用时会带有`-fobjc-arc`编译选项。
 
-Objective-C 源码中，被标记为`unavailable`的声明将被忽略。
+# Objective-C to Cangjie Mapping
 
-全局函数、文件作用域函数及变量声明也均将被忽略。
+The current version of the mirror generator does the following Objective-C
+→ Cangjie conversions.
 
-在输出的仓颉源文件中，所有声明的顺序保持与源 Objective-C 源文件中各声明在文件中的顺序一致，其中唯一的例外是嵌套类型定义。
 
-### Objective-C 名称
+## General Considerations
 
-原 Objective-C 标识符一般情况下都会被原样保留，除了以下这些情况：
+The Objective-C mirror generator relies on Clang for parsing Objective-C
+sources, invoking it with the `-fobjc-arc` option.
 
-* Objective-C 的标识符与仓颉关键字存在冲突，例如`catch`、`false`、`UInt32`等。冲突的标识符会在仓颉侧使用反引号` `` `包裹。
+Declarations marked with the `unavailable` attribute are ignored.
 
-* Objective-C 允许定义一对同名的类和协议，而仓颉禁止同包中存在一对同名的类和接口。当 Objective-C 侧一对同名的类和协议同时被镜像时，由协议镜像得到的仓颉接口的名字，会在原协议的名称的基础上，加上`Protocol`后缀。
+Global, file-level function and variable declarations are also ignored.
 
-* Objective-C 允许定义一对同名的实例方法和静态方法，而仓颉禁止定义同名的实例成员函数和静态成员函数。当 Objective-C 侧存在同名的实例方法和静态方法，且它们将被镜像，那么最靠近冲突源的那个方法将会被重命名。如果导致冲突的实例方法和静态方法定义源于同一个类或协议中，静态方法将被重命名。重命名的方法是，对于实例方法，方法名加上`Instance`后缀，对于静态方法，方法名加上`Static`后缀。例如，在以下例子中：
+The order of declarations in the output Cangjie source code is the same
+as the order of the respective definitions in the input Objective-C source
+code, with the exception of nested type definitions.
 
-    ```objc
+
+## Names
+
+The original Objective-C identifiers are preserved, with the following
+exceptions:
+
+* Objective-C identifiers that clash with Cangjie keywords, such as `catch`,
+  `false`, or `UInt32`, are enclosed in backticks ` `` `.
+
+* Name conflicts between Objective-C classes and protocols are resolved
+  by adding the suffix `Protocol` to the name of the protocol.
+
+* Name conflicts between instance and static methods are resolved,
+  if possible, by adding either `Instance` or `Static` suffix to the highest
+  (closest to the root) class/protocol where the conflict is encountered.
+  If the conflicting instance/static methods are first introduced
+  in the same class/protocol, the static method is renamed. For example:
+
+    ```
     @interface A
     +(void)foo;
     @end
@@ -1540,9 +2107,9 @@ Objective-C 源码中，被标记为`unavailable`的声明将被忽略。
     @end
     ```
 
-    上述 Objective-C 类型将被镜像为：
+    will be converted to
 
-    ```cangjie
+    ```
     @ObjCMirror
     public open class A <: ObjCId {
         public static func foo()
@@ -1556,17 +2123,24 @@ Objective-C 源码中，被标记为`unavailable`的声明将被忽略。
     }
     ```
 
-* 对于拥有不同方法名，但形参个数相同且形参类型分别相同的`init`方法，将无法被解析。
+* Conflicts between `init` methods having different names, but
+  the same number and types of parameters are not resolved.
+  See [Classes](#classes) for details.
 
-### Objective-C 类型别名
 
-`typedef`声明将被映射为仓颉可见性`public`的类型别名。​
+## Type Aliases
 
-### Objective-C 基本数据类型
+C typedef declarations are converted to public Cangjie type aliases.
 
-Objective-C 基本数据类型将被映射为对应的仓颉基本数据类型。对于各平台特定大小的 C 类型，将根据​host 平台（即运行镜像生成器本身的平台）上其长度来决定映射到哪个仓颉类型。例如，在 MacOS 上，该映射关系可能为：
 
-| Objective-C          | 仓颉   |
+## Primitive Types
+
+Objective-C primitive types map to the respective Cangjie value types.
+C types with platform-specific sizes map to Cangjie in accordance with their
+actual sizes on the _host_ platform, i.e. the platform on which the mirror
+generator runs. For example, on macOS it can be the following:
+
+| Objective-C          | Cangjie   |
 | -------------------- | --------- |
 | `void`               | `Unit`    |
 | `BOOL`               | `Bool`    |
@@ -1583,21 +2157,31 @@ Objective-C 基本数据类型将被映射为对应的仓颉基本数据类型�
 | `float`              | `Float32` |
 | `double`             | `Float64` |
 
-### Objective-C 结构体类型
 
-如果一个 Objective-C `struct`中仅包含对于仓颉而言`CType`兼容的类型的字段，那么该 Objective-C `struct`将被映射为仓颉可见性`public`的`@C struct`类型。如果 Objective-C `struct`包含非`CType`兼容的类型的字段，例如 Objective-C 对象指针，当前不支持镜像。
+## Structs
 
-嵌套的`struct`将被镜像为顶级仓颉`@C struct`，因为仓颉仅支持顶级类型定义。
+A C struct is converted to a public Cangjie struct marked as `@C` if it is
+`CType`-compatible, that is, contains fields of `CType`-compatible types only.
+Other scenarios, e.g. the original Objective-C structure containing pointers
+to objects, are not currently supported.
 
-不完全结构声明（用于前向声明，例如`struct MyRecord;`）将被镜像为空`struct`（`struct`类型定义中无任何成员）。
 
-Objective-C `struct`的字段将被镜像为可见性`public`的成员变量。
+Nested structures are converted to top-level Cangjie structs.
 
-仓颉不支持位域，如果原`struct`的字段带有位域，这些宽度信息将被忽略，且镜像生成器将告警。
+Incomplete structure declarations are converted to empty structs
+(without any members).
 
-与 Objective-C 不同，仓颉要求`struct`中所有成员变量都需要在构造时被初始化。因此，镜像得到的仓颉`struct`的所有成员变量都会带有零初始化器。例如：
+Fields of Objective-C structures are converted to public member variables
+of the respective Cangjie structs. The `static` modifier is maintained.
 
-```objectivec
+Bit fields are not supported by the Cangjie language,
+so their widths are ignored and a warning is issued.
+
+The Cangjie language, unlike Objective-C, requires all member variables
+of structs (even `@C` ones) to be initialized. Therefore, mirrored structures
+contain explicit zero initializers for all fields. For example:
+
+```c
 struct A {
     int x;
     double y;
@@ -1606,7 +2190,7 @@ struct A {
 };
 ```
 
-上述类型将被镜像为：
+is mirrored to
 
 ```cangjie
 @C
@@ -1618,30 +2202,46 @@ public struct A {
 }
 ```
 
-### Objective-C 枚举类型
 
-C 枚举声明将被镜像为`abstract sealed class`，此处的`class`起到的是命名空间的作用。各枚举成员​将被镜像为`public static`成员变量，各成员变量初始化为各自对应的值。如果枚举声明显式指定了底层类型，则各成员变量的类型为该底层类型的镜像类型；否则，默认为`Int32`类型。
+## Enumerations
 
-### Objective-C 联合体类型
 
-仓颉不支持 C 的`union`类型，故其将被镜像为转换为仓颉`struct`，各原联合体中的成员依次被镜像为成员变量，这明显是不符合原联合体的语义的，故对此将输出告警信息。
+Named C enumeration declarations are converted to abstract sealed Cangjie
+classes (effectively, namespaces). Enumerators are converted to public static
+constants initialized with their values. Their type corresponds to the
+explicitly specified underlying type for the enumeration, if any, otherwise
+it is `Int32`.
 
-### Objective-C 类和协议
 
-Objective-C 类和协议将分别被镜像为仓颉类和接口。所有生成的镜像类和接口均实现了内置`ObjCId`镜像接口（见[内置类型](#objective-c-内置类型)）。
+## Unions
 
-不支持变长参数，对于拥有变长参数的方法，`, ...`部分将被忽略。
+The Cangjie language does not support C union types.
+They are converted to structs with sequential fields and a warning is issued.
 
-Objective-C 方法的完整名称，即选择器，中可能包含有`:`，而仓颉标识符不支持含有`:`。这种方法名在镜像为仓颉函数名时，遵循以下转换规则：
 
-* 直接跟随在`:`之后的那个字母（如果有）将被替换为大写。
-* 所有`:`均将被删除。
+## Classes and Protocols
 
-原选择器则将被保留在仓颉侧`@ForeignName`注解中。
+Objective-C classes and protocols are mirrored respectively to Cangjie
+classes and interfaces. All such mirror classes and interfaces explicitly
+implement the built-in `ObjCId` mirror interface
+(see [Built-in Types](#built-in-types)).
 
-**示例：**
 
-```objectivec
+In methods with a variable number of parameters, `, ...` is ignored.
+
+Full Objective-C method names (selectors) decorated with `:` are not
+valid Cangjie identifiers. Such names are mangled as follows:
+
+* Each letter that immediately follows a `:` character, if any,
+  is capitalized.
+* All `:` characters are removed.
+
+The original selector is specified in the `@ForeignName` attribute
+on the Cangjie side.
+
+**Example:**
+
+```c
 @interface A
 - (void)foo;
 - (void)foo:(int)i;
@@ -1650,9 +2250,9 @@ Objective-C 方法的完整名称，即选择器，中可能包含有`:`，而�
 @end
 ```
 
-将被镜像为：
+is mirrored to
 
-```cangjie
+```
 @ObjCMirror
 public open class A {
     public open func foo(): Unit
@@ -1662,77 +2262,130 @@ public open class A {
 }
 ```
 
-在仓颉中，成员属性的 getter/setter 函数的名称是固定的，而 Objective-C 则不然。因此，只有在条件允许的情况下，Objective-C 类或协议中的属性才会被镜像为仓颉成员属性。在条件不允许的情况下，Objective-C 属性的 getter/setter 将被镜像为仓颉实例成员函数。
 
-Objective-C 实例变量将被镜像为仓颉实例成员变量。
+In Cangjie, a property that overrides another property must have the same
+type. Also, the getter/setter functions of Cangjie properties may not be named
+arbitrarily. Hence any properties declared in Objective-C classes are only
+mirrored into Cangjie properties _when possible_. In all other cases,
+their getter/setter methods are mirrored as ordinary instance member
+functions. This includes properties declared within `@protocol` directives.
 
-`instancetype`将被镜像为当前类型声明的类型名。
+Instance variables are mirrored into instance member variables.
 
-#### Objective-C 类
+`instancetype` is converted to the name of the current declaration.
 
-Objective-C 的`@interface`类声明将被镜像为仓颉的`@ObjCMirror public open class`。
 
-Objective-C 的`@interface`的分类（category）和扩展（extension）声明的镜像均将被直接融合进相应的仓颉类定义中。
+### Classes
 
-Objective-C 的`@implementation`声明将被忽略。
+Objective-C `@interface` class declarations are converted to Cangjie classes
+marked as `@ObjCMirror public open`.
 
-类的前向声明（`@class`标记）被镜像为空的仓颉类定义（即类中无任何成员）。
+Objective-C `@interface` category and extension declarations are merged
+with the respective Cangjie class declarations.
 
-仓颉存在构造函数和非构造函数的成员函数之间的区分，而 Objective-C 则并没有直接的“构造方法”和“非构造方法”的区分。根据[Method families section of the Clang documentation on Objective-C ARC](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families)中所描述而被归类为`init`方法的方法，将被镜像为仓颉构造函数，且存在以下两个限制：
+Objective-C `@implementation` declarations are ignored.
 
-* Objective-C 类中，如果两个`init`方法的方法签名仅仅区别于选择器的名称，即，两个方法的形参个数相同，且对应的形参类型相同，那么镜像生成器将把这两个方法所镜像得到的两个构造函数声明注释掉，并输出告警表明存在冲突。
+Forward class declarations (`@class` directives) are mirrored into empty
+classes (without any members).
 
-* `init`方法与其他方法一样能够被继承，而在仓颉中，构造函数是不会被继承的。因此，在镜像类或互操作类的实例化过程中，其父类的`init`方法镜像得到的构造函数将无法被调用。
 
-其他 Objective-C 类的方法将被镜像为仓颉类的`public open`成员函数。实例方法将被镜像为实例成员函数，类方法将被镜像为静态成员函数。
+Methods identified as `init` methods as described in the
+[Method families section of the Clang documentation on Objective-C ARC](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families)
+are mirrored into Cangjie constructors, with two limitations:
 
-#### Objective-C 协议
+* If two or more `init` methods of a class differ only by name, i.e. have
+  the same number and types of parameters, the mirror generator comments out
+  the respective Cangjie constructor declarations and issues a conflict
+  warning.
 
-Objective-C 的`@protocol`将被镜像为仓颉的`@ObjCMirror public interface`。
+* `init` methods are inherited like any other methods, whereas
+  constructors in Cangjie are not inherited. The constructors that mirror
+  the `init` methods of superclasses are therefore unavailable at the point
+  of a mirror class or interop class instantiation.
 
-协议的前向声明被镜像为空的仓颉接口定义（即接口中无任何成员）。
+Other methods of Objective-C classes are mirrored into public open member
+functions of the respective Cangjie mirror types. Mirrors of class methods
+(those with the "`+`" prefix) are modified with `static`.
 
-Objective-C 协议的方法将被镜像为仓颉接口的`public open`成员函数。实例方法将被镜像为实例成员函数，类方法将被镜像为静态成员函数。
 
-`@optional`指令将被忽略。
+### Protocols
 
-### Objective-C 指针类型
+Objective-C `@protocol` directives are mirrored into Cangjie interfaces
+marked as `@ObjCMirror public`. However, the cjc compiler does not support
+such interfaces yet.
 
-Objective-C 指针类型的`const`、`volatile`和`restrict`修饰符均将被忽略。
+Forward protocol declarations are mirrored into empty interfaces (without any
+members).
 
-C 基本数据类型`T`的指针及其类型别名将被镜像为相应的`CPointer<T'>`，其中`T'`是`T`的镜像类型（详情请参考[Objective-C 基本数据类型](#objective-c-基本数据类型)）。
 
-底层类型为`T`的 C 枚举类型的指针将被镜像为`CPointer<T'>`，其中`T'`是`T`的镜像类型，原枚举类型名将在注释中体现。
+Methods of Objective-C protocols are mirrored into public open member functions
+of the respective Cangjie interfaces. The `static` modifier is maintained.
 
-#### Objective-C 结构体指针类型
+The `@optional` directive is ignored.
 
-对于 Objective-C 结构体指针类型，如果 C 结构体`T`是`CType`兼容的，则将被镜像为`CPointer<T'>`，其中`T'`是`T`的镜像类型；否则将被镜像为`ObjCPointer<T'>`（该类型名为暂定名）。`ObjCPointer`类型定义在互操作库中。
 
-#### Objective-C 函数指针类型
+## Pointers
 
-对于 Objective-C 函数指针类型，如果函数形参和返回类型均为`CType`兼容类型，则将被镜像为`CFunc<F>`；否则将被镜像为`ObjCFunc<F>`（该类型名为暂定名）。`ObjCFunc`类型定义在互操作库中。
+The modifiers `const`, `volatile`, and `restrict` are ignored.
 
-#### Objective-C 块指针类型
+Pointers to C primitives and their type aliases are converted to `CPointer`
+with the respective type parameters.
 
-Objective-C 块指针类型将被镜像为`ObjCBlock<F>`（该类型名为暂定名）。`ObjCBlock`类型定义在互操作库中。`ObjCBlock<F>`中的类型形参`F`是相应的仓颉函数类型。
+A pointer to a C enumeration is converted to a `CPointer` to its underlying
+type, with the actual enumeration name specified in a comment.
 
-#### Objective-C 对象指针类型
 
-指向 Objective-C 类实例的指针类型将按照以下规则进行镜像：
+### Pointers to Structures
 
-* Objective-C 类实例的指针（形如`SomeClass*`）类型将被镜像为该类的镜像类型`@ObjCMirror class`。
+A pointer to a C structure `T` is converted to `CPointer<T'>`, where `T'` is
+the mirror type for `T`, if the structure is `CType`-compatible. Otherwise,
+they are converted to `ObjCPointer<T'>` (provisional name), which is a type
+that should be implemented in the interop library.
 
-* Objective-C 带有有且只有一个协议约束的`id`类型（例如`id<NSCopying>`）将被镜像为该协议的镜像类型`@ObjCMirror interface`。
 
-* Objective-C 带有多于一个协议约束的`id`类型（例如`id<NSCopying, NSSecureCoding>`）将被镜像为纯粹的`ObjCId`类型，而各协议则将被列举在生成的注释中。`ObjCId`接口类型定义于互操作库，所有`@ObjCMirror`类和接口均实现或继承该接口。
+### Pointers to Functions
 
-* 如果在泛型模板中使用的一个泛型类型形参指定有单个约束协议，该类型形参在使用处将被替换为协议类型的引用类型，原类型形参名将被留存在注释中。
+Pointers to C functions are converted to either `CFunc` (if the function
+parameter types and return value are all `CType`-compatible) or to `ObjCFunc<F>`
+(provisional name) otherwise. The latter is a type implemented in the interop
+library.
 
-### Objective-C 泛型
 
-泛型 Objective-C 类将被镜像为非泛型仓颉类。原 Objective-C 的轻量级泛型的信息，例如“`<T>`”、“`<Foo>`”将被保存在生成的仓颉类旁边的注释中。类定义中的所有泛型使用均将被替换为`ObjCId`。
+### Pointers to Blocks
 
-**示例：**
+Pointers to Objective-C blocks are converted to `ObjCBlock<F>` (provisional
+name), which is a type implemented in the interop library. The type argument `F`
+of `ObjCBlock<F>` must be the respective Cangjie function type.
+
+
+### Pointers to Class Instances
+
+Pointers to Objective-C class instances are mirrored as follows:
+
+* Pointers to class instances (`SomeClass*`) are mirrored to the
+  respective mirror classes.
+
+* The mirror of the Objective-C type `id` narrowed with a single protocol
+  (for example, `id<NSCopying>`), is the mirror interface for that protocol.
+
+* `id` narrowed with several protocols, e.g. `id<NSCopying, NSSecureCoding>`,
+  is mirrored to a pure `ObjCId` (the interface that all `@ObjCMirror`
+  classes and interfaces respectively implement and inherit),
+  with the actual protocol list specified in a comment.
+
+* If a generic type parameter is used inside a generic template
+  with a narrowing protocol specified, it is converted to a reference to that
+  protocol, with the name of the type parameter specified in a comment.
+
+
+## Generics
+
+Parameterized Objective-C classes are mirrored as regular, non-generic
+Cangjie class declarations. The original lightweight generics syntax
+such as "`<T>`" or "`<Foo>`" is retained in comments; type parameter
+usages are replaced with `ObjCId`.
+
+**Example:**
 
 ```objectivec
 @interface G<T> : NSObject
@@ -1740,16 +2393,16 @@ Objective-C 块指针类型将被镜像为`ObjCBlock<F>`（该类型名为暂定
 @end
 ```
 
-以上类型将被镜像为：
+is mirrored to
 
-```cangjie
+```
 @ObjCMirror
 public open class G/*<T>*/ <: NSObject {
     @ForeignName["f:"] public open func f(t: ?ObjCId /*T*/): Unit
 }
 ```
 
-注意，在当前版本，泛型约束将被忽略，例如：
+However. type constraints are lost as of the current version, i.e.
 
 ```objectivec
 @interface G<T: SomeType*> : NSObject
@@ -1757,70 +2410,105 @@ public open class G/*<T>*/ <: NSObject {
 @end
 ```
 
-以上类型的镜像结果将与上一个的镜像结果完全一致。
+is now mirrored exactly as the first sample above.
 
-### Objective-C 内置类型
 
-镜像生成器在生成镜像时会假设以下仓颉类型已被定义在互操作库中，生成的镜像中将用到这些类型，用户亦可使用这些类型。当前版本中，部分类型尚未实现完全，且未来版本中这些类型的名称可能会改变。
+## Built-in Types
 
-| Objective-C         | 仓颉 (\*)        | 备注                                           |
+The mirror generator assumes that the following user-available Cangjie types
+are implemented in the interop library. As of the current version, however,
+they are not yet implemented, and their names may change.
+
+| Objective-C         | Cangjie (\*)        | Description                                           |
 | ------------------- | ------------------- | ----------------------------------------------------- |
-| `id`                | `ObjCId`            | 所有`@ObjCMirror`类和接口均实现该`@ObjCMirror`接口，其对应 Objective-C 的`id` |
-| `SEL`               | `SEL`?              | 该`class`对应 Objective-C 的`SEL`                     |
-| `Class`             | `Class`?            | 该`class`对应 Objective-C 的`Class`                   |
-| `Protocol`          | `Protocol`?         | 该`class`对应 Objective-C 的`Protocol`                |
-| 指针类型        | `ObjCPointer<T>`?   | 该`struct`对应 Objective-C 的`T`为非`CType`兼容的 C 结构体 |
-| non-C function type | `ObjCFunc<F>`?      | 该类型用于 C 函数指针类型中包含有非`CType`兼容类型，`F`是仓颉函数类型 |
-| 块类型          | `ObjCBlock<F>`?     | 该`struct`对应 Objective-C 的块类型，其中`F`是仓颉函数类型 |
-|                     | `__builtin_va_list` | `CPointer<Unit>`的辅助用类型别名，用于当前版本镜像生成器的实现，但在未来版本中将被移除 |
+| `id`                | `ObjCId`            | Interface that should be implemented by all `@ObjCMirror` classes and interfaces. Bound to Objective-C `id`. |
+| `SEL`               | `SEL`?              | Class bound to Objective-C `SEL`.                     |
+| `Class`             | `Class`?            | Class bound to Objective-C `Class`.                   |
+| `Protocol`          | `Protocol`?         | Class bound to Objective-C `Protocol`.                |
+| pointer type        | `ObjCPointer<T>`?   | Structure bound to Objective-C pointers of two kinds: with arity more than one and when `T` is a not `CType`-compatible structure. |
+| non-C function type | `ObjCFunc<F>`?      | Class implementing `CFunc` for functions that are not `CType`-compatible. `F` is a Cangjie function type. |
+| block type          | `ObjCBlock<F>`?     | Structure implementing an Objective-C block. `F` is a Cangjie function type. |
+|                     | `__builtin_va_list` | Helper type alias for `CPointer<Unit>`, technically needed in the current generator implementation. May and should be dropped in the future. |
 
-(\*) 这些仓颉类型名称均为暂定的，未来版本中可能改变。
+(\*) Names of Cangjie types are provisional.
 
-## 尚未实现的特性
 
-仓颉 SDK 对 Objective-C 互操作的支持尚在开发中，某些特性尚未实现，某些则可能在首个正式发布版本前发生变化，某些由于仓颉与 Objective-C 之间的根本差异完全无法，或部分无法被实现。
+# Not (Yet) Implemented Features
 
-* C 语言中存在若干特性，比如能改变数据默认大小、打包方式、填充规则和/或对齐方式，这些特性与 ABI 高度相关。仓颉并不支持如此底层的控制，特别是位域。镜像生成器将直接忽略位域宽度指定符，并输出相应告警信息。
+Objective-C interoperability support in the Cangjie SDK is still in development.
+Certain features are not implemented yet, others may change in the first
+production release, and some cannot be (fully) implemented due to principal
+differences between the two languages.
 
-* 仓颉的 C 互操作不支持 C 的`union`类型，故`union`将被镜像为仓颉`struct`类型，且镜像生成器将告警。
+* The C language features that alter the default size, packing, padding,
+  and/or alignment of data are very ABI-specific. The Cangjie language
+  does not support such low-level features, and bit fields in particular.
+  The mirror generator therefore ignores bit field width specifiers
+  and issues warnings.
 
-* 如果 Objective-C 的`struct`中存在类型非`CType`兼容的字段，则该`struct`无法被镜像。
+* The Cangjie language does not provide support for C union types,
+  so they are mirrored as structs and warnings are issued.
 
-* 匿名 C 枚举声明将被忽略，具名 C 枚举声明则将被镜像为`abstract sealed class`。详情请参见[Objective-C 枚举](#objective-c-枚举类型)小节。
+* Structures with fields of types that are not `CType`-compatible are
+  not supported.
 
-* 不支持对变长参数，但拥有变长参数的方法依然也支持镜像，不过变长参数的方法中的`...`将被忽略。
+* Anonymous C enumeration declarations are ignored. Named ones are mirrored
+  to abstract sealed Cangjie classes. See [Enumerations](#enumerations)
+  for details.
 
-* `@optional`标注将被忽略。
+* In methods with a variable number of parameters, `...` is ignored.
 
-* Objective-C 属性在条件允许时才会被镜像为仓颉成员属性，否则其 getter/setter 方法将被视作普通的实例方法，并被镜像为仓颉实例成员函数。详情请参见[Objective-C 类和协议](#objective-c-类和协议)小节。
+* The `@optional` directive is ignored.
 
-* 修饰符`const`、`volatile`、`restrict`均将被忽略。
+* Properties are mirrored as properties if possible, otherwise their getter
+  and setter methods are mirrored as if they were regular instance methods.
+  See [Classes and Protocols](#classes-and-protocols) for details.
 
-* Objective-C 中名称为`init`的方法将被镜像为仓颉的构造函数，且存在以下两方面的限制：
+* The modifiers `const`, `volatile`, and `restrict` are ignored.
 
-    * 在一个仓颉类中，两个构造函数即便各形参名称不尽相同，但只要函数签名相同，就禁止同时存在；而在 Objective-C 中，同名为`init`的方法，却可以通过外部参数名进行区分。
+* `init` methods are mirrored into Cangjie constructors,
+  which imposes two limitations:
 
-    * 仓颉类中的构造函数不会被继承，而 Objective-C 中并没有专门的“构造方法”，而只有名为`init`的方法，而所有方法都可以被继承。
+  - Two constructors of a Cangjie class may not have the same number
+    and types of parameters, whereas `init` method may differ by name, and
 
-    详情请参见[Objective-C 类](#objective-c-类)章节。
+  - Constructors in Cangjie are not inherited.
 
-* 泛型 Objective-C 类将被镜像为非泛型仓颉类，详情请参见[Objective-C 泛型](#objective-c-泛型)章节。
+    See [Classes](#classes) for details.
 
-* 对`@protocol`的镜像支持尚未完全支持。
+* Parameterized Objective-C classes are mirrored as regular, non-generic
+  Cangjie class declarations. See [Generics](#generics) for details.
 
-* 当前尚不支持对拥有非`CType`兼容类型作为形参/返回类型的函数指针类型进行镜像。
+* Mirroring of `@protocol` declarations into Cangjie interfaces is not fully
+  supported yet.
 
-* 当前尚不支持 Objective-C 块。
+* Pointers to functions with parameter/return types that are not
+  `CType`-compatible are not supported.
 
-* 尚未实现 Objective-C 类型`NSString`与仓颉类型`String`之间相互转换的内在函数。
+* Objective-C blocks are not supported.
 
-## Objective-C 侧 nil 值处理
+* The intrinsic helper functions for converting values of the Objective-C
+  type `NSString` to/from values of the Cangjie type `String` are not
+  implemented yet.
 
-仓颉无`nil`引用的概念，因此对于 Objective-C 的`nil`值不存在等价物。对于 Objective-C 侧的类和协议类型镜像为仓颉类和接口类型的实例的指针，从 Objective-C 侧传入到仓颉侧后，如果为`nil`，则会导致仓颉侧的段错误。反之，仓颉侧也不存在直接往 Objective-C 侧返回`nil`值的途径。
 
-因此决定将仓颉`Option<T>`枚举用于表示这类 Objective-C 类型，其中`None`表示`nil`值，而`Some(r)`表示一个非空引用值`r`。假设仓颉类型`T`是`@ObjCMirror`镜像类型或`@ObjCImpl`互操作类，cjc 将把`Option<T>`判定为 Objective-C 兼容类型，并对该类型的值进行装包/拆包。
+# `nil` Handling
 
-示例如下，以下`@interface`：
+Cangjie has no concept of null references and hence no equivalent
+for the Objective-C `nil` value. If pointers to Objective-C
+classes and protocols were mirrored to Cangjie classes and interfaces,
+any such value passed over from Objective-C to Cangjie could lead
+to a segmentation fault. Conversely, there would be no way
+to pass a `nil` value from Cangjie to Objective-C either.
+
+The `Option<T>` enum is therefore generally used to represent the values
+of those Objective-C types, with `None` standing for the `nil`
+value, and `Some(r)` representing a (non-null) reference value `r`.
+The `cjc` compiler recognizes `Option<T>` as an Objective-C compatible
+type if `T` is a mirror type or interop class and wraps/unwraps
+the values of `T` accordingly.
+
+For instance, the following Objective-C `@interface` directive:
 
 ```objectivec
 @interface MyContainer: NSObject
@@ -1832,7 +2520,7 @@ public open class G/*<T>*/ <: NSObject {
 @end
 ```
 
-将被镜像为：（注意，以下代码出于简洁考虑省略了`@ForeignName`注解）
+will be mirrored to (`@ForeignName` annotations omitted for brevity):
 
 ```cangjie
 @ObjCMirror
@@ -1845,17 +2533,35 @@ open class MyContainer <: NSObject {
 }
 ```
 
-上述`Option<T>`装包确保了即便 Objective-C 侧往仓颉侧传入`nil`值，仓颉侧不会因此崩溃，但这个解决方法不可避免地带来了部分性能和内存足迹的劣化。解决方法引入的另一个缺点是[型变的丢失](#型变丢失)。不过，[Objective-C 对可空性注解的支持](#objective-c-可空性注解)显著消减了上述由于引用封装所带来的影响。
 
-> **注意：**
->
-> 上述问题对于能够被映射为仓颉`CPointer<T>`类型的 C 类型并不构成麻烦，因为`CPointer<T>`类型实现内部提供有相关的空指针检查功能。
+The `Option<T>` wrapping ensures that the code won't break if a `nil`
+value sneaks into the Cangjie world from the Objective-C one,
+but it does that at the cost of performance and memory footprint.
+The other disadvantage of this approach is [loss of variance](#loss-of-variance).
+That being said, [support for nullability annotations](#nullability-annotations)
+considerably reduces the impact of reference wrapping, at least when
+it comes to the use of iOS APIs in Cangjie code.
 
-### 型变丢失
+**NOTE:** This problem does not exist for the low-level C types that get
+mirrored to the conventional `CPointer<T>` type, as the latter provides
+explicit null check functions.
 
-为 Objective-C 镜像类型和互操作类进行[`Option<T>`装包](#objective-c-侧-nil-值处理)带来了一个显著的限制：向这样装包的类型在所有其他方面均完全遵循仓颉语义规则。具体而言，根据仓颉语义规则，`Option<T>`对其类型变元`T`是**不变**的，换句话说，对于两个类型`U`和`T`，除非`U`和`T`是相同的类型，否则即便`U`是`T`的子类型，`Option<U>`也与`Option<T>`不存在任何子类型关系。这意味着，对于镜像类型中存在重写关系的方法，如果这两个方法的返回类型存在**协变**的关系，这个协变的关系无法在仓颉侧保留下来，子类中的重写方法的返回类型的镜像必须改为父类中方法的返回类型的镜像。
 
-示例如下，在以下代码片段中，Objective-C 类`Foo`是类`Bar`的直接父类：
+## Loss of Variance
+
+One limitation imposed by the [`Option<T>` wrapping](#nil-handling)
+of Objective-C mirror types and interop classes is that such wrapped types follow
+the semantics of Cangjie in all other respects. In particular, `Option<T>` is
+_invariant by its type parameter `T`_: `Option<U>` is not a subtype of `Option<T>`
+if `U` is a subtype of `T` unless `T` and `U` are the same type. For mirror types
+that means that any overriding Objective-C method that relies on return type
+covariance may not be mirrored that way with `Option<T>` wrapping. The return
+value type of the mirror of such a method has to be propagated
+from the method that it overrides.
+
+**Example:**
+
+Suppose an Objective-C class `Foo` is a direct superclass of the class `Bar`:
 
 ```objectivec
 @interface Foo : NSObject
@@ -1865,7 +2571,7 @@ open class MyContainer <: NSObject {
 @end
 ```
 
-Objective-C 类`C`中声明有方法`get`，其返回类型为`Foo`：
+and the class `C` declares a method `get` that returns an instance of `Foo`:
 
 ```objectivec
 @interface C : NSObject
@@ -1873,7 +2579,8 @@ Objective-C 类`C`中声明有方法`get`，其返回类型为`Foo`：
 @end
 ```
 
-Objective-C 类`D`继承`C`，其中重写了方法`get`，返回类型换为了更加精确的类型`Bar`：
+A subclasss of `C` may then override `get` with a more precise return type,
+`Bar`:
 
 ```objectivec
 @interface D : C
@@ -1881,7 +2588,7 @@ Objective-C 类`D`继承`C`，其中重写了方法`get`，返回类型换为了
 @end
 ```
 
-假设不存在`Option<T>`装包，上述所有类型将被镜像为：
+Without `Option<T>` wrapping, all those classes could be mirrored to:
 
 ```cangjie
 @ObjCMirror
@@ -1901,9 +2608,10 @@ open class D <: C {
 }
 ```
 
-但正如前文所说，如果`get`方法存在返回`nil`的可能性，那么仓颉侧将不可避免地崩溃。
+but if `get()` can possibly return `nil`, an application crash is inevitable.
 
-如果进行`Option<T>`装包，就可以解决`nil`的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
+`Option<T>` wrapping makes it safe, but the return types of all overriding
+methods have to be lowered to the return type of the original method:
 
 ```cangjie
 @ObjCMirror
@@ -1924,25 +2632,45 @@ open class D <: C {
 }
 ```
 
-[Objective-C 可空性注解](#objective-c-可空性注解)一定程度上消减了该问题。
+[Nullability annotations](#nullability-annotations) alleviate the problem
+partially.
 
-### Objective-C 可空性注解
 
-XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与新 iOS/OSX 开发语言 Swift 集成配合，Swift 本身将调用 Objective-C 所提供的 API。
+## Nullability Annotations
 
-> **Objective-C 可空性标注：**
+Nullability keywords were introduced to Objective-C with the release
+of XCode 6.3 back in the day, for better integration with the new iOS/OS X
+development language, Swift. The definitions of all iOS APIs were enhanced
+with nullability annotations to reduce the use of optionals in Swift code
+utilizing those APIs.
+
+> **Objective-C Nullability Annotations**
 >
-> 关键字`nullable`、`nonnull`可用于注修饰 Objective-C 属性、方法形参类型和返回类型。它们的含义分别是指定的实体可能/不可能持有或接受`nil`值。除此之外还有关键字`null_unspecified`，意思是并不确定指定的实体到底是可能还是不可能持有或接受`nil`值，不过该关键字及其少见被使用到。
+> The keywords `nullable` and `nonnull` can be used for Objective-C properties,
+> method result types and method parameter types. They mean that the given entity
+> respectively may or may not hold or accept the `nil` value. The (very rare)
+> `null_unspecified` annotation denotes the entities about which it is unknown
+> whether their value may be `nil`.
 >
-> 另外，指针类型也可以被`_Nullable`、`_Nonnull`注解，与上述各关键字的语义相同。
+> In addition, any pointer type may be annotated with `__nullable`, `__nonnull`
+> or `__null_unspecified` with the same semantics.
 >
-> Objective-C 属性也可以被指定为`null_resettable`，语义是该属性的 getter 不可能返回`nil`值，而如果调用 setter 时传入`nil`值，该属性将被重置为某默认值。
+> Finally, a property may also ne annotated with `null_resettable`, meaning that
+> its getter will never return `nil`, but passing `nil` to its setter would
+> reset the property to some default value.
 >
-> 详情请参见[Designating Nullability in Objective-C APIs](https://developer.apple.com/documentation/swift/designating-nullability-in-Objective-C-apis)
+> For details, see
+> [Designating Nullability in Objective-C APIs](https://developer.apple.com/documentation/swift/designating-nullability-in-objective-c-apis)
 
-因此，如果某处对 Objective-C 引用类型的使用被标记为不可为空（例如被`nonnull`标记），则该使用处将被免去`Option<T>`装包。换句话说，镜像生成器只会为所有未被`nonnull`或`_Nonnull`注解的成员属性类型、成员函数形参类型和成员函数返回类型进行`Option<T>`装包。
+All uses of Objective-C reference types annotated as non-nullable are therefore
+exempt from `Option<T>` wrapping. In other words, the Objective-C mirror
+generator emits wrapped types only for properties, method result types and
+method parameter types that are _not_ annotated with either `nonull`
+or `_Nonnull` in the original Objective-C code.
 
-现在，请重新考虑[上一节中](#objective-c-侧-nil-值处理)的例子，这次我们对其添加了可空性注解，如下：
+Suppose the example from the
+[introduction to this section](#nil-handling)
+was enhanced with nullability annotations as follows:
 
 ```objectivec
 @interface MyContainer: NSObject
@@ -1954,7 +2682,8 @@ XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与�
 @end
 ```
 
-镜像生成器将不对`nonnull`实体进行`Option<T>`装包：（注意，以下代码出于简洁考虑省略了`@ForeignName`注解）
+The mirror generator would then bypass `Option<T>` wrapping for the
+`nonnull` entities (`@ForeignName` annotations omitted for brevity):
 
 ```cangjie
 @ObjCMirror
@@ -1967,52 +2696,76 @@ open class MyContainer <: NSObject {
 }
 ```
 
-> **注意：**
->
-> 当前尚不支持正确地将 Objective-C 属性的`null_resettable`的语义传播至仓颉成员属性，故该注解将被视作`nullable`处理。
+**NOTE:** It is currently not possible to mirror `null_resettable` properties
+into Cangjie properties while propagating the semantics of that annotation,
+hence the latter is treated exactly as `nullable`.
 
-**如果开发者的 Objective-C 代码尚未采用上述的可空性注解，我们推荐开发者在开始进行互操作层设计与实现前，事先为互操作层相关的 Objective-C 代码合理添加`nonnull`注解**。因为这样之后可能将显著减少镜像类型中的`Option<T>`装包，从而使得互操作层更加清晰已读。
+**If your Objective-C code that you want to access from Cangjie is not taking
+advantage of the nullability annotations, you may want to add at least the
+`nonnull` annotations as appropriate before you begin using the Cangjie SDK
+interoperability features described here.** That may considerably reduce
+the use of `Option<T>` wrapping in the respective mirror types, making the
+code of interop classes cleaner and easier to read.
 
-## Objective-C 镜像生成器参考
 
-### 准备工作
 
-在使用镜像生成器前请确保已执行仓颉 SDK 中的`envsetup.sh`脚本。
+# Objective-C Mirror Generator Reference
 
-开发者需要知道将要为之生成镜像的所有类型所依赖的类型所在的头文件的本地路径。这包括 iOS 标准库头文件，以及所有 XCode 在构建项目时 Objective-C 编译器的所有头文件搜索路径。
+## Prerequisites
 
-### 命令行使用方法
+Make sure to run the `envsetup.sh` script from the Cangjie SDK before using
+the mirror generator.
 
-`ObjCInteropGen [-v] [--mode=normal`_`config-file`_`]`
+You need to know the pathnames of the header files of the frameworks and libraries
+in which all dependencies of the classes you are going to mirror are defined.
+This includes the locations of the iOS standard library headers and generally
+all directories in which the Objective-C compiler looks up header files when it
+builds your project.
+
+
+## Command-line Syntax
+
+`ObjCInteropGen [-v] [--mode=normal `_`config-file`_`]`
 
 `-v`
 
-生成
+Produce verbose output.
 
 `--mode=normal`
 
-强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了`config-file`，那么必须指定`--mode=normal`。在未来版本中，该选项将变为可选。
+Enforces the normal operation mode. Other modes are only used
+for the development and testing of the mirror generator itself.
+The use of `--mode=normal` is _mandatory_ in the current version
+if _`config-file`_ is specified, but will be optional in the future.
 
 _`config-file`_
 
-配置文件的路径。
+The pathname of the configuration file.
 
-### Objective-C 镜像生成器配置文件语法
 
-Objective-C 镜像生成器配置文件是一个纯文本文件，遵循[TOML](https://toml.io)语法，其中指定了以下配置信息：
+## Configuration File Syntax
 
-* 将生成的镜像源文件保存在哪个目录下。
-* 源 Objective-C 头文件名（`.h`文件）。
-* 生成的仓颉包的包名，以及将生成的哪些镜像类型放置在哪个仓颉包中。
-* 对于部分开发者需要特殊处理的类型，需要将类型进行如何的映射。
+An Objective-C mirror generator configuration file is a plain text file
+in the [TOML](https://toml.io) syntax. It specifies:
 
-对于配置文件中将被视作正则表达式的字符串，必须遵循[ECMAScript 正则表达式语法](https://262.ecma-international.org/#sec-regular-expressions)。
+* Output directories
+* Names of the source Objective-C headers (`.h`-files)
+* Names of the output Cangjie packages and the distribution of mirror types across them
+* Mappings for types that you want to be handled in a special way
 
-#### 输出根目录
+String values that are interpreted as regular expressions must follow the
+[ECMAScript regular expression syntax](https://262.ecma-international.org/#sec-regular-expressions).
 
-`[output-roots]`表的每个子表键定义了一个目录标签，这个目录标签对应了本地文件系统中的一个路径，这个路径定义于子表中的`path`配置项。[`[[packages]]`数组](#镜像生成器单包配置)中的`output-root`配置项将被指定一个目标标签，该目录标签对应的本地文件系统路径将被作为根目录，该`[[packages]]`相应包下生成的镜像源文件均将相对于该根目录放置。
-7
-**示例：**
+
+### Output Directories Roots
+
+Each entry in the `[output-roots]` table of tables defines a symbolic name
+for the pathname of a directory in the local file system. The mirror generator
+will use that pathname as the common root of one or more package-specific
+output directories, set using the `output-root` property of the respective
+[`[[packages]]` array](#packages) elements.
+
+**Example:**
 
 ```toml
 [output-roots.lib]
@@ -2023,57 +2776,73 @@ path = "./main/src"
 
 [[packages]]
 package-name = "com.vendor1.lib1"
-output-root = "lib"  ## Output to "./lib/src/com/vendor1/lib1"
+output-root = "lib"  # Output to "./lib/src/com/vendor1/lib1"
 filters = ...
 
 [[packages]]
 package-name = "com.vendor2.lib2"
-output-root = "lib"  ## Output to "./lib/src/com/vendor2/lib2"
+output-root = "lib"  # Output to "./lib/src/com/vendor2/lib2"
 filters = ...
 
 [[packages]]
 package-name = "com.mycompany.app"
-output-root = "app"  ## Output to "./main/src/com/mycompany/app"
+output-root = "app"  # Output to "./main/src/com/mycompany/app"
 filters = ...
 ```
 
-#### 头文件输入
 
-`[sources]`表的每个子表键定义了一组独立的头文件，镜像生成器将确保将这些头文件作为输入。
+### Source Files
 
-**该表支持以下配置项：**
+Each entry in the `[sources]` table of tables specifies a set of individual
+header files that the mirror generator must take as input.
 
-`paths` (必选)
+**Properties:**
 
-字符串数组，每个字符串是单个头文件的路径，镜像生成器将确保读取这些头文件。
+`paths` (mandatory)
 
-`arguments` (可选)
+An array of strings that contain pathnames of individual header
+files that the mirror generator must read.
 
-字符串数组，保存有一系列 clang 编译选项，当镜像生成器处理列举在`paths`中的源文件时，将作为 clang 的命令行参数传入。
+`arguments` (optional)
 
-**示例：**
+Array of strings containing Clang options that the mirror generator will
+pass over when processing the source files listed in `paths`.
+
+**Example:**
 
 ```toml
 [sources.all]
 paths = ["original-objc/M.h"]
 ```
 
-#### 额外的 clang 命令行参数
 
-`[sources-mixins]`表中的每个表项是个表，每个表首先通过`sources`属性的正则表达式匹配[`[sources]`表](#头文件输入)中的一到若干个表键，匹配到的这些表键所对应的头文件在被 clang 处理时，将额外指定命令行参数。
+### Additional Clang Arguments
 
-**支持的属性：**
+Each entry in the `[sources-mixins]` table of tables specifies a regular
+expression matching one or more keys of the [`[sources]` table](#source-files)
+and additional arguments that must be passed to Clang when processing
+the header files from its respective entries.
 
-`sources` （必选）
+**Properties:**
 
-正则表达式字符串，用于匹配头文件名。
+`sources` (mandatory)
 
-`arguments-prepend`
-`arguments-append` （可选）
+A string containing a regular expression.
 
-字符串数组，内容将被用于作为额外的 clang 命令行参数。`arguments-prepend`和`arguments-append`中的命令行参数将被分别插入到相应`[sources]`表项的`arguments`属性的数组的前和后。
+`arguments-prepend`  
+`arguments-append` (optional)
 
-**示例：**
+Arrays of strings that the mirror generator will pass over to Clang
+as options when processing the source files listed in any `[sources]`
+table entry which key matches the regular expression specified in
+the `sources` property.
+
+The options listed in `arguments-prepend` and `arguments-append`
+will be passed respectively before and after the options specified
+in the `arguments` property of each matching `[sources]` entry,
+if any.
+
+**Example:**
 
 ```toml
 [sources.UIWidgets]
@@ -2085,34 +2854,47 @@ paths = ["objc/UIPanels.h"]
 arguments = [ "-I", "/usr/local/include/share/Panels" ]
 
 [sources-mixins.UI]
-## Add these Clang arguments for both UIWidgets and UIPanels
+# Add these Clang arguments for both UIWidgets and UIPanels
 sources = ["UI.+"]
 arguments-append = [
     "-I", "/usr/local/include/Frameworks/AcmeUI"
 ]
 ```
 
-#### 镜像生成器单包配置
 
-`[[packages]]`数组的每个表项指定了一个目标仓颉包名，一组名称过滤器，用于说明哪些 Objective-C 实体将被镜像到该仓颉包中，以及可选的，该包的输出目录。
+### Packages
 
-**支持以下配置项：**
+Each entry in the `[[packages]]` array specifies a target Cangjie package
+name, a set of name filters that define which Objective-C entities will
+be mirrored to that package, and, optionally, the output directory
+specific for that package.
 
-`package-name` （必选）
+**Properties:**
 
-字符串，目标仓颉包的名称。
+`package-name` (mandatory)
 
-`output-path` （可选）
+A string containing the target Cangjie package name.
 
-字符串，值为文件系统的路径（绝对路径或相对路径均可），该仓颉包的镜像文件均将被输出到该目录下。如果该路径中存在任何不存在的目录，镜像生成器将尝试创建它们。
+`output-path` (optional)
 
-`output-root` （可选）
+A string containing the _exact_ pathname of the directory into which
+the mirror generator shall place the output files for the given package.
+If any directories in that pathname do not exist, the mirror generator
+will attempt to create them.
 
-字符串，值为[`[output-roots]`表](#输出根目录)中的子表键，也就是一个目录标签。该目录标签对应一个输出根目录，基于这个根目录，目标仓颉包的包名将作为子目录名，包名中的点`.`被替换为路径分隔符`/`，得到的路径将与`output-path`配置同等效果。
+`output-root` (optional)
 
-如果`output-root`未配置，且`[output-roots]`中有且只有一个子表键，该子表键对应的输出根目录将被采用；否则镜像生成器将报错。
+A string containing a key from the [`output-roots` table](#output-directories-roots)
+The name of the target Cangjie package will be appended to the value
+of the respective `output-roots` table entry, dots `.` replaced with
+the file separator `/`, and the resulting pathname will be used
+as if it was the value of `output-path`.
 
-**示例：**
+If `output-root` is not set, and if there is only one element
+in `[output-roots]`, the pathname from that entry is used.
+Otherwise, an error is shown.
+
+**Example:**
 
 ```toml
 [output-roots.main]
@@ -2123,136 +2905,174 @@ package-name = "objc.foundation"
 output-root = "main"
 ```
 
-输出文件将置于`./cj-mirrors/objc/foundation`目录下。
+The output files will be placed in `./cj-mirrors/objc/foundation`.
 
-`filters` （必选）
+`filters` (mandatory)
 
-一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。详情请参见[名称过滤器](#名称过滤器)。
+A table defining a set of name filters that select only those
+Objective-C entity declarations from the source files that
+must be mirrored to the given Cangjie package. See
+[Name Filters](#name-filters) for details.
 
-**示例：**
+**Example:**
 
 ```toml
-## The Foundation framework
+# The Foundation framework
 [[packages]]
 package-name = "objc.foundation"
 filters = { include = "NS.+" }
 ```
 
-##### 名称过滤器
 
-一个名称过滤器是一个 TOML 表，表中包含：
+#### Name Filters
 
-* `include`、`exclude`、`union`、`intersect`和`not`其中之一选一个作为属性。
-* 可选的`filter`属性和/或`filter-not`属性。
+Each name filter is, in turn, a TOML table that contains:
 
-以下将对各属性进行详细解释。
+* Exactly one of the properties `include`, `exclude`, `union`, `intersect`
+  and `not`, and
+* Optionally, the `filter` property _and/or_ the `filter-not` property.
+
+Descriptions of the properties follow.
 
 `include`
 
-该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串。如果值为单个正则表达式，只有匹配该正则表达式的类型名将被采纳。如果是正则表达式的数组，类型名匹配其中任一正则表达式即可被采纳。
+The value can be a regular expression or an array thereof.
+If the value is a single regex, only names that match it
+pass the filter. If the value is an array, a name only needs to
+match any single regex from that array to pass.
 
-**示例：**
+**Examples:**
 
 ```toml
-## Only include entities that names of which start with "NS":
+# Only include entities that names of which start with "NS":
 filters = { include = "NS.+" }
 
-## Only include entities with names that either start with "Foo"
-## or end with "Bar":
+# Only include entities with names that either start with "Foo"
+# or end with "Bar":
 filters = { include = ["Foo.*", ".*Bar"] }
 ```
 
 `exclude`
 
-与`include`相反（见上文）如果一个类型名能够被`include`过滤器采纳，那么他就不会被`exclude`采纳；反之亦然。
+The opposite of `include` (see above). A name that would pass
+an `include` filter with the given value does not pass an `exclude`
+filter with the same value and vice versa.
 
-**示例：**
+**Example:**
 
 ```toml
-## Include everything but entities the names of which start with "INTERNAL_":
+# Include everything but entities the names of which start with "INTERNAL_":
 filters = { exclude = "INTERNAL_.+" }
 ```
 
 `union`
 
-该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名只需要被其中任一过滤器采纳，就将被`union`过滤器采纳。
+An operator combining two or more filters. Its value must be an
+array of filters. A name that passes any single one of those
+filters passes the entire `union` filter.
 
-**示例：**
+**Example:**
 
 ```toml
-## An equivalent of the second `include` example above:
+# An equivalent of the second `include` example above:
 filters = { union = [ { include = "Foo.*" }, { include = ".*Bar" } ] }
 ```
 
 `intersect`
 
-该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名必须被其中所有过滤器采纳，才会被`intersect`过滤器采纳。
+An operator combining two or more filters. The value must be an
+array of filters. A name must pass all of them to pass the
+the entire `intersect` filter.
 
-**示例：**
+**Example:**
 
 ```toml
-## Adding a negative filter:
+// Adding a negative filter:
 filters = { intersect = [ { include = "NS.+" },
                           { exclude = "NSAccidentalClash" } ] }
 ```
 
 `not`
 
-该属性用于反转一个过滤器的含义，其值为单个过滤器。
+An operator that reverses the meaning of a filter. The value must
+be a single filter:
 
-**示例：**
+**Example:**
 
 ```toml
-## Another way to add a negative filter:
+// Another way to add a negative filter:
 filters = { intersect = [ { include = "NS.+" },
                           { not = { include = "NSAccidentalClash" } } ] }
 ```
 
-`filter`
-`filter-not` （可选）
+`filter`  
+`filter-not` (optional)
 
-这两个属性必须与上述其他属性一起使用，即它们不能是`filters`表中的唯一属性。该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串，其语义与`include`和`exclude`属性完全一致。
+These properties must be mixed with other properties, i.e.
+they cannot be the only properties of a `filters` table.
+Their values can be regular expressions or arrays thereof,
+just as those of the `include` and `exclude` properties.
 
-`filter`和`filter-not`用于在主过滤器已经过滤得到的所有类型名的基础上，进一步缩减成功匹配的类型名。对于`filter`，只有成功匹配其中任一正则表达式的类型名将被采纳；对于`filter-not`，只有不匹配其中任何正则表达式的类型名将被采纳。
+`filter` reduces the set that passed the main filter to include
+only names that match the given single regular expression or any
+regex from the array.
 
-`filter`和`filter-not`其实是`intersect`分别配合`include`和`exclude`操作的简写形式。
+`filter-not` reduces the set that passed the main filter to
+include only names that do not match the given single regular
+expression or any regex from the array.
 
-**示例：**
+`filter` and `filter-not` are actually shorthands for `intersect`
+operations with an `include` and `exclude` filter respectively.
+They can be specified together.
+
+**Examples:**
 
 ```toml
-## Without filter-not:
+# Without filter-not:
 filters = { intersect = [ { include = "NS.+" },
                           { exclude = "NSAccidentalClash" } ] }
-## With filter-not:
+# With filter-not:
 filters = { include = "NS.+", filter-not = "NSAccidentalClash" }
 
-## 'filter' and 'filter-not' can be used together:
+# 'filter' and 'filter-not' can be used together:
 filters = { include    = ".*Fizz.+",
             filter     = ".+Buzz.*",
             filter-not = ".*FizzBuzz.*" }
 ```
 
-#### 类型名映射替换
 
-`[[mappings]]`是一个表的数组，每个表中表示的类型名映射替换关系，最终会被统一收集为一个映射替换表，用于镜像生成过程中，将表中指定的若干类型名称替换为其他类型名。除了 C 的基本数据类型（例如`int`），几乎所有其他 Objective-C 类型均可通过此配置实现类型名的替换。
+### Type Substitutions
 
-**示例：**
+`[[mappings]]` is an array of tables, each adding to the list of substitutions
+of one Objective-C type for another. All mentions of almost any type
+(except for C primitive types such as `int`) can be replaced with mentions
+of another type.
+
+**Example:**
 
 ```toml
-## Replace the type id, the root of the Objective-C type hierarchy,
-## with NSObjectProtocol everywhere.
+# Replace the type id, the root of the Objective-C type hierarchy,
+# with NSObjectProtocol everywhere.
 [[mappings]]
 id = "NSObjectProtocol"
 ```
 
-#### 导入其他配置文件
 
-`imports`配置项的值是一个字符串数组，每个字符串是其他配置文件的文件路径，该配置文件中的配置信息将被添加进当前配置文件中。被导入的配置文件中的`packages`和`mappings`条目配置项中的配置信息将被追加到当前配置文件中。
+### Configuration File Import
 
-支持配置文件的嵌套导入，但如果检测到配置文件的循环依赖导入则将导致编译器报错。
+`imports` is an array of strings each containing the pathname of another
+configuration file, the settings from which will be added to the current
+configuration. The entries of `packages` and `mappings` arrays found
+in the imported file are appended to those present in the importing file.
 
-**使用示例:**
+Nested imports are supported, circular import is detected and results
+in an error.
+
+**Example:**
 
 ```toml
 import = "../common.toml"
 ```
+
+
+

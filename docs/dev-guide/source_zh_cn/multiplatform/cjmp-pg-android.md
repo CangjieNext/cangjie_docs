@@ -1,44 +1,116 @@
-# 仓颉-Java 互操作
+---
+author: Huawei Technologies Co., Ltd.
+title: Cangjie Multiplatform Programmer's Guide
+subtitle: for Android™
+titlepage: true
+numbersections: true
+toc-own-page: true
+listings-no-page-break: true
+textables: false
+---
 
-仓颉跨平台方案支持开发者将仓颉语言接入 Android/iOS 应用开发，无论是项目中尚未实现的新逻辑，还是已存在的存量逻辑，都可通过仓颉语言完成开发与适配。
+``` {=html}
+<style>
+body { max-width: unset; }
+</style>
+```
+\newpage
 
-镜像类型是仓颉跨平台实现跨语言、跨运行时互操作的核心机制。它允许一门语言中定义的类型向另一门语言暴露接口，进而实现该类型在不同语言环境中的直接使用。
+# Introduction
 
-在仓颉侧，借助镜像类型，开发者无需脱离仓颉语法与语义规范，即可让仓颉类继承 Java 类/ Objective-C 类，实现 Java 接口/Objective-C 协议，而在 Java/Objective-C 侧，镜像类型同样能够让仓颉类型以对应语言的原生类型形式呈现。
+The **Cangjie Multiplatform** technology enables Cangjie developers
+to incorporate their code into new Android/iOS applications and/or gradually
+replace the Java/Objective-C parts of existing applications with Cangjie code.
+The central mechanism that enables the cross-language, cross-runtime
+interoperability is _[mirror types](#mirror-types)_, which expose the types
+of one language to the other.
 
-在仓颉侧，镜像类型使得在依旧遵循仓颉语法和语义的情况下，仓颉 class 能够继承 Java 的 class/ Objective-C 的 interface，实现 Java 的 interface/Objective-C 的 protocol。而在 Java/Objective-C 侧，镜像类型同样能够使得仓颉类型以各自语言的类型表示出来。总体来说，仓颉跨平台让仓颉和 Java/Objective-C 在 Android/iOS 应用工程中做到尽可能无缝衔接，同时也意味着，开发者可以在仓颉代码中，通过跨语言互操作直接调用对应操作系统提供的 API 。
+On the Cangjie side, mirror types enable the inheritance of Java/Objective-C
+classes with method overriding, as well as the implementation of Java
+interfaces and Objective-C protocols, all while using conventional Cangjie
+syntax. On the Java/Objective-C side, the mirror types that represent Cangjie
+types are expressed in terms of the respective language's own types.
+All in all, this enables seamless transitions between the Java/Objective-C
+and Cangjie parts of the application, which includes usage of the target
+O/S APIs in Cangjie code.
 
-## 挑战与解决方法
 
-仓颉、 Java 和 Objective-C 虽然都是支持继承和多态的面向对象范式语言，但其各自的语义、底层实现的对象模型和执行模型等却存在显著差异，因此，试图在 Java/Objective-C 代码中直接使用仓颉语言，或反之在仓颉代码中直接使用 Java/Objective-C ，均无法实现。
+## The Challenge and the Solution
 
-三种语言均各自拥有不同于其他两种语言的托管运行时，自动内存管理、线程模型、异常处理等底层特性各不相同。让两个复杂编程语言的运行时通过相互感知来实现互操作，无疑会让整个应用的复杂度剧增。
+Java, Objective-C and Cangjie are object-oriented languages that support
+inheritance and polymorphism. However, the differences in their semantics,
+object models, and execution models preclude direct usage of Cangjie
+objects in Java or Objective-C code and vice versa.
 
-因此，仓颉跨平台对于仓颉与 Java 的互操作的实现思路是分别站在仓颉和 Java 侧，均将另一方视作低级语言。具体来说，仓颉与 Java 通过 Java 本地接口（ JNI ）实现互通。众所周知，JNI 用于使能 Java 调用例如 C/C++ 开发的本地接口，虽然功能强大，但作为底层 API ，手写绑定层费时费力，不过好在 CJMP 提供了相应工具链，有效地消减了使用复杂度。
+Then, all three languages have managed runtimes that support automatic memory
+management, threading, exception handling and other low-level features,
+but again they do that differently. Making two separately designed complex
+language runtimes aware of each other might push the complexity of the entire
+system beyond human comprehension.
 
-Objective-C 的运行时模块 API 在 iOS 平台上担任了与 JNI 在安卓平台上类似的角色，其也是为实现 Objective-C 与其他语言之间的桥接层。与上述的 JNI 的情况一样， CJMP 同样为开发者消减了其使用时繁琐的部分。
+Instead, the interoperability between Cangjie and Java is achieved
+by disguising them both as low-level languages. Cangjie and Java parts
+of the application see each other through the lens of the Java Native Interface
+(JNI), originally designed to facilitate the development of Java `native`
+methods in languages such as C and C++. JNI is a rich, but low-level API,
+and writing `native` Java methods is known to be cumbersome. Fortunately,
+CJMP automates away the complexity of JNI.
 
-## 核心概念
+The Objective-C Runtime module API serves a similar role on iOS. It is also
+designed specifically to enable the creation of bridge layers between
+Objective-C and other languages. And just like with JNI, CJMP takes care
+about the cumbersome parts.
 
-### 镜像类型
 
-不妨这样理解什么是镜像类型：仓颉和 Java 一对语言之间进行互操作，若一种语言 A 的源码中定义有镜像类型`T'`，则意味着在另一种语言 B 的源码中实际存在由 B 语言定义的类型`T`。于是，在语言 A 的源码中就可以通过直接使用镜像类型`T'`来实现间接使用类型`T`，最终实现语言 A 仿佛直接使用语言 B 的类型的效果。该操作存在特定限制，将在下文中详细说明。
+# Key Concepts
 
-诸如布尔类型和数值类型等两种语言之间本质上等价的类型天然就是相互的镜像类型，例如， Java 视角下，其`int`类型就是仓颉`Int32`类型在 Java 侧的镜像类型；反过来，仓颉视角下，其`Int32`类型就是 Java `int`类型在仓颉侧的镜像类型。不过，对于部分无法建立对应关系的数值类型来说，这个镜像关系就是不存在的了，例如仓颉的`Float16`在 Java 侧就没有任何类型能够与之对应，故在 Java 视角下就不存在一种镜像类型来匹配仓颉的`Float16`类型，也可以理解为，仓颉的`Float16`类型无法被镜像为任何 Java 基本类型。
+## Mirror Types
 
-对于`class`、`struct`、`interface`和`enum`等用户自定义类型，语言 A 中的类型`T`在另一门语言 B 中的镜像类型`T'`，是在语言 B 中所能找到的尽可能最佳的等价类型。举例来说，仓颉的`struct`或元组类型在 Java 中所能找到的最佳等价类型是 Java 的`final class`类型。
+Considering Cangjie and Java as a pair of interoperating languages,
+a _mirror type_ _`T'`_ defined in one language of the pair is a type that
+represents an existing type _`T`_ defined in the other language, enabling
+the code written in the first language to use that type, possibly with some
+limitations.
 
-若要在语言 B 中通过镜像类型使用语言 A 定义的类型，该镜像类型仅会暴露语言 A 原生类型中“理论上可被语言 B 访问和调用”的成员与构造函数。举例来说：若某个仓颉成员函数的返回类型为`Float16`，由于`Float16`无法被镜像为 Java 类型，该仓颉成员函数也无法生成对应的镜像，导致 Java 侧无法通过镜像类型调用此函数，这类场景需根据实际情况采用特定技巧解决。
+The Boolean types and numeric types that are essentially the same in both
+languages naturally mirror each other: the Java mirror type for the Cangjie
+type `Int32` is `int` and vice versa. Mirroring of numeric types that the
+other language does not naturally support is not currently possible, so e.g.
+the Cangjie type `Float16` cannot be mirrored to a Java primitive type.
 
-正常情况下，无论是仓颉类型的镜像类型还是 Java 类型的镜像类型，以及镜像类型本身依赖的其他类型的镜像类型，都能够以某种方式自动生成获得。 CJMP 提供了一个独立的工具—— Java 镜像生成器，来实现为 Java 类型自动生成镜像类型；为仓颉类型生成镜像类型也同样是自动完成的，加上特定编译选项的 cjc 编译过程会将仓颉类型的镜像类型定义作为副产品生成，具体步骤将在本文档中详细解释。
+For a user-defined type such as class, struct or interface, the mirror type
+would be its closest equivalent in the other language. For instance, the only
+Java type that can approximate a Cangjie struct or tuple type with reasonable
+accuracy is a `final` Java class.
 
-#### 将 Java 类型镜像为仓颉类型
+A mirror type exposes the members and constructors of the original user-defined
+type that are accessible _and_ can be used in the other language, so again
+a Cangjie member function that returns a value of type `UInt64` cannot be
+mirrored to Java without some trickery.
 
- cjc 在编译过程中会将所有仓颉源码中用到的 Java 镜像类型替换为相应的胶水代码，这意味着，真正对编译结果起作用的核心信息只有两点：一是被使用的 Java 镜像类型的名称，二是该镜像类型中各可用成员的名称及其类型。因此在编写仓颉代码时，Java 镜像类型定义中只需要包含各个可用成员的声明就够了，换句话说，Java 镜像类型中并不需要保留构造函数体、成员函数体和成员属性体，成员变量也不需要初始化器。另一方面，Java 类型中定义的`private`与包内私有的成员对仓颉侧来说不可见，因此这类成员同样不会出现在 Java 镜像类型定义中。
+Normally you would obtain mirror type definitions for a Java or Cangjie
+type _and_ its required dependencies automatically. For Java types,
+a standalone [mirror generator](#java-mirror-generator-reference)
+is provided, whereas Java mirrors of Cangjie types are produced by the
+[`cjc` compiler](#cangjie-mirror-generation-reference) as a byproduct
+of the normal compilation process.
 
-显然，上述 Java 镜像类型定义的写法是不符合仓颉语法/语义规格的，故 Java 镜像类型定义必须带有`@JavaMirror`注解，该注解用于在编译期协助 cjc 区分正常的仓颉类型定义与 Java 镜像类型定义，从而对后者进行特殊处理。
 
-示例如下，假设存在如下的 Java  `class`：
+### Mirroring Java Types to Cangjie
+
+The `cjc` compiler replaces any uses of Java mirror types with the appropriate
+glue code, so only the names of types themselves and names and types of their
+accessible members matter. Therefore, mirrors of Java types only contain member
+declarations, not definitions: constructors and member functions/properties
+have no bodies and member variables have no initializers.
+For the same reason, `private` and package-private members are omitted.
+
+For such an extension of the regular Cangjie syntax to work, each mirror type
+must be marked with a `@JavaMirror` annotation. It helps the compiler
+distinguish between mirror type declarations and normal Cangjie type
+definitions.
+
+For example, a mirror class for the following Java class:
 
 ```java
 public class Node {
@@ -49,10 +121,10 @@ public class Node {
 }
 ```
 
-其对应的 Java 镜像类型定义可能如下：
+might look like this:
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Node {
     public static let A: Int32
     public init(id: Int32)
@@ -60,13 +132,23 @@ public open class Node {
 }
 ```
 
-值得一提的是，互操作库中预置了几个基础的 Java 类型的镜像类型，即`java.lang.Object`、`java.lang.String`和 Java 数组类型，详情请参见[互操作库预置 API 参考](#互操作库预置-api-参考)。
+A few foundational Java types, namely `java.lang.Object`, `java.lang.String`
+and arrays, have [predefined mirrors](#interop-library-api-reference)
+in the interoperability library.
 
-#### 将仓颉类型镜像为 Java 类型
 
-由于 cjc 专门的处理， Java 镜像类型定义只需要保留最核心的信息即可，但仓颉镜像类型定义则必须是完整的正常的 Java 类型定义，因为安卓工具链不会提供任何额外的特殊处理。在编译过程中，cjc 会将仓颉镜像类型定义生成为 Java 源文件形式，该类型定义中包含完整的胶水层代码，这部分代码实现了仓颉与 Java 两个运行环境之间的交互衔接。
+### Mirroring Cangjie Types to Java Types
 
-假设前一个例子中的`Node`类型是由仓颉定义实现的，示例如下：
+Unlike the mirrors of Java types, for which `cjc` has dedicated support,
+mirrors of Cangjie types must look exactly like normal Java types
+from the outside, for the Android toolchain to pick them up. The `cjc`
+compiler therefore generates those mirrors in the form of Java source code
+files containing glue code responsible for linking together the Java and
+Cangjie worlds.
+
+For instance, if the class `Node` from the example in the
+[previous section](#mirroring-java-types-to-cangjie) was originally defined
+in Cangjie as follows:
 
 ```cangjie
 public class Node {
@@ -78,14 +160,14 @@ public class Node {
 }
 ```
 
-那么 cjc 在编译上述代码块时将为其自动生成以下的仓颉镜像类型定义：
+the `cjc` compiler could generate the following Java mirror for it:
 
 ```java
 public final class Node {
-    /* 胶水代码 */
+    /* Some glue code */
     public Node(long id) {
         /* Glue code constructing a Cangjie Node instance and associating
-         * it with the  Java  Node instance being constructed, i.e. 'this'.
+         * it with the Java Node instance being constructed, i.e. 'this'.
          */
     }
     public long getId() {
@@ -93,18 +175,26 @@ public final class Node {
            associated Cangjie Node instance and returning the result.
          */
      }
-    /* 其他胶水代码 */
+    /* More glue code */
 }
 ```
 
-### 互操作类
 
-互操作类本质上是一个仓颉`class`，其从一到若干个镜像类型派生而来，这种仓颉`class`能够被 Java 侧使用，这是因为其所有构造函数和非继承而来的`public`成员函数，都会通过一个由 cjc 在编译它时自动生成的共轭的 Java 包装类，对 Java 代码暴露。这个 Java 包装类本身可能会定义若干辅助方法，但对于 Java 侧代码来说，能调用的方法只有从仓颉侧暴露而来的，以及该 class 继承而来的；仓颉侧代码也是同理。
 
-接下来将举例说明，当使用 cjc 编译以下互操作类时：
+## Interop Classes
+
+An _interop class_ is essentially a Cangjie class that is derived from one
+or more [mirror types](#mirror-types) and is usable from Java. All its
+constructors and non-inherited public member functions are exposed to Java
+code via a conjugate _wrapper class_, automatically generated by the `cjc`
+compiler. The wrapper class itself defines no other user-callable methods
+or constructors, but any methods it may have inherited from its supertypes
+may be called from both Java and Cangjie code.
+
+For example, when compiling the following Java interop class:
 
 ```cangjie
-@ Java Impl
+@JavaImpl
 public class BooleanNode <: Node {
     private let flag: Bool
     public init(id: Int32, flag: Bool) {
@@ -117,45 +207,58 @@ public class BooleanNode <: Node {
 }
 ```
 
- cjc 将同时生成一份 Java 源码，其内容类似于以下代码块：
+the `cjc` compiler will also yield a Java source code file similar
+to the following:
 
 ```java
 public class BooleanNode extends Node {
-    /* 胶水代码 */
+    /* glue code */
     public BooleanNode(int id, boolean flag) {
-        /* 胶水代码，构造一个 Java 的 BooleanNode 包装类实例，
-         * 并将其与仓颉侧的 BooleanNode 实例关联起来
+        /* Glue code constructing a Java BooleanNode instance and associating
+         * it with the Cangjie instance being constructed, i.e. 'this'.
          */
     }
     public boolean getFlag() {
-        /* 胶水代码，调用该 Java 的 BooleanNode 包装类实例所关联的
-         * 仓颉 BooleanNode 实例的'getFlag'实例成员函数，并返回调用结果
+        /* Glue code invoking the 'getFlag' member function of the associated
+           Cangjie BooleanNode instance and returning the result.
          */
     }
-    /* 其他胶水代码 */
+    /* more glue code */
 }
 ```
 
-#### 外部类型
 
-镜像类型和互操作类均有别于真正原生的自定义类型，故简洁起见，本文档中它们将被统一称作外部类型。
+## Foreign Types
 
-### Java 兼容类型
+The [mirror types](#mirror-types) and [interop classes](interop-classes) are
+not perfectly native to the language in which they are defined. Extending the
+analogy, their status is more like temporary visitors and work visa holders
+respectively, so they are collectively called _foreign types_ throughout
+this document.
 
-以下仓颉类型均为 Java 兼容类型：
 
-* 所有拥有等价的 Java 基本类型的仓颉值类型，例如`Int16`拥有等价的 Java 基本类型`short`，故`Int16`为 Java 兼容类型；而`UInt8`无等价的 Java 基本类型，故`UInt8`不是 Java 兼容类型
-* 所有外部类型
-* `Option<T>`类型，且其中类型变元`T`为外部类型
+## Java-Compatible Types
 
-互操作库中预置的特殊泛型镜像类型`JArray<T>`对应 Java 的数组类型，其类型变元`T`必须是 Java 兼容类型。
+The following Cangjie types are called _Java-compatible_:
 
-显然，外部类型定义中的`public`成员函数的形参类型和返回类型必须是 Java 兼容类型，否则将导致 cjc 编译报错。
+* Value types that have direct equivalents among Java primitive types
+  (`Int16` is included, but `UInt8` is not)
+* [Foreign types](#foreign-types)
+* Types of the form `Option<`_`T`_`>` where _`T`_ is a [foreign type](#foreign-types)
+  (see _[`null` Handling](null-handling)_ for reasoning)
 
-互操作类的`public`成员变量的类型可以是任意类型，但只有当成员变量的类型为 OC 兼容类型时，该成员变量才可以在仓颉和 OC 侧均可访问。
+The special generic mirror type `JArray<T>` included in the
+[interop library](#interop-library-api-reference)
+represents Java arrays. Its type variable `T` must be a Java-compatible type.
+
+For obvious reasons, the parameters and return values of public member functions
+of a foreign type may only have types compatible with the respective language.
+
+The member variables of an interop class may have any types. Their public member
+variables that have Java-compatible types may be accessed from both Java and Cangjie.
 
 ```cangjie
-@ Java Impl
+@JavaImpl
 class NamedNode <: Node {
     public var jName: JString  // resides in the conjugate wrapper class instance
     public var cjName: String  // resides in the interop class instance
@@ -166,28 +269,49 @@ class NamedNode <: Node {
 }
 ```
 
-### 互操作的使用场景
 
-总体来说，共存在两种 Java/仓颉互操作的使用场景：
+## Interop Scenarios
 
-* 仓颉侧所定义的类型和函数通过互操作对 Java 侧代码暴露，从而使得 Java 侧可以使用仓颉提供的 API 、仓颉库与其他应用组件等。
-* Java 侧所定义的类型通过互操作对仓颉侧代码暴露，从而使得仓颉侧可以间接调用安卓 API 、Java 三方库与其他尚使用 Java 编写的应用组件。
+There are essentially two Java-Cangjie interoperation scenarios:
 
-上述使用场景并非完全互斥，单个应用程序中完全可能同时存在上述两种使用场景。此外，两种使用场景中均支持类继承和接口实现， Java 类可以继承仓颉类，实现仓颉接口，而仓颉类也可以继承 Java 类，实现 Java 接口，这使得在两种使用场景下均并非单向的从仓颉调用 Java 或从 Java 调用仓颉，而是仓颉和 Java 之间灵活地互相调用，控制流得以互相转交。
+* In one scenario,
+  [Cangjie types and functions are exposed to Java](#cangjie-to-java-mapping),
+  enabling the use of Cangjie APIs, libraries and application components
+  in Java code.
 
-由于两种场景各自拥有的功能特性、使用限制条件和工具支持情况等具有明显差别，下文将分别对两种使用场景进行阐述。
+* In the other scenario,
+  [Java classes and interfaces are exposed to Cangjie](#java-to-cangjie-mapping),
+  enabling Cangjie code to access Android APIs, third party Java libraries
+  and components of the application that remain in Java.
 
-## 在 Java 侧使用仓颉
+The above scenarios are not mutually exclusive, one application may as well be
+utilizing both. Also, class inheritance and interface implementation
+are supported in both scenarios (a Java class may subclass a Cangjie class
+and vice versa). That enables seamless callbacks, so neither scenario is
+unidirectional. However, each scenario has its own feature set, limitations,
+tooling, etc., so they are described separately.
 
- Java 侧访问仓颉库、调用仓颉 API 等的前提是开发者提前为所有相关的仓颉类型生成 Java 侧能够使用的镜像类型。 cjc 在编译仓颉源码过程中能够自动生成所需的镜像类型定义，详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
 
-> **注意：**
->
-> 仓颉语言的类型系统比 Java 的更加丰富和灵活，即便是某些共有的语言特性，本质上也存在巨大差异，其中最典型的是[泛型](#为泛型仓颉类型进行镜像)，因此部分仓颉的语言特性完全无法在 Java 中表达，而部分则难以用自然优雅的方式来表达。具体支持和限制情况请参见[仓颉到 Java 的映射](#由仓颉到-java-的映射关系)。
+# Using Cangjie in Java
 
-**例子:**
+To enable access to a Cangjie library, API, or some other piece of code
+from Java, you need to generate Java [mirror types] for the Cangjie types
+that you want to expose. The `cjc` compiler can do that for you as described
+in [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference).
 
-假设存在以下仓颉`struct Vector`类型需要暴露给 Java 侧使用：
+**NOTE:** The type system of the Cangjie language is richer and more versatile
+than its Java counterpart. There are also some principal differences in the
+features shared by the two languages, most notably
+[generics](#generic-cangjie-types-mirroring).
+Expressing certain features of Cangjie in Java is therefore impossible, and
+other features can be difficult to express in a natural and compact manner.
+See [Cangjie to Java Mapping](#cangjie-to-java-mapping) for the exact list
+of supported features and associated restrictions.
+
+**Example:**
+
+Suppose you want to expose to Java a Cangjie struct `Vector` defined
+as follows:
 
 ```cangjie
 package cj
@@ -207,43 +331,64 @@ public struct Vector {
 }
 ```
 
-在编译上述代码块时需为 cjc 新增两个额外的编译选项：`--experimental`和`--enable-interop-cjmapping=Java`，编译成功后将额外生成一个 Java 源文件`Vector.java`，其中的内容类似如下：
+When compiling `Vector.cj`, you would invoke the `cjc` compiler with two
+additional options: `--experimental --enable-interop-cjmapping=Java`.
+The compiler would then generate an extra file, `Vector.java`, similar
+to the following:
 
 ```java
 package cj;
 
 public final class Vector {
-    // 胶水代码
+    // glue code
 
-    public Vector(int x, int y) { /* 胶水代码 */ }
+    public Vector(int x, int y) { /* glue code */ }
 
-    public Vector add(Vector v) { /* 胶水代码 */ }
+    public Vector add(Vector v) { /* glue code */ }
 
-    // 其他胶水代码
+    // more glue code
 }
 ```
 
-将`Vector.java`集成进安卓工程中，比如放置到`src/main`目录下，接着就可以将这个`Vector`类型当作本来就是 Java 编写的一样的类型来使用了：在 Java 代码中定义`Vector`类型的变量，创建`Vector`类型的实例，将实例作为方法入参，例如调用`Vector.add`方法并将`Vector`类型的实例传入等。
+Now you can add `Vector.java` to your Android project under `src/main`
+and use the class `Vector` in your Java code as if it was a normal Java class:
+define variables of that type, create instances, pass them around, including
+to Cangjie code such as the method `Vector.add`, apply type comparison and
+type conversion operators, etc.
 
-### 限制暴露面
 
- cjc 编译选项`--enable-interop-cjmapping`使得其所编的仓颉包中所有的`public`用户自定义类型均生成仓颉镜像类型，且这些用户自定义类型中的所有`public`成员和构造函数都会被暴露给 Java 侧。但在实际开发场景中，这种全盘暴露的方式通常没有必要，因为 Java 侧需要直接调用的仓颉接口，往往仅占整个仓颉库的很小一部分。
+## Limiting the Exposure
 
-开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循[TOML](https://toml.io)语法。
+The option `--enable-interop-cjmapping` instructs the `cjc` compiler
+to generate mirror types for _all_ `public` Cangjie types that it compiles,
+and expose _all_ `public` member functions and constructors of those types.
+Oftentimes, however, such total exposure is undesirable, as what you want
+to use in Java may be just a small percentage of the functionality provided
+by a Cangjie library or framework.
 
-该配置文件的`[default]`配置块中，开发者可以指定对所有仓颉包的默认 API 暴露策略，如果需要，还可以在对应的`[[packages]]`配置块中对特定的仓颉包的暴露策略进行修改，示例如下：
+You may precisely control the exposure of Cangjie types and their members
+by passing the pathname of a dedicated configuration file to `cjc` via the
+option `--import-interop-cj-package-config-path`. That file is a plain
+text file the contents of which must conform to the [TOML](https://toml.io)
+syntax.
+
+In the `[default]` section of that file, you can specify the default API
+exposure strategy for all Cangjie packages, and then modify it
+for particular packages in the respective `[[package]]` entries. For example:
 
 ```toml
 [default]
- API Strategy="None"       # Expose nothing by default
+APIStrategy="None"       # Expose nothing by default
 
 [[packages]]
 name="com.example.pkg1"  # From this specific package,
- API Strategy="Full"       # expose everything
+APIStrategy="Full"       # expose everything
    .  .  .
 ```
 
-而对于每个仓颉包，开发者可以使用`included_apis`或`exluded_apis`配置项来指定暴露哪些类型/成员，隐藏哪些类型/成员，示例如下：
+Furthermore, for each package you can use either the `included_apis`
+or `excluded_apis` property to respectively expose or hide particular types
+and/or members:
 
 ```toml
    .  .  .
@@ -255,47 +400,53 @@ included_apis = [ "Vector",      # Only the type 'Vector'
 
 [[packages]]
 name="com.example.pkg3"          # From this specific package,
- API Strategy="Full"               # everything
+APIStrategy="Full"               # everything
 excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
                   "Auth.getPwd"  # member function 'Auth.getPwd'
                 ]                # are exposed
 ```
 
-详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+Refer
+to [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+for more details.
 
-## 为泛型仓颉类型进行镜像
 
-由于仓颉和 Java 的泛型特性的实现存在根本性差异，仓颉泛型类型无法直接映射到 Java 泛型类型以得到仓颉镜像类型。作为替代方案， CJMP 支持了仓颉镜像类型的单态化：用户通过配置文件为每个给定的仓颉泛型类型指定一个类型实参组合的列表， cjc 根据这个列表，对每个类型实参组合分别单独为该仓颉泛型类型生成一个非泛型的仓颉镜像类型，于是在 Java 侧使用的都是非泛型的仓颉镜像类型。
+## Generic Cangjie Types Mirroring
 
-> **注意：**
->
-> 当前版本仅支持基本数据类型作为类型实参来单态化仓颉泛型类型。
+Many important Cangjie types are parameterized. Unfortunately, certain
+fundamental differences between Cangjie and Java generics preclude mirroring
+of the former into the latter. As a workaround, the Cangjie SDK supports
+_monomorphization_ of mirror types: it generates a separate _non-generic_
+Java mirror type for each supplied set of valid type arguments for the given
+parameterized Cangjie type.
 
-举例来说，假设仓颉侧定义有如下泛型类型：
+For instance, if you have a generic Cangjie class `p.Pair<T,U>`:
 
 ```cangjie
 package p
-
-public class Pair<T, U> { . . . }
+public class Pair<T,U> { . . . }
 ```
 
-如果希望在 Java 侧能够使用`Pair<Int, String>`和`Pair<Foo, Bar>`两种类型，开发者可以在配置文件中`name`为`p`的`[[packages]]`配置块中，新增`generic_object_configuration`配置项，具体配置内容如下：
+and want to manipulate instances of `Pair<Int, String>` and `Pair<Foo, Bar>`
+in your Java code, you would add a `generic_object_configuration` property
+to the `[[package]]` entry for `p` in the configuration file, with the
+following content:
 
 ```toml
 #   .  .  .
-[[packages]]
+[[package]]
 name = "p"
-generic_object_configuration = [
+generic_object_configuration  = [
     { name = "Pair",
       type_arguments = [
           "Int, String",
           "Foo, Bar"
       ] },
-#   .  .  .
+#       .  .  .
 ]
 ```
 
- cjc 将生成以下两个 Java 类：
+`cjc` would then generate two separate Java classes:
 
 ```java
 public final class GIntString { . . . }
@@ -303,76 +454,110 @@ public final class GIntString { . . . }
 public final class GFooBar { . . . }
 ```
 
-分别对应了`Pair<T, U>`的两种特定的实例化情况。
+representing those particular _instantiations_ of the type `Pair<T,U>`.
 
-> **注意：**
->
-> 当前版本仅支持布尔类型和数值类型作为用于单态化的类型实参，因此上述例子中的`Pair<Foo, Bar>`实际上并不支持，仅处于示例目的，实际上并无法成功暴露。
+**NOTE:** The current version only supports boolean and numeric types
+as type arguments of monomorphized generic types, so it cannot actually
+expose `Pair<Foo, Bar>`.
 
-详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)的泛型实例化相关部分。
+Refer to [Generics Instantiations](#cangjie-mirror-generation-reference)
+for more details.
 
-## 由仓颉到 Java 的映射关系
 
-当前版本的 cjc 采用本章所描述的仓颉到 Java 的映射规则。关于相关的 cjc 命令行选项请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
+# Cangjie to Java Mapping
 
-### 一般注意事项
+The current version of the `cjc` compiler uses Cangjie → Java mapping
+described in this chapter. See
+[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+for applicable `cjc` command-line options.
 
-仓颉语言的类型系统较 Java 而言更为丰富，不少仓颉类型及其相应的特性在 Java 中并不存在直接对应的等价的类型，有些则甚至连近似的类型也不存在，故在当前 CJMP 版本中，部分仓颉类型仅提供有限支持，而部分则完全不支持。
 
-由于上述的限制，如果用户自定义类型中的`public`成员函数/构造函数的形参类型/返回类型不存在对应的镜像类型，该成员函数/构造函数本身也无法被镜像，并且 cjc 将报错表示不支持。不过，如果这种不存在对应镜像类型的类型是被用在一个本来就不支持镜像的上下文中，例如，将`Float16`类型用作`public`成员变量的类型，由于本来就不支持镜像成员变量，于是 cjc 既不会报错也不会警告，而只是单纯不对其进行镜像。
+## General Considerations {#cangjie-general-considerations}
 
-#### 仓颉类型别名
+The Cangjie type system is much more versatile than that of the Java language.
+Many Cangjie types and their features do not have direct or even reasonably
+close equivalents in Java, so some Cangjie types have limited support in the
+current version and some are not supported at all.
 
-仓颉类型别名声明不会被镜像，而所有仓颉语言结构在被镜像时，其中包含的类型别名都会被视作已经被替换为实际类型，在 Java 侧看来并不会感知到仓颉侧的类型别名。
+Consequently, if the type of a public member, function/constructor parameter,
+or function return type is not supported, the respective member, function
+or constructor cannot be mirrored. The compiler reports such usages as errors.
+However, if such a type is used in an unsupported _context_, e.g. as the
+type of a public member variable, the respective entity is simply not mirrored
+and no error is reported.
 
-### 仓颉名称
 
-仓颉包名、函数名、类型名称和类型成员的名称在镜像结果中都会完整保留原名，这也意味着，可能存在镜像后与 Java 关键字冲突的情况，例如`int`、`final`等，或镜像类型中包含 Java 禁止的用于构成名称的字符。
+### Type Aliases
 
-### 仓颉布尔类型与数值类型
+Type alias declarations are _not_ mirrored, any type alias usages are treated
+as if the aliased types were substituted.
 
-对于仓颉布尔类型和数值类型，如果在 Java 中存在对应等价类型，将被镜像为其对应类型，否则不支持镜像，详情请参见下表：
 
-仓颉类型 |  Java 类型
+## Names {#cangjie-names}
+
+The original names of Cangjie packages, functions, types and type members
+are currently preserved, which means that some of them may clash
+with Java keywords, such as "`int`" or `final`, or contain characters that
+are not permitted in Java names.
+
+
+## Boolean and Numeric Types
+
+Cangjie Boolean and numeric types that have equivalents among Java primitive
+types are mirrored to those respective primitive types; those that don't
+are not supported, as well as the types `IntNative` and `UIntNative`:
+
+Cangjie Type  | Java Type
 ------------- | ----------------
 `Bool`        | `boolean`
 `Int8`        | `byte`
 `Int16`       | `short`
 `Int32`       | `int`
 `Int64`       | `long`
-`IntNative`   | 不支持
-`UInt8`       | 不支持
+`IntNative`   | Not supported
+`UInt8`       | Not supported
 `UInt16`      | `char`
-`UInt32`      | 不支持
-`UInt64`      | 不支持
-`UIntNative`  | 不支持
-`Float16`     | 不支持
+`UInt32`      | Not supported
+`UInt64`      | Not supported
+`UIntNative`  | Not supported
+`Float16`     | Not supported
 `Float32`     | `float`
 `Float64`     | `double`
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-### 仓颉`Rune`类型
 
-不支持仓颉`Rune`类型。
+## Rune
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+The type `Rune` is not supported.
 
-### 仓颉`String`类型
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-仓颉`String`类型当前尚不支持。
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+## String
 
-### 仓颉`Array<T>`类型
+The type `String` is not supported yet.
 
-仓颉`Array<T>`类型当前尚不支持。
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
 
-### 仓颉元组类型
+## Array
 
-仓颉元组类型被镜像为 Java 的`final class`，相应的 Java 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Java 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+Array types (`Array<T>` instantiations) are not supported yet.
+
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
+
+
+## Tuple
+
+Cangjie tuple types are mirrored into `final` Java class
+definitions. Those definitions are generated automatically by the `cjc`
+compiler and contain glue code that transfers control and data between
+Java and Cangjie. They should not be modified manually.
 
 ```cangjie
 package tuples
@@ -405,7 +590,7 @@ final public class TupleOfInt64Int64 {
     // Glue code
     public TupleOfInt64Int64(long item0, long item1) {
         // Glue code constructing a Cangjie (Int, Int) tuple and associating it
-        // with the  Java  object being constructed, i.e. 'this'.
+        // with the Java object being constructed, i.e. 'this'.
     }
 
     public long item0() {
@@ -421,25 +606,46 @@ final public class TupleOfInt64Int64 {
 }
 ```
 
-仓颉元组类型`(T0, T1, ..., Tn)`将被镜像为 Java 的`final class`，具体而言：
+A tuple type `(`_`T0`_`, `_`T1`_`,... `_`Tn`_`)` is mirrored into a `final`
+Java class with the following properties:
 
-* 如果`Ti`是仓颉别名类型，在镜像时，`Ti`将被视作被别名的实际类型来处理。例如，`(Int, Int)`将被视作`(Int64, Int64)`来处理。
+- If any _`Ti`_ is a type alias, the tuple type is mirrored as if that `Ti`_
+  was the aliased type. For instance, `(Int, Int)` is processed as if it was
+  actually `(Int64, Int64)`.
 
-* 镜像结果的类型名称的规格为`TupleOfT0T1...Tn`，直观来讲就是按顺序将元组元素的仓颉类型的名称直接拼接起来，并加上`TupleOf`前缀。例如，仓颉元组类型`(Int, Int)`镜像后的 Java 类型名称为`TupleOfInt64Int64`，注意到，该例子涉及上一条类型别名替换规格。
+- The name of the mirror class is `TupleOf` _`T0T1`_`...`_`Tn`_ (that is, the
+  names of _Cangjie_ types of tuple elements are concatenated and prefixed
+  with `TupleOf`). For instance, the name of the Java mirror class for the
+  Cangjie tuple type `(Int, Int)`  will be `TupleOfInt64Int64` due to the
+  aforementioned alias replacement, as in the above example.
 
-> **注意：**
->
-> 当前尚不支持不具有简单名称（非[类型别名](#仓颉类型别名)）的类型作为元组元素类型。关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+  **NOTE:** Types that do not have their own simple names (_not_
+  [aliases](#type-aliases)) are not supported as tuple element types yet.
+  See [General Considerations](#cangjie-general-considerations)
+  for information about the handling of unsupported types.
 
-* 镜像 Java  `final class`有且仅有一个`public`构造方法，其形参类型依次为`T0'`、`T1'`、...和`Tn'`，其中`Ti'`原仓颉侧元素类型`Ti`的 Java 侧镜像类型。调用该构造方法将实例化一个对应仓颉元组，元组元素为构造方法的实参，并将仓颉元组与本 Java 对象实例关联起来。
+- The mirror class has a single `public` constructor with parameters of types
+  _`T0'`_, _`T1'`_, ... _`Tn'`_, where each _`Ti'`_ is the Java mirror type
+  for _`Ti`_. It creates a Cangjie tuple of the mirrored type, with values
+  of its elements derived from constructor arguments, and associates it
+  with the Java object that is being constructed, i.e. `this`.
+  See the example above.
 
-* 对于元组中的第`i`个元素，镜像`class`中存在一个对应的无参实例方法`public Ti' item${i}()`， Java 侧调用该方法即返回对应元素。
+- For each element type _`Ti`_, the mirror class has a parameterless instance
+  method `public `_`Ti'`_` item`_`i`_`()`, which returns the mirror of the
+  _`i`_-th element of the Cangjie tuple associated with the receiver during
+  its construction. _`Ti'`_ is again the Java mirror type for _`Ti`_.
 
-当前仓颉元组镜像类型的使用限制如下：
+The current implementation has the following limitations:
 
-* 仓颉元组的元素类型仅支持`Bool`和数值类型。
+- Support for tuple element types is limited to numeric and boolean types.
+  See [General Considerations](#cangjie-general-considerations)
+  for information about the handling of unsupported types.
 
-* cjc 在编译过程中并不会自动对所有遇到的元组类型自动生成其对应的镜像类型，如果需要生成某元组类型的镜像类型，必须由用户手动显式在[配置文件](#仓颉镜像生成配置)中列举该元组类型：
+- The compiler does not mirror tuple types automatically as it encounters their
+  usages in the definitions of other mirrored entities. All such tuple types
+  must be listed explicitly
+  in the [configuration file](#cangjie-mirror-generation-configuration):
 
     ```toml
     #   .   .  .
@@ -449,35 +655,62 @@ final public class TupleOfInt64Int64 {
     #   .   .  .
     ```
 
-    如果 cjc 在编译过程中遇到任何逻辑上必须被镜像的元组类型，但该元组类型并未在配置文件中对应仓颉包的`tuple_configuration`配置项中被列举，那么 cjc 将报错提示。
+  The compiler reports an error upon encountering a tuple type that must be
+  mirrored but is not listed in the `tuple_configuration` array for the
+  respective Cangjie package.
 
-* 仓颉`class`、`struct`等类型是名义性的，换句话说，即便其类型定义中的成员完全相同，只要类型名称不同，或定义在不同的仓颉包中，它们之间就被视作不同的类型。仓颉元组类型则是结构性的，即当两个元组类型具有相同数量的元素，且对应位置的元素类型相同时，它们之间就是相等的。即便元组类型出现在不同的仓颉包中，一个仓颉包中定义的`T0`元组类型的变量依然可以作为实参传给另一个仓颉包中定义的接收`T1`元组类型的函数，只要`T0`和`T1`结构性相同。然而，仓颉元组类型的镜像类型，也就是 Java 类，是名义性的，这就会导致一个问题：不同仓颉包中，即便是完全相同的仓颉元组类型，它们所生成的 Java 镜像类却是不兼容的。
+- Cangjie tuple types are _structural_, that is, two tuple types are
+  compatible if they have the same number of elements and their respective
+  element types are the same. This is also true for [aliases](#type-aliases)
+  of tuple types. However, Java class types that mirror Cangjie tuples are not
+  in a subclass relationship and are therefore incompatible. This may lead
+  to a problem if essentially the same tuple type is cross-used among two
+  or more Cangjie packages exposed to Java.
 
-* 仓颉元组类型是值类型，但其在 Java 侧的镜像类型却是引用类型，这将导致两方面的后果：
+- Cangjie tuple types are value types, whereas their mirrors are Java reference
+  types. The consequences are two-fold:
 
-    * 多个 Java 镜像类型的变量可能实际上指向同一个仓颉侧的元组实例，不过正常来说这不会导致任何问题，因为仓颉元组本身是只读的。
+    * Multiple Java variables may refer to a single Cangjie tuple. That itself
+      should pose no problems because tuples are immutable.
 
-    * 两种语言的比较运算符的语义完全不同。 Java 的`==`和`!=`比较运算符测试的是两个仓颉元组类型的镜像类型的实例之间的引用相等性，而仓颉元组类型的`==`和`!=`则是对仓颉元组实例的逐个元素进行相等性比较，并且要求被比较的两个元组的类型相同且元组的各元素类型均可比较。当前 CJMP 实现中，为仓颉元组类型生成的镜像类型定义中并未真正实现元组内容的比较逻辑，而仅是在重写的`equals`方法中使用抛`UnsupportedOperationException`异常占位。因此，Java 侧并不存在比较同类型元组实例的简洁的手段。
+    * The comparison operators `==` and `!=`  have totally different semantics.
+      In Java, they test mirror class instances for referential equality,
+      whereas in Cangjie tuples are compared element by element.
+      In fact, two structurally identical Cangjie tuples may be uncomparable
+      if some of their element types do not support the respective operator.
 
-### 仓颉`Range`类型
+      Furthermore, in the current implementation the mirror classes for tuple
+      types do not implement the method `equals` (more precisely, the
+      generated overriding method throws an `UnsupportedOperationException`),
+      so there is no concise way to compare two tuples of the same type
+      on the Java side.
 
-仓颉`Range`类型当前尚不支持。
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+## Range
 
-### 特殊仓颉类型
+Range types are not supported yet.
 
-仓颉`Unit`类型仅当作为函数返回类型时，被映射为 Java 的`void`类型。
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
 
-仓颉`Nothing`类型完全无法被映射，故不支持。
 
-仓颉`Any`类型当前尚不支持。
+## Special Types
 
-关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+The type `Unit` is only supported as a function return type, mapped
+to Java `void`.
 
-### 仓颉函数类型
+The type `Nothing` cannot be supported.
 
-仓颉函数类型被映射为 Java 函数式接口声明：
+The type `Any` is not supported yet.
+
+See [General Considerations](#cangjie-general-considerations)
+for information about the handling of unsupported types.
+
+
+## Function Types
+
+Cangjie function types are mirrored into Java functional interface
+declarations:
 
 ```cangjie
 package cjworld
@@ -528,37 +761,69 @@ public class IntFuncBox {
 }
 ```
 
-仓颉函数类型`(T0, T1, ..., Tn) -> U`被镜像为 Java 函数式接口，且具有以下规格：
+A function type `(`_`T1`_`, `_`T2`_`,... `_`Tn`_`) -> U` is mirrored into a
+Java functional interface with the following properties:
 
-* 如果类型`Ti`是仓颉类型别名，则`Ti`将被视作被别名的实际类型来处理。举例来说，`(Int) -> Int`将被视作`(Int64) -> Int64`来进行镜像。
+- If any _`Ti`_ is a type alias, the function type is mirrored as if that _`Ti`_
+  was the aliased type. For instance, `(Int) -> Int` is processed as if it was
+  actually `(Int64) -> Int64`.
 
-* 如果类型`Ti`和/或`U`是类型变元，则将针对每个泛型类型或成员的[单态化](#为泛型仓颉类型进行镜像)结果来分别进行镜像成不同的 Java 函数式接口。详情请参见[泛型实例化](#为泛型仓颉类型进行镜像)。
 
-* 镜像得到的 Java 函数式接口的名称的规格是`T0T1...TnToU`，换句话说，所有函数形参的类型名称按顺序直接拼接，然后追加`To`作为分隔，最后追加上函数返回类型名称。举例来说，`(Int, Bool) -> Int`所生成的 Java 函数式接口的名称是`Int64BoolToInt64`。
+- If any _`Ti`_ and/or _`U`_ is a type variable, the function type is mirrored
+  separately for each [monomorphization](#generic-cangjie-types-mirroring)
+  of the respective generic type or member. See the example
+  in [Generics Instantiations](#generics-instantiations).
 
-> **注意：**
->
-> 当前尚不支持不具有简单名称（非[类型别名](#仓颉类型别名)）的类型作为函数签名中所用到的类型。关于如何处理不支持的类型，请参见[由仓颉到 Java 的映射关系](#由仓颉到-java-的映射关系)章节的一般注意事项。
+- The name of the mirror interface is _`T1T2`_`...`_`Tn`_`To`_`U`_ (that is, the
+  names of _Cangjie_ types of parameters are concatenated, followed by `To` and
+  then followed by the name of the result type). For instance, the name of the
+  Java mirror interface for the Cangjie function type `(Int, Bool) -> Int`  will
+  be `Int64BoolToInt64` due to the aforementioned alias replacement.
 
-* 镜像得到的 Java 函数式接口将拥有唯一一个`public`实例方法：
+  **NOTE:** Types that do not have their own simple names (_not_
+  [aliases](#type-aliases)) are not supported as function element types yet.
+  See [General Considerations](#cangjie-general-considerations)
+  for information about the handling of unsupported types.
 
-    `U' call(T1' p1, T2' p2, ...Tn' pn) { ... }`
+- The mirror interface has a single `public` instance method:
 
-    其中`Ti'`是`Ti`的镜像类型，`U'`是`U`的镜像类型。实例方法的各形参名称为自动合成的：`p1`、 `p2`等。
+  _U'_` call(`_`T1' p1`_`, `_`T2' p2`_`, ... `_`Tn'`_` p`_`n`_`) { ... }`
 
-* 仓颉和 Java 两侧可以通过函数类型镜像实现函数和 lambda 表达式的互传：
+  where each _`Ti'`_ is the Java mirror type for _`Ti`_ and _`U'`_ is
+  the Java mirror type for _`U`_, or `void` if _`U`_ is `Unit`. The parameters
+  are named automatically: `p1`, `p2`, ... `p`_`n`_.
 
-    * 仓颉侧可以将具有函数类型的值传递到 Java 侧，例如，Java 侧调用仓颉的一个成员函数，该成员函数返回了一个仓颉 lambda，Java 侧通过调用`call`实例方法来调用该仓颉 lambda，并传入相应的入参，得到 lambda 的返回值（如果 lambda 返回类型为`Unit`则没有返回值）。
+- The mirror interface type can be used to pass functions and lambda expressions
+  both ways:
 
-    * 镜像得到的 Java 函数式接口，在 Java 侧既可以被 Java 类实现后实例化之，也可以与对应类型的 Java lambda 兼容。像这样的 Java 类的实例或 lambda 可以被作为入参传递到仓颉侧，胶水层中将自动合成仓颉函数类型的实例并与 Java 类实例或 Java lambda 关联，进而在仓颉侧代码中可以调用 Java 侧的函数类型实例。
+  * A value of that type transferred from Cangjie to Java, e.g. returned
+    from a mirrored Cangjie member function called from Java, is associated
+    with a value of a _Cangjie_ function type, e.g. a lambda. The method
+    `call()` invokes that Cangjie function, passing its arguments over as values
+    of the mirrored Cangjie types _`T1`_`, `_`T2`_`,... `_`Tn`_, and returns
+    a mirror of the value of type _`U`_ returned from that Cangjie function
+    (or nothing if that function returns `Unit`).
 
-当前实现具有以下限制：
+  * The mirror type is a regular Java functional interface type in all aspects,
+    so not only a Java class may implement it, but lambda expressions
+    of a matching type are also compatible with it. When an instance of such
+    a Java class or a compatible lambda expression is passed over to Cangjie,
+    a value of the mirrored Cangjie function type,
+    `(`_`T1`_`, `_`T2`_`,... `_`Tn`_`) -> U`, gets synthesized and associated
+    with that Java lambda or class instance, and Cangjie code calling it ends
+    up calling the Java lambda or method.
 
-* 函数形参类型仅支持`Bool`和[支持的数值类型](#仓颉布尔类型与数值类型)。
+The current implementation has the following limitations:
 
-* 函数返回类型仅支持`Unit`、`Bool`和[支持的数值类型](#仓颉布尔类型与数值类型)。
+- Support for function parameter and return value types is limited to
+  [supported numeric types](#boolean-and-numeric-types), `Bool`, and `Unit`.
+  See [General Considerations](#cangjie-general-considerations)
+  for information about the handling of unsupported types.
 
-* cjc 在编译过程中并不会自动对所有遇到的函数类型自动生成其对应的镜像类型，如果需要生成某函数类型的镜像类型，必须由用户手动显式在[配置文件](#仓颉镜像生成配置)中列举该函数类型：
+- The compiler does _not_ mirror function types automatically as it encounters
+  their usages in the definitions of other mirrored entities. All such types
+  must be listed explicitly
+  in the [configuration file](#cangjie-mirror-generation-configuration):
 
     ```toml
     #   .   .  .
@@ -571,15 +836,30 @@ public class IntFuncBox {
     ]
     ```
 
-    当 cjc 编译时遇到一个理论上必须被镜像，但事实上并未被列举在配置文件的相应仓颉包的`[[packages]]`配置块中的`lambda_patterns`配置项中的函数类型时将报错。
+  The compiler reports an error upon encountering a function type that must be
+  mirrored, but is not listed in the `lambda_patterns` array for the
+  respective Cangjie package.
 
-* 仓颉函数类型是结构性的：两个函数类型如果拥有相同的函数签名，它们就是互相兼容的。然而，由不同仓颉包中的函数类型生成的 Java 函数式接口却是互相不兼容的，即便它们各自的原仓颉函数类型完全相同。如果出现这种同一个仓颉函数类型却通过多个仓颉包暴露给 Java 的使用场景时，可能会产生问题。
+- Cangjie function types are _structural_, that is, two function types are
+  compatible if they have the same number of parameters, their respective
+  parameter types are the same, and their return types are the same. This is
+  also true for [aliases](#type-aliases) of function types. However, two Java
+  functional interface types that mirror essentially the same Cangjie function
+  type used in different packages are incompatible. This may lead to a problem
+  if such a function type is cross-used among two or more Cangjie packages
+  exposed to Java.
 
-* 仓颉函数类型的实例之间是不可比较的，而 Java 函数式接口的实例却可比较，不过这一般来说不构成问题。
+- Cangjie function types are uncomparable, whereas their Java mirrors are.
+  That should pose no problems.
 
-### 仓颉`struct`类型
 
-`public`仓颉`struct`类型定义将被镜像为 Java `final class`类型定义，相应的 Java 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Java 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+
+## Struct Types
+
+Public Cangjie struct type definitions are mirrored into `final` Java class
+definitions. Those definitions are generated automatically by the `cjc`
+compiler and contain glue code that transfers control and data between
+Java and Cangjie. They should not be modified manually.
 
 ```cangjie
 package cj
@@ -617,14 +897,14 @@ final public class Vector {
 
     public Vector(int x, int y) {
         // Glue code that constructs an instance of the Cangjie Vector struct
-        // and associates it with the  Java  object 'this'
+        // and associates it with the Java object 'this'
     }
 
     public Vector add(Vector v) {
         // Glue code that retrieves the associated Cangjie Vector struct
         // instances associated with `this` and `v`, calls the add() instance
         // member function of the Cangjie-this, passing the Cangjie-v to it
-        // as a parameter, and, finally, creates a new  Java  Vector instance
+        // as a parameter, and, finally, creates a new Java Vector instance
         // and associates it with the result of the add() call.
     }
 
@@ -634,33 +914,58 @@ final public class Vector {
         // with 'v'/
     }
 
-    // 其他胶水代码
+    // More glue code
 }
 ```
 
-只有`public`仓颉`struct`的`public`成员和`public`普通构造函数将被镜像。
+Only public struct members and common constructors are mirrored.
 
-**成员函数**被镜像为 Java 方法，其中形参类型和返回类型均被替换为对应镜像类型。返回类型为`Unit`的成员函数被镜像为返回类型为`void`的 Java 方法。`public`和`static`修饰符将被保留。
+**Member functions** are mirrored into methods with the respective mirror
+types substituted for parameter types and return value type. Mirrors of
+member functions returning `Unit` are mirrored into `void` methods.
+The modifiers `public` and `static` are preserved.
 
-**普通构造函数**被镜像为 Java 构造方法，其中形参类型均被替换为对应镜像类型。此处普通构造函数同样包括被隐式定义的默认构造函数。`public`修饰符将被保留。
+**Common constructors** are mirrored into constructors with the respective
+mirror types substituted for parameter types. _This includes the default
+constructor that might have been implicitly declared._ The modifier `public`
+is preserved.
 
-当前版本对可被镜像的`struct`类型施加了诸多严格限制，可以说需要专门为 Java 互操作量身定制`struct`：
 
-* 成员变量不会被镜像，且 Java 侧不提供任何直接访问之的途径。该限制将在未来版本中移除，不过当前开发者可以通过在仓颉侧定义相应的`getter`成员函数作为临时解决方案。
+The current version imposes a number of severe limitations on the struct
+types that can be mirrored, to the extent that it may be fair to say
+that a struct type needs to be designed specifically for exposing it
+to Java:
 
-* `mut`实例成员函数的镜像尚在实现中。它们会被镜像，但生成的胶水层代码在某些情况下是错误的。
+* Member variables are not mirrored and no means for accessing them
+  is provided. This limitation will be removed in a future version.
+  In the meantime, you may add getter functions as a workaround.
 
-* 不支持被镜像的`struct`实现有除`Any`外的任何`interface`，否则将导致编译报错。
+* Mirroring of `mut` instance member functions is a work in progress.
+  They are mirrored, but incorrect glue code is generated in some
+  circumstances.
 
-* 支持通过单态化为泛型`struct`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* Mirroring of structs that implement interfaces other than `Any`
+  is not supported. An attempt to mirror a struct that explicitly
+  implements an interface results in a compile-time error.
 
-* 不支持被镜像的`struct`中包含`public`成员属性、操作符重载函数和主构造器，否则将导致编译报错。
+* Mirroring of generic structs is supported through monomorphization.
+  See [Generics](#cangjie-generics) for details.
 
-* 被镜像的`struct`中，如果被镜像的成员函数或构造函数的形参类型或返回类型中存在不支持的类型，将导致编译报错。
+* Mirroring of structs that contain public member properties,
+  member operator functions, or primary constructors is not supported.
+  An attempt to mirror a struct containing an entity of one or those
+  kinds results in a compile-time error.
 
-### 仓颉`class`与`interface`类型
+* An attempt to mirror a struct member function or constructor with an
+  unsupported parameter type, or a member function with an unsupported
+  return type, results in a compile-time error.
 
-仓颉`class`和`interface`类型定义分别被镜像为 Java 的`class`和`interface`定义。相应的 Java 侧类型定义由 cjc 在编译过程中自动生成，类型定义中包含胶水层代码，实现在 Java 和仓颉之间传递控制和数据。自动生成的胶水层代码原则上禁止手动修改。
+
+## Classes and Interfaces {#cangjie-classes-and-interfaces}
+
+Cangjie class and interface definitions are mirrored respectively into Java
+class and interface definitions. Those definitions contain automatically
+generated glue code and should not be altered in any way.
 
 ```cangjie
 package cj
@@ -706,7 +1011,7 @@ public class Singleton implements Valuable {
 
     public Singleton(long v) {
         // Glue code that constructs an instance of the Cangjie Singleton class
-        // and associates it with the  Java  object 'this'
+        // and associates it with the Java object 'this'
     }
 
     public long value() {
@@ -728,49 +1033,89 @@ public final class Zero extends Singleton {
 
     public Zero() {
         // Glue code that constructs an instance of the Cangjie Zero class
-        // and associates it with the  Java  object 'this'
+        // and associates it with the Java object 'this'
     }
 
     // Glue code
 }
 ```
 
-当前版本中，被镜像的类型的名称及其成员的名称，即便与 Java 关键字（例如`byte`）冲突，也将得以保留。
+Identifiers that serve as names of mirrored types and their members are
+currently preserved even if they clash with Java keywords such as `byte`.
 
-**成员函数**将被镜像为方法，其方法名与仓颉成员函数名保持一致，其形参类型和返回类型均被替换为相应镜像类型。返回类型为`Unit`的成员函数将被镜像为返回类型为`void`的方法。非`open`成员函数将被镜像为`final`方法。`public`和`protected`可见性修饰符将被直接保留（因为仓颉和 Java 的这两个可见性修饰符同名）。实例成员函数将被镜像为实例方法，静态成员函数则被镜像为静态方法。
 
-> **注意：**
->
-> 仓颉`interface`的静态成员函数将被镜像为实例方法。实现了该`interface`的仓颉`class`的镜像类型的胶水层代码当前存尚在问题。
+From the outside, the mirror types are normal Java classes and interfaces
+in all aspects: except for `final` classes, they can be extended/implemented,
+their methods can be overloaded with conventional Java methods in subtypes,
+their non-`final` methods can be overridden, types of their instances can
+be compared with `instanceof`, and so on.
 
-**成员属性**的`getter`和`setter`（若有）将被镜像为方法。`getter`镜像得到的方法的名称由`get`开头，`setter`镜像得到的方法的名称由`set`开头，之后跟随该成员属性名称，其首字母自动大写，以保证 Java 大驼峰命名规范。`getter`镜像得到的方法无参，返回类型为成员属性类型的镜像类型。`setter`镜像得到的方法有且仅有一个形参，形参类型为成员属性类型的镜像类型，返回类型为`void`。`public`和`protected`可见性修饰符将被直接保留（因为仓颉和 Java 的这两个可见性修饰符同名）。实例成员属性将被镜像为实例方法，静态成员属性则被镜像为静态方法。
+**Member functions** are mirrored into methods with the respective mirror
+types substituted for parameter types and return value type. Mirrors of
+member functions returning `Unit` are mirrored into `void` methods.
+Methods that mirror non-`open` member functions are modified with `final`.
+The modifiers `public` and `protected` (see below) are preserved. The modifier
+`static` is preserved for member functions of classes. Parameter names are
+preserved.
+**WARNING:** `static` interface member functions are currently mirrored
+into instance methods, but incorrect code is generated for mirrors of Cangjie
+classes that implement such interfaces.
 
-**构造函数**将被镜像为构造方法，其形参类型均被替换为相应镜像类型。由于未定义构造函数而隐式定义的构造函数同样也会被镜像。`public`可见性修饰符将被直接保留（因为仓颉和 Java 的这个可见性修饰符同名）。各形参名均将保持一致。
+**Member properties** themselves are not mirrored into anything, but their
+getters and setters are mirrored into methods. The names of those methods
+start respectively with "`get`" or "`set`", followed by the property name
+with the first letter capitalized to maintain camel case. A method mirroring
+a property getter is parameterless and returns a value of the type mirroring
+the property type, whereas a property setter mirror method is `void` and
+takes a single parameter of that same mirror type. The modifiers `public`,
+`protected` (see below) and `static` are preserved.
 
-总体来说只有以下实体将被镜像：
+**Constructors** are mirrored into constructors with the respective
+mirror types substituted for parameter types. _This includes the default
+constructor that might have been implicitly declared._ The modifier `public`
+is preserved. Parameter names are preserved.
 
-* 上述列举的`public`构造函数和成员。
-* `open`类中可见性为`protected`的`open`成员，包括`protected`的抽象成员函数，因为需要支持在 Java 侧对这类成员进行重写。
+Generally, only the following entities are subject to mirroring:
 
-**成员变量**和**操作符重载函数**当前不会被镜像。
+* `public` constructors and members of the above listed kinds
+* `protected` `open` members of `open` classes (this includes `protected`
+  abstract member functions), as they can be overridden on the Java side.
 
-与 Java 不同，仓颉不支持类型嵌套定义，故仓颉类型的镜像类型定义中，胶水代码可能会定义`private`的嵌套类型，但镜像类型一定不会对外暴露任何嵌套类型。
+**Member variables** and **Member operator functions** are currently not
+mirrored.
 
-当前版本对可被镜像的`class`和`interface`类型施加了诸多严格限制，可以说需要专门为 Java 互操作量身定制：
 
-* `abstract class`不会被镜像。
+As Cangjie does not support type nesting, unlike Java, mirror types never
+have nested types (except maybe for `private` member types used by glue code).
 
-* 成员变量不会被镜像，故 Java 侧不存在任何直接访问之的途径。该限制将在未来版本中移除，不过当前开发者可以通过在仓颉侧定义相应的`getter/setter`成员函数作为临时解决方案。
+The current version imposes a number of severe limitations on the class
+and interface types that can be mirrored, to the extent that it may be
+fair to say that such types need to be designed specifically for exposing
+them to Cangjie:
 
-* 支持通过单态化为泛型`class`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* `abstract` classes are not mirrored.
 
-* 不支持被镜像的`class`或`interface`中包含操作符重载函数，否则将导致编译报错。
+* Member variables are not mirrored and no means for accessing them
+  is provided. This limitation will be removed in a future version.
+  In the meantime, you may add getter/setter functions to Cangjie
+  classes manually as a workaround.
 
-* 被镜像的`class`或`interface`中，如果被镜像的成员或构造函数的形参类型或返回类型中存在不支持的类型，将导致编译报错。
+* Mirroring of generic classes is supported through monomorphization.
+  See [Generics](#cangjie-generics) for details.
 
-### 仓颉`enum`类型
+* Mirroring of member operator functions is not supported. An attempt to mirror
+  a class or interface containing such an entity results in a compile-time error.
 
-仓颉`enum`类型将被镜像为 Java 侧无任何`public`构造方法的`final class`。
+* An attempt to mirror a class member function or constructor with an
+  unsupported parameter type, or a member function with an unsupported
+  return type, results in a compile-time error.
+
+
+
+## Enums
+
+A Cangjie enum is mirrored into a `final` Java class without a `public`
+constructor.
 
 ```cangjie
 public enum TimeUnit {
@@ -783,51 +1128,74 @@ public enum TimeUnit {
 
 ```java
 public final class TimeUnit {
-    /* 胶水代码 */
+    /* Glue code */
 
     public static TimeUnit Year(long p1) {
          // Glue code creating a Cangjie Year(p1) enum and associating it
-         // with a newly created  Java  TimeUnit instance
+         // with a newly created Java TimeUnit instance
     }
 
     public static TimeUnit Month(long p1) {
          // Glue code creating a Cangjie Month(p1) enum and associating it
-         // with a newly created  Java  TimeUnit instance
+         // with a newly created Java TimeUnit instance
     }
 
     public static TimeUnit Year =
         // Glue code creating a Cangjie Year enum and associating it
-        // with a newly created  Java  TimeUnit instance
+        // with a newly created Java TimeUnit instance
 
     public static TimeUnit Month =
         // Glue code creating a Cangjie Year enum and associating it
-        // with a newly created  Java  TimeUnit instance
+        // with a newly created Java TimeUnit instance
 
-    /* 其他胶水代码 */
+    /* More glue code */
 }
 ```
 
-**无参构造器**将被镜像为静态字段，字段名与构造器名称保持一致，初始值为调用仓颉`enum`相应构造器的胶水代码。
+**Enum constructors without parameters** are mirrored into `static`
+variables initialized with instances of the class associated with
+the respective constructors of the Cangjie enum.
 
-**有参构造器**将被镜像为静态方法，方法名与构造器名称保持一致，形参类型均被替换为相应镜像类型，形参名称自动生成（`p1`、`p2`等）。
 
-**成员函数**将被镜像为方法，其方法名与仓颉成员函数名保持一致，其形参类型和返回类型均被替换为相应镜像类型。返回类型为`Unit`的成员函数将被镜像为返回类型为`void`的方法。`public`可见性修饰符将被直接保留（因为仓颉和 Java 的这个可见性修饰符同名）。实例成员函数将被镜像为实例方法，静态成员函数则被镜像为静态方法。
+**Enum constructors with parameters** are mirrored into `static` factory
+methods with the same names and matching types and numbers of parameters;
+names of parameters are synthesized (`p1`, `p2`, ...).
 
-**成员属性**的`getter`（`enum`禁止拥有`mut`成员属性）将被镜像为方法。`getter`镜像得到的方法的名称由`get`开头，之后跟随该成员属性名称，其首字母自动大写，以保证 Java 大驼峰命名规范。`getter`镜像得到的方法无参，返回类型为成员属性类型的镜像类型。`public`可见性修饰符将被直接保留（因为仓颉和 Java 的这个可见性修饰符同名）。实例成员属性将被镜像为实例方法，静态成员属性则被镜像为静态方法。
+**Member functions** are mirrored into methods with the respective mirror
+types substituted for parameter types and return value type. Mirrors of
+member functions returning `Unit` are mirrored into `void` methods.
+The modifiers `public` and `static` are preserved.
 
-当前版本对可被镜像的`enum`类型施加了以下若干限制：
+**Member properties** themselves are not mirrored into anything, but their
+getters (enums cannot have `mut` properties) are mirrored into methods.
+The names of those methods start with "`get`", followed by the property name
+with the first letter capitalized to maintain camel case. A method mirroring
+a property getter is parameterless and returns a value of the type mirroring
+the property type. The modifiers `public` and `static` are preserved.
 
-* 不支持被镜像的`enum`实现有除`Any`外的任何`interface`，否则将导致编译报错。
+The current version imposes a number of limitations on the enum that can be
+mirrored:
 
-* 支持通过单态化为泛型`enum`类型生成镜像，详情请参见[仓颉泛型](#仓颉泛型)章节。
+* Mirroring of enums that implement interfaces other than `Any`
+  is not supported. An attempt to mirror an enum that explicitly
+  implements an interface results in a compile-time error.
 
-* 不支持被镜像的`enum`中包含操作符重载函数，否则将导致编译报错。
+* Mirroring of generic enums is supported through monomorphization.
+  See [Generics](#cangjie-generics) for details.
 
-* 被镜像的`enum`中，如果被镜像的构造器或成员中存在不支持的类型，将导致编译报错。
+* Mirroring of enums that contain member operator functions is not supported.
+  An attempt to mirror an enum containing such an entity results
+  in a compile-time error.
 
-当前，通过`extend`为`enum`定义的成员会被视作`enum`原本定义的一部分来进行镜像。
+* An attempt to mirror an enum member function or constructor with an
+  unsupported parameter type, or a member function with an unsupported
+  return type, results in a compile-time error.
 
-递归定义的`enum`类型同样也是支持的：
+Members defined in enum extensions (`extend`) are currently mirrored as if they
+were members of the enum itself.
+
+
+Recursively defined enums are supported:
 
 ```cangjie
 public enum Peano {
@@ -843,23 +1211,24 @@ public enum Peano {
 }
 ```
 
-### 仓颉泛型
 
- Java 和仓颉的泛型存在本质性的差异，使得仓颉泛型无法被镜像为 Java 泛型。然而，仓颉泛型的具体实例化后的类型（例如`G<Int64>`）是具体类型，而具体类型则可以被镜像为非泛型的 Java 类型。像这样的具体类型被称为单态化了的泛型类型。
+## Generics {#cangjie-generics}
 
-> **注意：**
->
-> 当前版本存在以下限制：
->
-> * 当前能用于单态化泛型类型的类型实参仅支持基本数据类型。
->
-> * 禁止被镜像的成员函数拥有自己的类型形参。
+Java and Cangjie generics are fundamentally different, so the latter
+cannot be mirrored into the former. However, _specific instantiations_
+of parameterized Cangjie types, such as `G<Int64>`, are concrete types,
+and therefore can be mirrored into non-generic Java types.
+Such types are also called _monomorphized generics_.
 
-开发者可以通过在[配置文件](#仓颉镜像生成配置)中指定需要为哪些泛型类型的哪些实例化的具体类型生成镜像，详情请参见[泛型实例化](#为泛型仓颉类型进行镜像)。
+Use the respective
+[configuration file](#cangjie-mirror-generation-configuration)
+of the `cjc` compiler to specify which instantiations of which types
+to mirror. Refer to [Generics Instantiations](#generics-instantiations)
+for details.
 
-**例子:**
+**Example:**
 
-用 cjc 编译以下仓颉泛型`class`时：
+When compiling the following Cangjie class definition:
 
 ```cangjie
 public class G<T> {
@@ -869,7 +1238,8 @@ public class G<T> {
 }
 ```
 
-在配置文件相应`[[packages]]`配置块中添加以下内容：
+with the following lines in the respective section of the configuration
+file:
 
 ```toml
        .  .  .
@@ -879,13 +1249,21 @@ public class G<T> {
        .  .  .
 ```
 
- cjc 将分别为`G<Bool>`和`G<Int>`生成相应镜像类型，并分别命名为`GBool`和`GInt`。
+the compiler will generate Java mirror classes for `G<Bool>` and `G<Int>`,
+named respectively `GBool` and `GInt`.
 
-上述的完整操作说明请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
 
-### 仓颉侧`null`值处理
+Refer to the
+[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
+section for complete instructions.
 
-由于仓颉侧没有`null`值的概念，任何从 Java 侧传到仓颉侧的`null`值都将导致从仓颉侧抛出`NullPointerException`异常。
+
+
+
+## `null` Handling {#cangjie-null-handling}
+
+As Cangjie has no null type, passing `null` as a parameter to a mirrored
+Cangjie method results in a run-time exception in glue code:
 
 ```cangjie
 public class Node {
@@ -901,385 +1279,503 @@ public class Node {
 
 ```java
 public final class Node {
-    Node() { /* 胶水代码 */ }
-    Node(Node next) { /* 胶水代码 */ }
+    Node() { /* glue code */ }
+    Node(Node next) { /* glue code */ }
 }
    .  .  .
      Node list = new Node(null);   /* NullPointerException */
 ```
 
-反过来，无法通过返回类型为 Java 兼容类型的`public`成员函数从仓颉侧返回`null`值到 Java 侧。
+Conversely, there is currently no way to return `null` from a `public` member
+function of a Java-compatible type.
 
-> **注意：**
->
-> 当前版本支持自动的`Option<T>`装/拆包，`null`值被映射为`None`，但该装/拆包仅支持由 Java 引用类型镜像而来的仓颉类型，而反过来仓颉自定义类型则不支持。详情请参见[Java 侧`null`值处理](#java-null值处理)。
+**NOTICE:** The current version supports automatic `Option<T>` (un)wrapping
+with `null` mapped to `None`, but only for Java reference types mirrored
+to Cangjie, not the other way round. See [`null` Handling](#java-null-handling)
+for details.
 
-## 仓颉镜像生成参考
 
-仓颉 SDK 中提供了专门为 Java 类型生成镜像类型的独立工具`java-mirror-gen.jar`，也提供了专门为 Objective-C 类型生成镜像类型的独立工具`ObjCInteropGen`，而为仓颉类型生成镜像类型的职责则直接由 cjc 所承担：cjc 能够在编译仓颉源码的同时为仓颉类型生成镜像类型。
 
-### 命令行选项参考
+# Cangjie Mirror Generation Reference
 
-以下若干 cjc 编译选项将使能并控制如何在编译期为仓颉类型生成镜像类型：
+There is no standalone mirror generator facilitating the exposure of Cangjie
+types to Java and Objective-C code in the Cangjie SDK. The `cjc` compiler
+itself is capable of generating Java/Objective-C mirror type definitions
+for Cangjie types right when it compiles the Cangjie source code of those
+types.
 
-`--experimental`    _(必选)_
 
-当前版本下，该编译选项必须指定，因为整个跨平台互操作特性尚在开发中，待开发完毕后则将不再需要。
+## Command-line Syntax {#cjc-command-line-syntax}
 
-`--enable-interop-cjmapping=Java` _或_
-`--enable-interop-cjmapping=ObjC`        _(必选)_
+The following additional `cjc` options enable and control the generation
+of mirrors for Cangjie types during compilation:
 
-该编译选项将使能 cjc 为仓颉类型生成镜像类型，当值为` Java `时，生成的是 Java 版本的镜像类型；当值为`ObjC`时，则生成的是 Objective-C 版本的镜像类型。
+`--experimental`    _(mandatory)_
 
-`--output-interop-cjmapping-dir` _`pathname`_     _(可选)_
+This option must be specified as of the current version, since the whole
+interop feature is still in development, but will not be necessary
+in the future.
 
-该编译选项指定了一个目录， cjc 将把生成的包含镜像类型定义（ Java 或 Objective-C 源码）的源文件放置在该目录下。如果`pathname`所对应的路径尚不存在，cjc 将创建该目录；如果`pathname`路径已存在，且并非目录，cjc 则将不进行镜像类型生成并报错。
+`--enable-interop-cjmapping=Java` _or_  
+`--enable-interop-cjmapping=ObjC`        _(mandatory)_
 
-该编译选项可选，如果未指定，则默认为`./java-gen`或`./objc-gen`，取决于`--enable-interop-cjmapping`选项值为` Java `或`ObjC`。
+Enables the generation of mirror type definitions for Cangjie types
+respectively in the form of Java or Objective-C source code files.
 
-`--import-interop-cj-package-config-path` _`pathname`_     _(可选)_
+`--output-interop-cjmapping-dir` _`pathname`_     _(optional)_
 
-该编译选项指定了所采用的用于控制镜像生成的配置文件的路径，有关配置文件详情请参见[仓颉镜像生成配置](#仓颉镜像生成配置)章节。
+The _`pathname`_ must point to a directory into which the `cjc`
+compiler shall place its output Java or Objective-C source code files
+containing mirror type definitions. If _`pathname`_ does not point to
+an existing file system location, `cjc` attempts to create a directory there.
+If _`pathname`_ points to something other than a directory, `cjc`
+terminates with an error message.
 
-### 仓颉镜像生成配置
+The default value of _`pathname`_ is either `./java-gen` or `./objc-gen`,
+depending on whether `--enable-interop-cjmapping` is set respectively
+to "`Java`" or "`ObjC`".
 
-仓颉镜像生成配置文件是符合[TOML](https://toml.io)语法的纯文本文件，其中指定了：
+`--import-interop-cj-package-config-path` _`pathname`_     _(optional)_
 
-* 需要为哪些非泛型仓颉类型生成镜像类型
-* 需要为哪些泛型仓颉类型进行单态化以生成相应非泛型的镜像类型
+The _`pathname`_ must point to a configuration file that defines which
+Cangjie types are exposed to Java or Objective-C as mirror types. See
+[Cangjie Mirror Generation Configuration](#cangjie-mirror-generation-configuration)
+for details.
 
-#### 默认配置
 
-在`[default]`表下可以指定默认配置。仓颉镜像生成的操作单元是仓颉包，如果某仓颉包相应的[单包配置](#单包配置)表中未指定某配置值，则该配置将默认采用[默认配置](#默认配置)中相应的值；如果在[默认配置](#默认配置)中也没有指定该配置项，则将采用该配置项的默认值。
+## Cangjie Mirror Generation Configuration
 
-在默认配置中可以设置以下配置项：
+A Cangjie mirror generation configuration file is a plain text file
+in the [TOML](https://toml.io) syntax. It specifies:
 
-`APIStrategy`    _(可选)_
+  * Non-generic Cangjie types to mirror
+  * Specific instances of generic Cangjie types to mirror
 
-该配置项的值为字符串，决定是否为所有`public`实体生成镜像。该配置项的有效值为：
 
-* `"Full"` _(默认)_ - 只为不被列举在`excluded_apis`黑名单中的所有`public`实体生成镜像
-* `"None"` - 只为列举在`included_apis`白名单中的所有`public`实体生成镜像
+### Defaults
 
-`GenericTypeStrategy`    _(可选)_
+The `[default]` table defines the default settings for packages for which
+either no [package-specific settings](#packages) are provided at all, or those
+settings don't override the defaults.
 
-该配置项的值为字符串，决定是否为泛型实体生成镜像。该配置项的有效值为：
+**Properties:**
 
-* `"Partial"` - 根据`generic_object_configuration`配置项为泛型实体生成镜像
-* `"None"` _(默认)_ - 所有泛型实体均不为其生成镜像
+`APIStrategy`    _(optional)_
 
-#### 单包配置
+A string defining whether all public entities defined in a package shall be
+mirrored by default or not. Valid values:
 
-在`[[packages]]`中进行单包配置，首先指定一个包名，接下来该表中的所有配置项均仅对该包生效。该配置块中支持以下配置项：
+* `"Full"` _(default)_ - all public entities shall be mirrored by default
+* `"None"` - no public entities shall be mirrored by default
 
-* 控制 cjc 为哪些仓颉类型生成或不生成镜像类型的白名单或黑名单。
-* 针对单包的镜像生成策略（如果需要有别于[默认配置](#默认配置)）。
-* 针对单包的泛型类型镜像生成策略（如果需要有别于[默认配置](#默认配置)）。
-* 指定需要为哪些泛型类型单态化为哪些具体类型。
+`GenericTypeStrategy`    _(optional)_
 
-该配置块支持以下配置项：
+A string defining whether generic public entities shall be mirrored
+by default or not. Valid values:
 
-`name`    _(必选)_
+* `"Partial"` - instantiations explicitly listed in
+  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
+* `"None"` _(default)_- no generic public entities shall be mirrored by default
 
-该配置项的值为字符串形式的包名，说明其所在`[[packages]]`配置块对哪个仓颉包单独生效，例如：
+
+### Packages
+
+Each entry in the `[[packages]]` array specifies the name of a separate
+source Cangjie package, and, optionally:
+
+* A filter that defines which types from that package to include in,
+  or exclude from, the set of mirrors
+* API mirroring strategy (if other than the [default](#defaults))
+* Generic type mirroring strategy (if other than the [default](#defaults))
+* Specific generic type instantiations to mirror
+
+**Properties:**
+
+`name`    _(mandatory)_
+
+A string containing the name of the _source_ Cangjie package to which
+the settings in this `[[packages]]` array entry apply.
+
+Example:
 
 ```toml
-[[packages]]
 name = "com.example.VectorMath"
 ```
 
-`APIStrategy`    _(可选)_
+`APIStrategy`    _(optional)_
 
-该配置项的值为字符串，决定是否为所有`public`实体生成镜像。该配置项的有效值为：
+A string defining whether all public entities of the given package shall
+be mirrored by default or not. Valid values:
 
-* `"Full"` - 只为不被列举在`excluded_apis`黑名单中的所有`public`实体生成镜像
-* `"None"` - 只为列举在`included_apis`白名单中的所有`public`实体生成镜像
+* `"Full"` - all public entities shall be mirrored by default
+* `"None"` - no public entities shall be mirrored by default
 
-该配置项无默认值，如果该配置项未被指定，[默认配置](#默认配置)中的相应配置项将被采用。
+If this property is absent, the [default](#defaults) value is used.
 
-`included_apis`    _(可选)_
+`included_apis`    _(optional)_
 
-该配置项的值为字符串数组，数组中每字符串是一个希望被生成镜像的`public`实体的名称。如果一个类型的限定名称被包含在这个数组中，那么该类型也会被生成镜像。例如：
+An array of strings each containing the name of a public entity that
+needs to be mirrored. If the array contains the qualified name of a type
+member, the type itself is also mirrored. Either `included_apis` or
+`excluded_apis` may be present in a given `[[packages]]` array entry,
+but not both.
+
+Example:
 
 ```toml
 included_apis = [
-   "Vector.product", // 此处 Vector 类型没有被单独指定，但依然会为 Vector 类型其生成镜像
+   "Vector.product", // Vector also exposed
    "HiddenV"
 ]
 ```
 
-`excluded_apis`    _(可选)_
+`excluded_apis`    _(optional)_
 
-该配置项的值为字符串数组，数组中每字符串是一个**不**希望被生成镜像的`public`实体的名称。例如：
+An array of strings each containing the name of a public Cangjie entity
+defined in the given package that has to be _not_ mirrored.
+Either `included_apis` or `excluded_apis` may be present in a given
+`[[packages]]` array entry, but not both.
+
+
+Example:
 
 ```toml
 excluded_apis = [
-   "Vector.product", // 即便 Vector 类型将被生成镜像，但 product 成员却依然不会被生成镜像
+   "Vector.product", // Even if Vector is exposed, product is not
    "HiddenV"
 ]
 ```
 
-> **注意：**
->
-> `excluded_apis`和`included_apis`两个配置项之间互斥，在一个`[[packages]]`表中不能被同时指定。换句话说，在一个`[[packages]]`配置块中，当`APIStrategy`为`Full`时，默认为所有`public`实体生成镜像，进而可以通过配置`excluded_apis`黑名单来排除其中不需要为其生成镜像的实体，但禁止配置`included_apis`；当`APIStrategy`为`None`时，默认不为任何`public`实体生成镜像，进而可以通过配置`included_apis`白名单来选定需要为哪些实体生成镜像，但禁止配置`excluded_apis`。
+`GenericTypeStrategy`    _(optional)_
 
-`GenericTypeStrategy`    _(可选)_
+A string defining whether generic public entities defined in this package
+shall be mirrored by default or not. Valid values:
 
-该配置项的值为字符串，决定是否为泛型实体生成镜像。该配置项的有效值为：
+* `"Partial"` - instantiations explicitly listed in
+  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
+* `"None"` - no generic public entities shall be mirrored by default
 
-* `"Partial"` - 根据`generic_object_configuration`配置项为泛型实体生成镜像
-* `"None"` _(默认)_ - 所有泛型实体均不为其生成镜像
+If this property is absent, the [default](#defaults) value is used.
 
-该配置项无默认值，如果该配置项未被指定，[默认配置](#默认配置)中的相应配置项将被采用。
+`lambda-patterns`    _(optional)_
 
-`lambda_patterns`    _(可选)_
+A (possibly empty) array of tables, each describing a function type
+that is used by one or more of the exposed entities and therefore
+must be mirrored.
 
-该配置项的值为一个数组，数组元素是表，每个表描述了一个函数类型。这些被描述的函数类型都是被镜像的实体所用到的，于是镜像类型中一定也会用到这些函数类型的镜像类型，故这些函数类型本身也必须被生成镜像。如果在镜像生成过程中发现存在未被指定在`lambda_patterns`中的函数类型，则将导致编译报错。
+Each entry of the array has the following  mandatory property:
 
-用于描述一个函数类型的表包含以下若干属性：
+`signature`    _(mandatory)_
 
-`signature`    _(必选)_
+A string containing a Cangjie function type, such as "(Int) -> Int".
 
-该属性值为字符串，包含一个仓颉函数签名，例如`(Int) -> Int`。
+`types`
 
-示例：
+An array of strings, each containing valid type arguments for the generic
+type the name of which is specified in the `name` property.
 
-```toml
-lambda_patterns = [
-    { signature = "(Int) -> Int" },
-    { signature = "(Float64, Float64) -> Float64" }
-]
-```
-
-详情请参见[仓颉函数类型](#仓颉函数类型)章节。
-
-`tuple_configuration`    _(可选)_
-
-该配置项的值为一个数组，数组元素是表，每个表描述了一个元组类型。这些被描述的元组类型都是被镜像的实体所用到的，于是镜像类型中一定也会用到这些元组类型的镜像类型，故这些元组类型本身也必须被生成镜像。如果在镜像生成过程中发现存在未被指定在`tuple_configuration`中的元组类型，则将导致编译报错。
-
-示例：
+Example:
 
 ```toml
-tuple_configuration = [
-    "(Int, Bool)",
-    "(Float64, Float64, Float64)"
-]
+tuple_configuration = [ { signature = "(Int) - > Int" },
+                        { signature = "(Float64, Float64) -> Float64" }
+                        ]
 ```
 
-详情请参见[仓颉元组](#仓颉元组类型)章节。
+See [Function Types](#functio0n-types) for details.
 
-`generic_object_configuration`    _(可选)_
+`tuple_configuration`    _(optional)_
 
-该配置项的值是一个数组，数组中的每一个元素是一个表，每个表指定了针对一个泛型类型，需要为其生成哪些具体类型的镜像类型。一个表中包含以下属性：
+A list of strings, each containing a tuple type that is used by one
+or more of the exposed entities and therefore must be mirrored.
+
+Example:
+
+```toml
+tuple_configuration = [ "(Int, Bool)",
+                        "(Float64, Float64, Float64)"]
+```
+
+See [Tuple](#tuple) for details.
+
+
+`generic_object_configuration`    _(optional)_
+
+A list of tables defining the specific instantiations of generic entities
+to be mirrored. See [Generics Instantiations](#generics-instantiations)
+for details.
+
+
+#### Generics Instantiations
+
+The `generic_object_configuration` property of a `[[packages]]` array
+entry defines which specific instantiations of generic Cangjie entities
+will be mirrored.
+
+The value of the property is a (possibly empty) array of tables.
+Each entry of the array has the following two mandatory properties:
 
 `name`
 
-该属性是一个`public`类型的简单名称，该类型需定义在名为其所在`[[packages]]`的`name`的包中。
+A string containing the name of a public generic Cangjie type defined
+in the current package.
 
 `type_arguments`
 
-该属性是一个字符串数组，每个字符串是一个**有效的**类型实参列表。
+An array of strings, each containing valid type arguments for the generic
+type the name of which is specified in the `name` property.
 
-> **注意：**
+**NOTE:** The current version only supports numeric types, `Bool`, and
+`Unit` as type arguments for monomorphization. Specifying any other type
+in a `types` array element results in a compile time error.
+
+> Simply put, "valid" means that the type/function can be instantiated
+> with the given string between the angle brackets `< >`.
 >
-> 当前版本仅支持`Unit`、`Bool`和数值类型作为此处用于泛型单态化的类型实参，如果用到了任何不支持的类型将导致编译报错。
+> Consider the following Cangjie class:
+>
+> ```cangjie
+> public class G<T> {
+>     public func f(t: T): Unit {}
+>     public func f(b: Bool): Unit {}
+> }
+> ```
+>
+> `G<Bool>` cannot be instantiated, so
+>
+> ```toml
+> generic_object_configuration  = [
+>     { name = "G", types = ["Bool"] }
+> ]
+> ```
+> would trigger a compiler error.
 
-上述中所谓“有效的”类型实参列表，简单来说，就是要求相应的泛型类型理论上能够使用该类型实参列表进行实例化。
+**Examples:**
 
-请考虑以下代码片段：
+1. Given the following Cangjie definitions
 
-```cangjie
-public class G<T> {
-    public func f(t: T): Unit {}
-    public func f(b: Bool): Unit {}
-}
-```
+   ```cangjie
+   public class G<T> { . . . }
+   public func f<T>(): Unit { . . . }
+   public struct S<T,U> { . . . }
+   ```
 
-`G<Bool>`理论上无法被实例化（否则将导致存在两个完全一样的成员函数），于是以下配置将导致编译报错：
+   the property
 
-```toml
-generic_object_configuration  = [
-    { name = "G", types = ["Bool"] }
-]
-```
+   ```toml
+   generic_object_configuration  = [
+       { name = "G", type_arguments = ["Int"] },
+       { name = "f", type_arguments = ["Int", "Bool"] },
+       { name = "S", type_arguments = ["Int, Bool"] }
+   ]
+   ```
 
-使用示例：
+   instructs the `cjc` compiler to generate mirrors for the following
+   instantiations:
 
-1. 假设存在以下仓颉类型定义：
+   ```cangjie
+       G<Int>
+       f<Int>
+       f<Bool>
+       S<Int, Bool>
+   ```
 
-    ```cangjie
-    public class G<T> { . . . }
-    public func f<T>(): Unit { . . . }
-    public struct S<T, U> { . . . }
-    ```
+   and name them like `GInt`, `fInt`, and so on.
 
-    以及以下配置：
 
-    ```toml
-    generic_object_configuration  = [
-        { name = "G", type_arguments = ["Int"] },
-        { name = "f", type_arguments = ["Int", "Bool"] },
-        { name = "S", type_arguments = ["Int, Bool"] }
-    ]
-    ```
+2. Given this Cangjie source code file:
 
-     cjc 根据该配置将为以下单态化了的泛型类型生成镜像类型：
+   ```cangjie
+   package cjworld
 
-    ```cangjie
-    G<Int> // 镜像类型名为 GInt
-    f<Int> // 镜像类型名为 fInt
-    f<Bool> // 镜像类型名为 fBool
-    S<Int, Bool> // 镜像类型名为 SIntBool
-    ```
+   import interoplib.interop.*
 
-2. 假设存在以下仓颉源文件：
+   public class Composer<T,U,V> {
+       public static func compose(f: (T) -> U, g: (U) -> V): (T) -> V {
+           { t: T => g(f(t)) }
+       }
+   }
+   ```
 
-    ```cangjie
-    package cjworld
+   and the following [configuration file](#cangjie-mirror-generation-configuration):
 
-    import interoplib.interop.*
+   ```toml
+   [[package]]
+   name = "cjworld"
+   APIStrategy = "Full"
+   GenericTypeStrategy = "Partial"
 
-    public class Composer<T, U, V> {
-        public static func compose(f: (T) -> U, g: (U) -> V): (T) -> V {
-            { t: T => g(f(t)) }
-        }
-    }
-    ```
+   lambda_patterns = [
+     { signature = "(Int) -> Float64" },
+     { signature = "(Float64) -> Bool" }
+   ]
 
-    以及以下[配置文件](#仓颉镜像生成配置)：
+   generic_object_configuration = [
+       { name = "Composer", type_arguments = ["Int64, Float64, Bool"] },
+       { name = "Composer<Int64, Float64, Bool>", symbols = ["compose"] },
+   ]
+   ```
 
-    ```toml
-    [[package]]
-    name = "cjworld"
-     API Strategy = "Full"
-    GenericTypeStrategy = "Partial"
+   the compiler will generate the following non-parameterized mirror types:
 
-    lambda_patterns = [
-        { signature = "(Int) -> Float64" },
-        { signature = "(Float64) -> Bool" }
-    ]
+   - Functional interface `Int64ToFloat64`:
 
-    generic_object_configuration = [
-        { name = "Composer", type_arguments = ["Int64, Float64, Bool"] },
-        { name = "Composer<Int64, Float64, Bool>", symbols = ["compose"] },
-    ]
-    ```
+     ```java
+     // .  .  .
+     @FunctionalInterface
+     public interface Int64ToFloat64
+     {
+         public double call(long p1);
+         // .  .  .
+     }
+     ```
 
-     cjc 根据该配置文件将生成以下非泛型的镜像类型：
+   - Functional interface `Float64ToBool`
 
-    * Java 函数式接口`Int64ToFloat64`：
+     ```java
+     // .  .  .
+     @FunctionalInterface
+     public interface Float64ToBool
+     {
+         public boolean call(double p1);
+         // .  .  .
+     }
+     ```
 
-        ```java
-        // .  .  .
-        @FunctionalInterface
-        public interface Int64ToFloat64 {
-            public double call(long p1);
-            // .  .  .
-        }
-        ```
+   - Class `ComposerInt64Float64Bool`:
 
-    * Java 函数式接口`Float64ToBool`：
+     ```java
+     // .  .  .
+     public class GenClass3Int64Float64Bool {
+         // .  .  .
+         public static Int64ToBool compose(Int64ToFloat64 f, Float64ToBool g) {
+             // .  .  .
+         }
+         // .  .  .
+     }
+     ```
 
-        ```java
-        // .  .  .
-        @FunctionalInterface
-        public interface Float64ToBool {
-            public boolean call(double p1);
-            // .  .  .
-        }
-        ```
 
-    * Java 类`ComposerInt64Float64Bool`：
+# Using Java in Cangjie
 
-        ```java
-        // .  .  .
-        public class ComposerInt64Float64Bool {
-            // .  .  .
-            public static Int64ToBool compose(Int64ToFloat64 f, Float64ToBool g) {
-                // .  .  .
-            }
-            // .  .  .
-        }
-        ```
+In the first interoperation scenario, described
+in [Using Cangjie in Java](#using-cangjie-in-java), Cangjie types are mapped
+to Java types that behave just like any conventional Java classes
+and interfaces: non-`final` classes can be extended, interfaces implemented,
+instances created and passed around freely, and so on.
 
-## 在仓颉侧使用 Java
+In contrast, due to certain technical limitations imposed by the Android
+Runtime (JVM), any uses of Java types in Cangjie must be fully confined
+to the code of constructors and member functions
+of [interop classes](#interop-classes).
+Also, mirror type declarations for Java classes and interfaces are
+generated by a [standalone tool](#java-mirror-generator-reference),
+not the `cjc` compiler.
 
-在第一种使用场景中，仓颉侧定义的类型被镜像后，在 Java 侧可以完全自然地使用，例如对非`final`的`class`进行`extends`，`implements`仓颉镜像`interface`，实例化并作为入参四处传递等，详细介绍请参见[在 Java 侧使用仓颉](#在-java-侧使用仓颉)。
+The process of enabling this second scenario is therefore more involved. Here
+are the steps you need to take:
 
-然而相比之下，由于安卓运行时环境（JVM）的技术限制，如果想在仓颉侧使用 Java 的类型，就必须将仓颉的代码逻辑完全限制在仓颉[互操作类](#互操作类)的构造函数和成员函数内部。另外，与由 cjc 编译仓颉源码为仓颉类型生成 Java 侧可用的镜像类型不同， CJMP 提供了一个[独立工具](#java-镜像生成器参考)来为 Java 类型生成仓颉侧可用的镜像类型。
+1. Design the interoperability layer in terms of _Java_ classes and methods.
 
-因此，第二种使用场景的具体操作步骤相较于第一种使用场景来说更为复杂，具体如下：
+   developer → `interop layer design` (Java _pseudo-code_)
 
-1. 基于 Java 类和方法，设计互操作胶水层。
-   开发者 -> 互操作胶水层设计（ Java 伪代码）
+2. Generate mirror declarations for any existing Java classes and interfaces
+   used in the design of the interoperability layer.
 
-2. 根据上一步设计的胶水层，为所有现存相关的 Java 类和接口借助 Java 镜像生成器生成仓颉侧可用的`@JavaMirror`类型定义。
-    `.class` - Java 镜像生成器-> `.cj`（镜像类型定义）
+   `.class` → mirror generator → `.cj` (mirrors)
 
-3. 使用仓颉编写实现互操作层，仓颉代码中按需使用`@JavaMirror`镜像类型，例如创建镜像类型的实例，调用其成员函数等。
-    互操作胶水层设计 + `.cj`（镜像类型定义）-开发者-> `.cj`（胶水层实现）
+3. Write the classes constituting the interoperability layer _in Cangjie_.
+   Use the mirrored Java types as needed: create instances, call methods, etc.
 
-4. 将`@JavaMirror`镜像类型定义和第 3 步中使用仓颉实现的互操作层一起使用 cjc 编译，编译将得到：
-    * 包含互操作层逻辑的动态库。
-    * 若干 Java 侧可用的镜像类型定义源文件。
-    `.cj`（镜像类型定义 + 胶水层实现）- cjc -> `.so` + `.java`（胶水层镜像类型定义）
+   `interop layer design` + `.cj` (mirrors) → developer → `.cj` (interop layer)
 
-5. 将以下中间产物添加进 Android Studio 工程:
-    * 第 4 步中由 cjc 编译产生的若干`.java`源文件，其中包含后续 Java 侧可能用到的互操作胶水层代码。
-    * 第 4 步中由 cjc 编译得到的`.so`动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-    * 仓颉 SDK 中所有必要的运行时库，包括`.so`和`.jar`等。
+4. Compile the interop classes and mirror type declarations together with `cjc`.
+   `cjc` will generate:
 
-    接着，在 Java 侧编写必要的对胶水层中提供的镜像类型的实例化和方法调用，完成后重构建工程即可。
-    Android Studio 工程 + `.java` + `.jar` + `.so` -安卓工具链-> `.apk`
+   * the necessary glue code for all uses of the mirror types.
+   * the actual Java source for the Java part of the interoperability layer.
 
-[从零实现胶水层](#从零实现胶水层)章节将通过一个端到端的例子来详细说明上述流程。
+   `.cj` (mirrors + interop layer) → `cjc`  → `.so` + `.java` (interop layer)
 
-### 从零实现胶水层
+5. Add to your Android project:
 
-#### 第一步：设计互操作胶水层
+    * `.java` files generated by `cjc`
+    * `.so` file generated by `cjc`
+    * runtime libraries (`.so` and `.jar`) from the Cangjie SDK
 
-在这一步，开发者需要**从 Java 源码的视角**，来设计一到若干个[互操作类](#互操作类)。互操作类由仓颉编写实现，但最终会由 cjc 编译生成镜像类以便 Java 侧使用，因此在 Java 侧看来，并不关心互操作类的具体实现，而只需要关心 Java 侧需要哪些功能。因此，对每个[互操作类](#互操作类)，开发者只需要考虑以下要点：
+    then insert the necessary uses of the interop layer in the Java source
+    and rebuild the project.
 
-* 互操作类应该放在哪个 Java 包中？
-* 互操作类是默认继承`java.lang.Object`，还是需要继承其他 Java 类？
-* 互操作类是否需要实现任何 Java 接口？
-* 互操作类中需要拥有哪些`public`/`protected`构造方法/成员方法？开发者目前只需要知道它们的功能以确定其函数签名，真正的实现则是在后续步骤中通过仓颉编写。
+    Android project + `.java`, `.jar`, `.so` → Android toolchain → `.apk`
 
-另请参见[互操作类的特性与限制](#互操作类的特性与限制)。
+The sections
+[Initial Interop Class Creation Workflow](#initial-interop-class-creation-workflow)
+and [Calling Java From Cangjie](#calling-java-from-cangjie)
+describe the above process in detail with an end-to-end example.
 
-**例子：**
 
-假设，开发者希望在 Java 侧通过调用一个静态方法来将控制流从 Java 侧切换到仓颉侧，这个静态方法的名称为`m`，接收 3 个形参，形参类型分别为`com.example.a.A`、`java.lang.String`和`int`，并返回类型为`com.example.b.B`的值。开发者还希望这个静态方法属于一个叫做`Interop`的类，且该类位于名为`cjworld`的 Java 包中，不继承任何 Java 类，也就是说，默认继承`java.lang.Object`，也不实现任何接口。
+## Initial Interop Class Creation Workflow
 
-根据上述描述，事实上已经确定了，未来在步骤四中通过 cjc 为互操作类生成的镜像类型定义的骨架如下：
+### Step 1: Design the interoperability layer
+
+On this step, you design the API of one or more interop classes
+_from the Java code perspective_, i.e. you need to decide, for each interop
+class:
+
+* To which Java package it will belong;
+* What Java class it will extend, if not the default `java.lang.Object`;
+* Which Java interface(s) it will implement, if any; and
+* What `public`/`protected` methods and/or constructors it will have.
+  You only need to know the types of parameters and, for methods, their names
+  and return value types; the implementations you will write in Cangjie.
+
+See also
+[Features and Limitations of Interop Classes](#features-and-limitations-of-interop-classes).
+
+**Example:**
+
+Suppose we want to pass control from Java to Cangjie by invoking a certain
+`static` method `m()` accepting parameters of types `com.example.a.A`,
+`java.lang.String`, and `int`, and returning a value of type `com.example.b.B`.
+We want that method to belong to a class called `Interop` that extends `Object`
+and belongs to the package `cjworld`.
+
+In other words, we have determined that the Java source code file that we
+want to be generated on step 4 should have the following content:
 
 ```java
-//  Java 包名为`cjworld`
-package cjworld;
+package cjworld
 
-// 为定义静态方法`m`，需要依赖以下两个其他包中定义的类型
 import com.example.a.A;
 import com.example.b.B;
 
-// 互操作类在 Java 侧的镜像类型定义
 public class Interop {
-    /* 胶水代码 */
+    /* glue code */
     public static B m(A a, String s, int i) {
-        /* 调用仓颉侧静态成员函数`m`实现逻辑的胶水代码 */
+        /* glue code invoking the Cangjie implementation of m() */
     }
-    /* 其他胶水代码 */
+    /* more glue code */
 }
 ```
 
-#### 第二步：生成镜像类型声明
 
-现在，切换到仓颉侧源码的视角，开发者需要获得在仓颉侧编写互操作类所依赖的所有 Java 类型的镜像类型，根据上一步可知具体依赖哪些 Java 类型：互操作类的父类型、形参类型、返回类型，甚至可能还有这些类型本身所依赖的类型。
+### Step 2: Generate mirror type declarations
 
-> **注意：**
->
-> CJMP 互操作库中预置了`java.lang.Object`、`java.lang.String`和泛型 Java 数组类型的镜像类型，而 Java 基本数据类型也无需镜像，在仓颉侧使用对应的仓颉基本数据类型即可。如果开发者的互操作类中并没有用到除了前述这几种类型外的其他 Java 类型，那么实际上可以直接跳过步骤二。
+Now, you need [mirror type](#mirror-types) declarations for all Java reference
+types on which your interop classes depend: their supertypes, types of their
+method and constructor parameters, etc., and, possibly, the dependencies of
+those types.
 
-以下说明了如何使用[Java 镜像生成器](#java-镜像生成器参考)来为依赖的 Java 类型生成镜像类型：
+**NOTE:** Mirror classes for `java.lang.Object` and `java.lang.String` are
+provided in the interop library, as well as a generic mirror class representing
+Java arrays. Skip this step if the methods and constructors of your interop
+classes only pass to/receive from Cangjie values of primitive Java types,
+`java.lang.Object`, `java.lang.String`, and/or arrays of the foregoing.
+
+Use the [Java mirror generator](#java-mirror-generator-reference) included
+in the Cangjie SDK to produce those mirror type declarations as follows:
+
+**Command line:**
 
 ```bash
 java-mirror-gen \
@@ -1289,7 +1785,7 @@ java-mirror-gen \
     <names-of-mirrored-types>
 ```
 
-或者这样，指定 JAR 包：
+or
 
 ```bash
 /path/to/jdk/21/bin/java \
@@ -1300,27 +1796,40 @@ java-mirror-gen \
     -jar <jar-file>
 ```
 
-在上述命令中：
+where
 
-* `<package-name>` 指定了为 Java 类型生成的镜像类型希望的包名。之所以镜像类型的包名不一定能与原 Java 类型的报名保持一致，与[循环导入依赖](#处理循环导入依赖)有关。
+* `<package-name>` is the desired name of the Cangjie package for all
+  mirrored types.
 
-* `<full-application-classpath>`指定了本次镜像生成所采用的类路径，包括安卓 SDK 的`android.jar`，和安卓项目构建得到的`App.jar`等，类路径之间由冒号分隔。
+* `<full-application-classpath>` is the complete classpath of the application
+  that is used during its build, including `android.jar`.
 
-* `<output directory>` 指定了生成的包含镜像类型的仓颉源文件希望被放置在哪个目录下，例如`./src/cj`。
+* `<output directory>` is the pathname of the directory where the Cangjie source
+  files containing mirror type declarations will be placed, such as `./src/cj`.
 
-* `<names-of-mirrored-types>`是一到多个 Java 引用类型的完全限定名，之间以空格分隔。这些类型是在互操作类设计过程中开发者所识别出来的除了`java.lang.Object`、`java.lang.String`和 Java 数组类型外的其他 Java 引用类型，`java-mirror-gen`将为这些类型生成镜像。
+* `<names-of-mirrored-types>` are the _fully qualified names_ of the Java
+  reference types on which your interop class design depends,
+  other than `java.lang.Object`, `java.lang.String` or arrays.
 
-* `<jar-file>`是单个`jar`文件的路径，这个`jar`中的所有`.class`文件中的`public`的`class`和`interface`均将被生成镜像，且这些类型所依赖的类型（在`<full-application-classpath>`的类路径下找到）也会被生成镜像。
+* `<jar-file>` is the pathname of a single jar file. All `public` classes and
+  interfaces, the `.class` files of which it contains, are mirrored, along
+  with any dependencies found along the `<full-application-classpath>`.
 
-**例子:**
+**Example:**
 
-延续之前的例子，开发者注意到将定义的互操作类`cjworld.Interop`依赖如下类型：
+Continuing the above example, we notice that our class `cjworld.Interop` depends
+on:
 
-* 父类型`java.lang.Object`
-* 静态成员函数`m`的形参类型`com.example.a.A`、`java.lang.String`和`int`
-* 静态成员函数`m`的返回类型`com.example.b.B`
+* `java.lang.Object` as a superclass;
+* `com.example.a.A`, `java.lang.String`, and `int` as parameter types; and
+* `com.example.b.B` as a return value.
 
-对于上述类型，开发者并不需要为 Java 基本数据类型`int`生成镜像类型，而`java.lang.Object`和`java.lang.String`这两个 Java 类型的镜像类型则在 CJMP 互操作库中预置了。所以事实上开发者只需要为`com.example.a.A`和`com.example.b.B`这两个 Java 类型生成镜像类型即可。假设我们希望将生成的镜像类型放在名为`javaworld`的仓颉包中，以下是一条 Java 镜像生成器的命令行调用：
+We do not need to mirror primitive types such as `int`, and the classes
+`java.lang.Object` and `java.lang.String` are pre-mirrored. This leaves us
+with just the two `com.example` classes to mirror. Suppose we want them
+to appear in the package `javaworld`.
+
+Mirror generator command line with a fictional application classpath:
 
 ```bash
 java-mirror-gen \
@@ -1330,22 +1839,29 @@ java-mirror-gen \
     com.example.a.A com.example.b.B
 ```
 
-上述命令将生成`src/cj/javaworld/src/A.cj`和`src/cj/javaworld/src/B.cj`两个文件，其中分别包含了两个 Java 类型的镜像类型声明。如果这两个 Java 类型还依赖其他需要生成镜像类型的 Java 类型，则会同时生成在相同目录下。
+This will generate files `src/cj/javaworld/src/A.cj` and `src/cj/javaworld/src/B.cj`,
+_plus_ mirror type declarations for any dependencies those two Java types may have.
 
-#### 第三步：实现互操作类
 
-现在开始真正为开发者在第一步中描绘的 Java 类的骨架，使用仓颉来实现其逻辑，请参考以下要点：
+### Step 3: Write Interop Classes
 
-1. 互操作类所在的包名和类名与步骤一中的设计保持一致（ cjc 编译互操作类自动生成的 Java 封装类的包名和类名与互操作类的包名和类名是完全一样的）。
-2. 导包`java.lang.*`。
-3. 导入实现互操作类所必要的镜像类型，这些镜像类型是开发者在步骤二中通过 Java 镜像生成器生成的。不过，暂时先不要导入其他依赖类型。
-4. 为互操作类加上注解`@ Java Impl`。
-5. 互操作类继承某 Java 类的镜像类型。被注解了`@JavaImpl`的互操作类默认继承预置在互操作库中的`java.lang.Object`的镜像类型。
-6. 仓颉代码中，任何需要使用`java.lang.Object`、`java.lang.String`和 Java 数组的地方，分别使用`JObject`、`JString`和`JArray<T>`来实现相应功能逻辑。
+For each Java class skeleton you designed on step 1, write a new Cangjie class
+as follows:
 
- Java 类型到仓颉类型的映射关系：
+1. Use the appropriate package and class names (the Java wrapper class will
+   have the same fully qualified name).
+2. Import `java.lang.*`.
+3. Import the necessary mirror types, if you generated any on Step 2. Do not
+   import the dependencies for now.
+4. Annotate the class with `@JavaImpl`.
+5. Make the class inherit the mirror of the desired Java class (by default,
+   it will inherit the built-in mirror of `java.lang.Object`).
+6. Use `JObject`, `JString` and `JArray<T>` in place of `java.lang.Object`,
+   `java.lang.String` and Java array types respectively.
 
- Java 类型 (`T`)  | 仓颉类型 (`T'`)
+Type mapping (`T'` is either the matching primitive type or the respective mirror type):
+
+Java Type (`T`)  | Cangjie Type (`T'`)
 ---------------- | -----------------------------
 `boolean`        | `Bool`
 `byte`           | `Int8`
@@ -1355,19 +1871,24 @@ java-mirror-gen \
 `long`           | `Int64`
 `float`          | `Float32`
 `double`         | `Float64`
-`Object`         | `JObject` 或 `?JObject`
-`String`         | `JString` 或 `?JString`
-`class C`        | `C'` 或 `?C'`
-`interface I`    | `I'` 或 `?I'`
-`T[]`            | `JArray<T'>` 或 `?JArray<T'>`
+`Object`         | `JObject` or `?JObject`
+`String`         | `JString` or `?JString`
+`class C`        | `C'` or `?C'`
+`interface I`    | `I'` or `?I'`
+`T[]`            | `JArray<T'>` or `?JArray<T'>`
 
-对于可能接收或持有`null`值的镜像类型和互操作类的形参类型、返回类型和局部变量类型，请使用`Option<T'>`，而不是`T'`。详情请参见[null 值处理](#java-null值处理)。
+Use `?<T'>` (`Option<T'>`) types for parameters, return values, and local variables
+of mirror and interop types that may receive/hold Java `null`.
 
- Java 侧返回类型为`void`的方法，在仓颉侧的对应函数返回类型是`Unit`。
+Use `Unit` as a return type to represent a `void` Java method.
 
-另请参见[互操作类的特性与限制](#互操作类的特性与限制)。
+See also
+[Features and Limitations of Interop Classes](#features-and-limitations-of-interop-classes).
 
-延续之前的例子，实现的互操作类也许类似如下：
+**Example:**
+
+To continue the above example, the interop class for the function `m()` would look
+like this:
 
 ```cangjie
 package cjworld
@@ -1375,59 +1896,85 @@ package cjworld
 import java.lang.*
 import javaworld.*
 
-@ Java Impl
+@JavaImpl
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
-        /* 此处可以实现各种逻辑 */
-        B()    // 假设com.example.b.B拥有一个`public`无参构造方法
+        /* Just a dummy implementation for now */
+        B()    // Assuming that B has an accessible parameterless constructor
     }
 }
 ```
 
-在上述例子中，如果静态成员函数`m`在设计上压根不可能返回`null`到 Java 侧，那么完全可以将`m`的返回类型改为`B`，互操作依然可以正常工作。
+If you don't need `m()` to ever return `null` to its Java caller, remove
+`?` from its return value type.
 
-#### 第四步：编译互操作类
 
-使用以下命令进行对互操作类实现进行编译:
+### Step 4: Compile the Interop Class
+
+Command line:
 
 ```bash
- cjc  --output-type=dylib \
+cjc --output-type=dylib \
     -p <source-directory> \
     -ljava.lang -linteroplib.interop \
     --output-javagen-dir=<java-output-directory>
 ```
 
-在上述命令中：
+where
 
-`<source-directory>`是保存互操作类和镜像类型声明源文件所在的目录的路径。
+`<source-directory>` is the pathname of the directory containing the source code of
+interop classes and mirror type declarations.
 
-`<java-output-directory>`是预期存放编译过程中自动生成的 Java 源文件的目录的路径。
+`<java-output-directory>` is the pathname of the directory to which the generated
+Java source files are placed.
 
-上述 cjc 编译命令的直接编译产物是包含了互操作类定义的`.so`仓颉动态库文件，以及若干保存 Java 包装类的 Java 源文件。
+The output is a `.so` file with compiled Cangjie code for the interop classes
+and Java source files (`.java`) for their Java wrappers.
 
-例如：
+**Example:**
 
 ```bash
- cjc  --output-type=dylib \
+cjc --output-type=dylib \
     -p src/cj \
     -ljava.lang -linteroplib.interop \
     --output-javagen-dir=src/java
 ```
 
-编译将生成两个文件：`libcjworld.so`和`src/java/cjworld/Interop.java`，后者包含了 Java 侧可以使用的互操作类的镜像类。
+The compiler will produce two files: `libcjworld.so` and `src/java/cjworld/Interop.java`.
 
-#### 第五步：整合先前步骤中的所有产物
 
-1. 将以下文件添加至 Android Studio 工程：
-    * 第四步中由 cjc 生成的所有 Java 源文件，添加至`src/main`目录下，根据其实际包名，创建必要的目录结构，将源文件放至对应目录位置。
-    * 第四步中由 cjc 编译得到的`.so`文件，添加至`src/main/jniLibs/arm64-v8a`目录下，如果该子目录不存在，手动创建之即可。
-    * 将`$CANGJIE_HOME/runtime/lib/linux_android_aarch64_cjnative`目录下的所有`.so`文件复制进`src/main/jniLibs/arm64-v8a`目录下。
-    * 将安卓 NDK 中的`libc++_shared.so`文件复制进`src/main/jniLibs/arm64-v8a`目录下。该文件位于安卓 NDK 根目录下的`toolchains/llvm/prebuilt/<host>/sysroot/usr/lib/aarch64-linux-android`目录下，其中`<host>`是开发者构建安卓工程所在的平台的`${os}-${arch}`组合，例如，如果是在 x64 架构 Linux 上构建安卓工程，则`<host>`为`linux-x86_64`。
-    * 将`$CANGJIE_HOME/lib/library-loader.jar`作为安卓工程的 JAR 包依赖。
+### Step 5: Put it all together
 
-2. 重要提示：必须强制使用传统规范，将所有`APK`中的`.so`文件进行压缩，否则应用运行时，将在尝试加载仓颉库的时候发生崩溃。请找到安卓工程中的 Gradle 构建脚本（一般名为`build.gradle.kts`），在其中找到`android {}`配置块，检查配置块中是否已经存在以下配置信息。如果没有，请将以下配置信息插入其中：
+1. Add the following files to your Android project:
 
-   ```java
+    * The Java source files generated on the previous step - to the source tree
+      under `src/main` in accordance with the package names.
+
+    * The `.so` file generated on the previous step - to `src/main/jniLibs/arm64-v8a`
+      (create those subdirectories if they don't exist).
+
+    * All `.so` files from the appropriate subdirectory of `$CANGJIE_HOME/runtime/lib/`,
+      such as `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/` - also
+      to `src/main/jniLibs/arm64-v8a`.
+
+    * The file `libc++_shared.so` from the Android NDK - also
+      to `src/main/jniLibs/arm64-v8a`.
+      (That file is located
+      in `toolchains/llvm/prebuilt/`_`host`_`/sysroot/usr/lib/aarch64-linux-android/`
+      under the Android NDK root, where _`host`_ is a string corresponding
+      to the O/S and hardware of the system on which you conduct the build,
+      such as "`linux-x86_64`".
+
+    * The file `$CANGJIE_HOME/lib/library-loader.jar` as a dependency.
+
+2. **IMPORTANT: Enforce the legacy convention of compressing all `.so` files
+   in the APK, or the application will crash trying to load Cangjie libraries.**
+
+   In the Gradle build script of your Android application, usually called
+   `build.gradle.kts`, locate the `android {}` block and insert the following
+   option setting into it, if it is not already present:
+
+   ```gradle
       .  .  .
    android {
           .  .  .
@@ -1440,11 +1987,16 @@ public class Interop {
       .  .  .
    ```
 
-3. 请重新构建安卓工程，确保截至目前安卓工程能够成功构建，不存在任何问题。构建成功后，也可以尝试推送安装应用检查是否安装上存在任何问题。
+3. Re-build the project to ensure everything is correct so far. You may
+   also try deploying it.
 
-4. 现在开发者就可以在 Java 源码中编写原先预想的调用互操作类的代码逻辑了。编写完成后，再次重新构建安卓工程。
+4. Add the Java code working with interop classes and re-build your Android
+   project again.
 
-延续之前的例子，在 Java 侧，现在开发者就可以编写逻辑调用`Interop.m`方法了，调用这个方法就会使得程序控制交给仓颉侧的互操作类的实现逻辑：
+**Example:**
+
+Now we can add an invocation of `Interop.m()` to our Java code, for control
+to be passed to its Cangjie implementation in our interop class:
 
 ```java
        .  .  .
@@ -1452,40 +2004,53 @@ public class Interop {
        .  .  .
 ```
 
-### 仓颉侧调用 Java
 
-现在开发者已经设计了胶水层，实现并构建了互操作类，将各个必要的产物集成进了安卓工程，接下来，可以继续往仓颉侧的互操作类中加入更多的代码逻辑。类型映射关系与[在仓颉侧使用 Java](#在仓颉侧使用-java)实际上是一模一样的。
+## Calling Java from Cangjie
 
-仓颉类型 (`T'`)           |  Java 类型 (`T`) | 备注
+Once you have designed, built and integrated the interoperability layer
+as described
+in the [previous section](#initial-interop-class-creation-workflow),
+you can add code that uses Java types to the member functions of
+your interop classes. The type mapping is the same:
+
+Cangjie Type (`T'`)           | Java Type (`T`) | Remark
 ----------------------------- | --------------- | ------
-`Bool`                        | `boolean`       | -
-`Int8`                        | `byte`          | -
-`Int16`                       | `short`         | -
-`UInt16`                      | `char`          | -
-`Int32`                       | `int`           | -
-`Int64`                       | `long`          | -
-`Float32`                     | `float`         | -
-`Float64`                     | `double`        | -
-`JObject`或`?JObject`       | `Object`        | -
-`JString`或`?JString`       | `String`        | -
-`T'`或`?T'`                 | `T`             | (\*)
-`JArray<T'>`或`?JArray<T'>` | `T[]`           | (\*\*)
+`Bool`                        | `boolean`       |
+`Int8`                        | `byte`          |
+`Int16`                       | `short`         |
+`UInt16`                      | `char`          |
+`Int32`                       | `int`           |
+`Int64`                       | `long`          |
+`Float32`                     | `float`         |
+`Float64`                     | `double`        |
+`JObject` or `?JObject`       | `Object`        |
+`JString` or `?JString`       | `String`        |
+`T'` or `?T'`                 | `T`             | (\*)
+`JArray<T'>` or `?JArray<T'>` | `T[]`           | (\*\*)
 
-**(\*)** `T'`必须要么是互操作类，要么是 Java 类型`T`的镜像类型。如果`T'`是互操作类，`T`则是 Java 侧的一个包装类，且该包装类是由 cjc 在编译互操作类`T'`时自动生成的。
+**(\*)** `T'` must be either a mirror type for the Java type `T`
+or an interop class, for which the source code of its Java wrapper
+class `T` was generated automatically by `cjc`.
 
-**(\*\*)** `T'`必须要么是互操作类，要么是镜像类型，要么是上表中列举的值类型。
+**(\*\*)** `T'` must be either a mirror type, an interop class,
+or one of the value types listed above, e.g. `Int32`.
 
-仓颉侧调用返回类型为`void`的 Java 方法的返回值类型为`Unit`。
+Use `Unit` as a return type to call a `void` Java method.
 
-限制：不支持 Java 方法的变长形参列表。
+**Limitations:**
 
-#### 步骤零: 正常构建安卓工程
+* Variable arity (varargs) methods and constructors are not supported.
 
-#### 步骤一: 为仓颉侧生成 Java 类型的镜像类型声明
 
-如果开发者在互操作类的内部实现中，只会调用互操作类中的成员函数，那么由于这些成员函数的函数签名中的所有 Java 类型均已生成镜像类型，理论上可以直接跳过这步，无需使用 Java 镜像生成器生成更多的镜像类型。
+### Step 0: Build your Android application normally
 
-使用 Java 镜像生成器为 Java 类型生成镜像类型的命令行：
+### Step 1: Generate mirror type declarations
+
+Skip this step if you only want to call member functions of interop classes,
+their superclasses and/or types for which you have already generated mirror
+declarations, such as the types of interop class parameters or return values.
+
+**Command line:**
 
 ```bash
 java-mirror-gen \
@@ -1495,7 +2060,7 @@ java-mirror-gen \
     <names-of-mirrored-types>
 ```
 
-或：
+or
 
 ```bash
 /path/to/jdk/21/bin/java \
@@ -1506,19 +2071,32 @@ java-mirror-gen \
     -jar <jar-file>
 ```
 
-在上述命令中：
+where
 
-* `<package-name>` 指定了为 Java 类型生成的镜像类型希望的包名。之所以镜像类型的包名不一定能与原 Java 类型的报名保持一致，与[循环导入依赖](#处理循环导入依赖)有关。
+* `<package-name>` is the desired name of the Cangjie package for all
+  mirrored types.
 
-* `<full-application-classpath>`指定了本次镜像生成所采用的类路径，包括安卓 SDK 的`android.jar`，和安卓项目构建得到的`App.jar`等，类路径之间由冒号分隔。
+* `<full-application-classpath>` is the complete classpath of the application
+  that is used during its build, including `android.jar`.
 
-* `<output directory>` 指定了生成的包含镜像类型的仓颉源文件希望被放置在哪个目录下，例如`./src/cj`。
+* `<output directory>` is the pathname of the directory where the Cangjie source
+  files containing mirror type declarations will be placed, such as `./src/cj`.
 
-* `<names-of-mirrored-types>`是一到多个 Java 引用类型的完全限定名，之间以空格分隔。这些类型是在互操作类设计过程中开发者所识别出来的除了`java.lang.Object`、`java.lang.String`和 Java 数组类型外的其他 Java 引用类型，`java-mirror-gen`将为这些类型生成镜像。
+* `<names-of-mirrored-types>` are the _fully qualified names_ of the Java
+  reference types on which your interop class design depends,
+  other than `java.lang.Object`, `java.lang.String` or arrays.
 
-* `<jar-file>`是单个`jar`文件的路径，这个`jar`中的所有`.class`文件中的`public`的`class`和`interface`均将被生成镜像，且这些类型所依赖的类型（在`<full-application-classpath>`的类路径下找到）也会被生成镜像。
+* `<jar-file>` is the pathname of a single jar file. All `public` classes and
+  interfaces, the `.class` files of which it contains, are mirrored, along
+  with any dependencies found along the `<full-application-classpath>`.
 
-延续之前的例子，假设开发者希望在仓颉侧的`Interop.m`静态成员函数中，调用 Java 侧定义的`com.example.c.C`的签名为`String g(A a, int i)`静态方法，其定义如下：
+**Example:**
+
+Continuing the example from the
+[previous section](#initial-interop-class-creation-workflow),
+suppose we want our function `Interop.m()` to call the method
+`String g(A a, int i)` of a class `com.example.c.C`, where `A`
+is the type `com.example.a.A` that we've already mirrored:
 
 ```java
 package com.example.c;
@@ -1527,12 +2105,13 @@ import com.example.a.A;
 
 public class C {
     public static String g(A a, int i) {
-        /* Some  Java  code returning a string */
+        /* Some Java code returning a string */
     }
 }
 ```
 
-由于`com.example.c.C`是新引入的互操作类中用到的类型，尚不存在其镜像类型供互操作类使用，故需要重新执行 Java 镜像生成器命令。这次额外新增一个入参`com.example.c.C`，其他则保持不变：
+We re-run the mirror generator, passing `com.example.c.C` as an extra
+argument:
 
 ```bash
 java-mirror-gen \
@@ -1542,11 +2121,13 @@ java-mirror-gen \
     com.example.a.A com.example.b.B com.example.c.C
 ```
 
-这条命令所生成的所有镜像类型声明文件，是在之前的基础上，新增一个`src/javaworld/src/C.cj`，并且如果`com.example.c.C`类型本身依赖其他需要生成镜像类型的 Java 类型，且这些类型尚未被镜像，那么也会同时生成这些类型的镜像类型声明文件。
+This command will generate the same files with mirror type declaration
+plus the file `src/javaworld/src/C.cj` and files with mirror type declarations
+for any dependencies that type may have that were not previously mirrored.
 
-新生成的文件`src/cj/javaworld/src/C.cj`的内容如下：
+The file `src/cj/javaworld/src/C.cj` would look like this:
 
-```cangjie
+```java
 package javaworld
 
 import java.lang.*
@@ -1557,11 +2138,17 @@ public class C {
 }
 ```
 
-#### 步骤二：导入镜像类型并实现互操作类的逻辑
 
-确保用于实现互操作类的所有镜像类型均已生成，并导入它们，接着就可以把它们完全当成仓颉类型来使用，实现互操作类中构造函数和成员函数的逻辑了。
+### Step 2: Import the mirror type(s) and write code
 
-延续之前的例子，这时开发者就可以在`cjworld.Interop.m`函数体中使用`javaworld.C`了：
+Make sure that all mirror type(s) involved are imported, then implement
+the constructors and member functions of your interop classes, manipulating
+Java types as if they were Cangjie types.
+
+**Example:**
+
+Continuing the example from the previous section, we can implement
+the function `cjworld.Interop.m()` using the mirror type `javaworld.C`:
 
 ```cangjie
 package cjworld
@@ -1569,150 +2156,229 @@ package cjworld
 import java.lang.*
 import javaworld.A
 import javaworld.B
-// 新增导入
 import javaworld.C
 
-@ Java Impl
+@JavaImpl
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         let s1: JString = match (a) {
             case Some(aa) => C.g(aa, i) ?? JString("")
             case None => JString("")
         }
-        B(s1)  // 假设B存在一个签名为`B(String)`的构造方法
+        B(s1)  // Assuming there is a B(String) constructor
     }
 }
 ```
 
-#### 步骤三：重编仓颉部分的源码
+### Step 3: Recompile the Cangjie part
 
-详情请参见[从零实现胶水层](#从零实现胶水层)中的[步骤四](#第四步编译互操作类)。
+See [Step 4](#step-4-compile-the-interop-class) of the interop class
+creation workflow for details and example.
 
-#### 步骤四：更新并重新构建安卓工程
+As long as you have not changed the public interface of the interop class(es)
+on the previous steps, you only need to update the `.so` file.
+The generated Java sources should be identical to previously generated ones.
 
-只要开发者确定在前几步中没有改变互操作类所暴露的`public`接口的签名，那么理论上只需要在重编仓颉实现源码后更新安卓工程中的`.so`文件。只要互操作类所暴露的`public`接口签名保持不变， cjc 所生成的 Java 胶水层源码内容理论上是完全一致的。
 
-将步骤三中新生成或更新了的`.so`文件和`.java`文件（如有必要）更新到安卓工程的对应位置，然后重新构建安卓工程。
+### Step 4: Update and re-build the Android project
 
-详情请参见[从零实现胶水层](#从零实现胶水层)中的[步骤五](#第五步整合先前步骤中的所有产物)。
+Copy the `.so` file and, if applicable, `.java` files updated/generated
+on the previous step over to your Android project and re-build it.
 
-### 互操作类的特性与限制
+See [Step 5](#step-5-put-it-all-together) of the interop class
+creation workflow for details and example.
 
-1. 互操作类必须是`@JavaMirror class`的直接子类。互操作类当不显式指定继承哪个父类时，将默认继承互操作库中的[`java.lang.JObject`](#javalangjobject)，而非`std.core.Object`。
 
-2. 互操作类可能实现一到若干个`@JavaMirror interface`，但禁止实现任何普通仓颉`interface`。反过来，普通仓颉类型禁止实现或继承`@JavaMirror interface`。
+## Features and Limitations of Interop Classes
 
-3. 互操作类禁止被声明为`open`或`abstract`，且禁止被`extend`，否则均将导致编译报错。
+1. An interop class _must_ be a direct subclass of a mirror class.
+   By default, the interop class will inherit the mirror class
+   [`java.lang.JObject`](#java.lang.jobject), not `std.core.Object`.
 
-4. 互操作类中允许定义实例成员变量，且变量类型可以是任何仓颉类型。互操作类中允许重写其父类中的成员函数。
+2. An interop class _may_ implement one or more mirror interfaces, but never
+   a conventional Cangjie interface. Conversely, a conventional Cangjie type may not
+   implement or inherit a mirrored Java interface.
 
-5. 互操作类的构造函数体中可以通过`super()`调用父类的构造函数，其对调用实例成员函数的先后顺序的规格限制，与普通仓颉构造函数的是完全一致的。另外，构造函数体中同样也需要为所有互操作类新定义的实例成员变量进行初始化，否则将导致编译报错。
+3. An interop class may not be declared as `open` or `abstract` and may not be
+   extended using `extend`.
 
-6. 在互操作类的实例成员函数中，可以调用父类的实例成员函数，即便该父类中的实例成员函数被互操作类重写，也可以通过`super.`来调用之。
+4. An interop class may introduce new instance fields _of any Cangjie type_
+   and override the member functions of its mirrored superclass.
 
-7. 所有镜像类型和互操作类中的构造函数和成员函数的函数签名中所用到的类型，只允许是(a)镜像类型或互操作类或(b)100%对应于 Java 基本数据类型。详情请参见[仓颉侧调用 Java](#仓颉侧调用-java)章节。
 
-8. 镜像类型和互操作类的实例必须遵循以下规则：
-    * 禁止让其逃逸到仓颉全局变量或静态成员变量，也禁止让其逃逸到此两类变量所引用的任何数据结构中。目前 cjc 尚未对此施加编译报错，因此需要用户自保障这条规则，否则可能导致程序执行过程中异常终止。
+5. The constructors of an interop class may call superclass constructors
+   using `super()`, but have the same limitation on instance member function
+   calls as the conventional Cangjie constructors, as well as the requirement
+   to initialize all newly introduced member variables.
 
-    * 当不再需要时，必须被显式释放。最好是在有释放机会时第一时间释放之，但无论如何在控制返回 JVM 前必须完成释放，否则可能导致内存泄漏，JVM 抛出`OutOfMemoryError`异常。
+6. The instance member functions of an interop class may call instance
+   member functions which that interop class has inherited from its mirrored
+   superclass, and/or use `super.` to call the member functions of that
+   superclass that the interop class overrides.
 
-以下 3 条限制是安卓/JVM 特有的：
+7. The signatures of constructors and member functions of all mirror types
+   and interop classes can only use types that are (a) mirror types
+   or interop classes themselves, or (b) are 100% analogous to Java primitive
+   types. See the Type Mapping table
+   in [Calling Java from Cangjie](#calling-java-from-cangjie).
 
-1. 任何使用了镜像类型或互操作类的仓颉代码，必须在 Java 虚拟机注册的线程中执行。该线程可由 Java 代码创建，也可以通过 Java 调用 API 注册至 JVM 的操作系统线程。在当前版本中只能通过编程规范要求遵守，未来 cjc 可能强制执行该规则。
+8. Values of mirror types and interop classes:
 
-2. 所有镜像类型和互操作类型所对应的 Java 类型，都必须由同一个类加载器所加载。
+    * Must not escape to global or static Cangjie variables, nor to any
+      data structures to which such variables refer. The cjc compiler
+      does not enforce this restriction yet, so strict programming discipline
+      is required. Failure to comply with that discipline may lead to an abnormal
+      program termination.
 
-3. 与 Java 及其他 JVM 语言不同，仓颉禁止包之间存在循环导入依赖关系。该限制给镜像生成的流程带来了挑战，详情请参见[处理循环导入依赖](#处理循环导入依赖)章节。
+    * Must be explicitly disposed of when no longer needed. Best if at first
+      opportunity, but in any case before control returns to the JVM.
+      Failure to do so may result in memory leaks and the JVM throwing
+      an `OutOfMemoryError`.
 
-## 由 Java 到仓颉的映射关系
+    See the section [Java Reference Management](#java-reference-management)
+    for details.
 
-当前版本的 Java 镜像生成器遵循以下所描述的 Java 到仓颉的类型映射规格。
+The following three limitations are Android/JVM specific:
 
-### 一般注意事项
+9. Any Cangjie code that uses a mirror type or interop class type must be executed
+   in a thread registered in the Java VM. That may be a thread created in the Java
+   code or an O/S thread registered in (aka "attached to") the JVM using the Java
+   Invocation API. This is another requirement that must be met through programming
+   discipline and obedience in the current version, but may be enforced by the Cangjie
+   compiler in the future.
 
- Java 镜像生成器的直接输入是 Java 的`.class`文件而不是`.java`源文件，因此任何`javac`没有从 Java 源代码传播到类文件的信息，都无法被 Java 镜像生成器感知。正是由于这个原因，部分映射规则受到影响，其中最主要的是对[Java 泛型](#java-泛型)和方法形参名称的处理。
+10. The Java counterparts of all mirror types and interop classes must all be loaded
+    by the same classloader.
 
-### Java 名称
+11. Unlike Java and other JVM languages, Cangjie does not permit circular import
+    dependencies to exist between packages. That poses a challenge to the
+    mirror generation process. Refer to the
+    [Circular Import Dependencies Handling](#circular-import-dependencies-handling)
+    subsection for details.
 
- Java 类型、字段及方法的原名称会被尽可能地保留，但如果原名称由于下述的任何原因无法保留，原名称将通过`@JavaMirror`注解传播到仓颉侧，供 cjc 还原出原 Java 名称：
 
-* 与仓颉关键字冲突的 Java 标识符，如`func`、`main`、`Int32`等，将会由反引号` `` `包裹以作为仓颉标识符，例如：
+# Java to Cangjie Mapping
 
-    ```java
-    public static final long Int32 = 0xffff_ffff;
-    ```
+The current version of the mirror generator does the following Java
+→ Cangjie conversions.
 
-    ```cangjie
-    public static let `Int32`: Int64
-    ```
 
-* Java 标识符中可能包含仓颉标识符所禁止的字符，最典型的就是`$`符号，其一般被用作嵌套 Java 类型在`.class`文件中二进制形式的类型名。这类字符将被替换为下划线`_`，例如：
+## General Considerations {#java-general-considerations}
 
-    ```java
-    public class Outer {
-        public class Inner {}
-        public Inner getInner() { return new Inner(); }
-    }
-    ```
+The mirror generator takes Java _class_ files as input. Any information that
+the Java compiler does not propagate from Java source code to class files is
+therefore not available to the mirror generator. Most notably, this concerns
+[generics](#java-generics) and names of method parameters.
 
-    ```cangjie
-    @JavaMirror["Outer"]
-    public open class Outer {
-        public init()
 
-        public open func getInner(): ?Outer_Inner
-    }
+## Names {#java-names}
 
-    @JavaMirror["Outer$Inner"]
-    public open class Outer_Inner {
-        public init(p0: ?Outer)
-    }
-    ```
+The original names of Java types, fields and methods are preserved to the
+maximum possible extent. If the original name could not be preserved for
+one of the reasons outlined below, it is propagated to the Cangjie compiler
+via an annotation.
 
-* Java 用户自定义类型中字段、成员类型和方法允许拥有相同的标识符。同一类型中的实例方法和静态方法如果方法签名不同，也是允许使用相同的标识符作为方法名的。而在仓颉中，除重载函数外，禁止成员之间拥有相同名称。仓颉没有成员类型的概念，Java 的成员类型将被映射为仓颉的顶层类型，因此不可能存在相同名称带来的冲突。
+* Java identifiers that clash with Cangjie keywords, such as "`func`",
+  "`main`"  or `Int32` are enclosed in backticks ` `` ` to form raw Cangjie
+  identifiers:
 
-    因此，为了符合仓颉的规则，如果存在上述的命名冲突， Java 镜像生成器将为实例成员变量的名称末端追加`_${type-name}`，为静态成员函数的名称末端追加`Static`。Java 侧的原名称依然将通过`@ForeignName`注解得以留存，例如：
+  ```java
+      public static final long Int32 = 0xffff_ffff;
+  ```
 
-    ```java
-    public class Node {
-        public int id;
-        public Node(int id) { this.id = id; }
-        public static int id(long x) { return (int)x; }
-        public static int id(short x) { return x; }
-        public int id() { return id; }
-        public void id(int newId) { this.id = newId; }
-    }
-    ```
+  ```cangjie
+      public static let `Int32`: Int64
+  ```
 
-    将被镜像为：
+* Java identifiers may contain characters that are not permitted in
+  Cangjie identifiers, most notably the dollar sign `$`, which is used
+  in binary names of nested Java types. Such characters are replaced
+  with underscores `_`:
 
-    ```cangjie
-    public open class Node {
-        @ForeignName["id"]
-        public var id_Node: Int32
+  ```java
+  public class Outer {
+      public class Inner {}
+      public Inner getInner() { return new Inner(); }
+  }
+  ```
 
-        public init(arg0: Int32)
+  ```cangjie
+  @JavaMirror["Outer"]
+  public open class Outer {
+      public init()
 
-        @ForeignName["id"]
-        public static func idStatic(arg0: Int64): Int32
+      public open func getInner(): ?Outer_Inner
+  }
 
-        @ForeignName["id"]
-        public static func idStatic(arg0: Int16): Int32
+  @JavaMirror["Outer$Inner"]
+  public open class Outer_Inner {
+      public init(p0: ?Outer)
+  }
+  ```
 
-        public open func id(): Int32
+* Although it is considered bad practice, a Java type may have a field,
+  a member type, and a method share the same simple name (identifier).
+  This works, because it is always possible to determine the meaning of a name
+  either by syntax (only method names can be followed by "`(`") or from context.
+  In addition, instance and static methods of a type may have the same names
+  in Java as long as their signatures are different.
 
-        public open func id(arg0: Int32): Unit
-    }
-    ```
+  In Cangjie, however, all member variables and non-overloaded functions
+  declared in a given scope must have distinct names. (There are no member
+  types in Cangjie, so name clashes with member types simply never happen,
+  as they are [mirrored into top-level types](#java-classes-and-interfaces).
+  In particular, an instance member function and a static member function
+  cannot have the same name.
 
-* Java 包名无法被保留，这是因为 Java 支持包间循环依赖，且大量的包存在循环依赖的用法，但仓颉则是禁止包间循环依赖的，如果保留 Java 包名将难以避免镜像得到的仓颉包间存在循环依赖从而导致仓颉侧编译失败。详情请参见[处理循环导入依赖](#处理循环导入依赖)章节。
+  The mirror generator therefore appends "`_`_`type-name`_" to the names
+  of instance variables and "`Static`" to the names of  `static` methods
+  if their original Java names clash with other field/method names.
+  It retains the original name as the value of the `@ForeignName` annotation:
 
-### Java 基本类型
+  ```java
+  public class Node {
+      public int id;
+      public Node(int id) { this.id = id; }
+      public static int id(long x) { return (int)x; }
+      public static int id(short x) { return x; }
+      public int id() { return id; }
+      public void id(int newId) { this.id = newId; }
+  }
+  ```
 
- Java 基本类型将被镜像为对应的仓颉值类型：
+  translates to
 
- Java 类型        | 仓颉类型
+  ```cangjie
+  public open class Node {
+      @ForeignName["id"]
+      public var id_Node: Int32
+
+      public init(arg0: Int32)
+
+      @ForeignName["id"]
+      public static func idStatic(arg0: Int64): Int32
+
+      @ForeignName["id"]
+      public static func idStatic(arg0: Int16): Int32
+
+      public open func id(): Int32
+
+      public open func id(arg0: Int32): Unit
+  }
+  ```
+
+* Names of Java packages cannot be preserved in practice as circular import
+  dependencies between packages, omnipresent in Java, are forbidden
+  in Cangjie. See
+  [Circular Import Dependencies Handling](#circular-import-dependencies-handling)
+  for details.
+
+
+## Primitive Types
+
+Java primitive types are mirrored to the respective Cangjie value types:
+
+Java Type        | Cangjie Type
 ---------------- | ------------
 `boolean`        | `Bool`
 `byte`           | `Int8`
@@ -1723,21 +2389,38 @@ public class Interop {
 `float`          | `Float32`
 `double`         | `Float64`
 
-### Java `class`与`interface`类型
 
-Java `class`和`interface`类型定义将分别被镜像为仓颉`class`和`interface`类型定义，得到的类型定义将拥有`@JavaMirror`注解。`@JavaMirror`注解的有且仅有一个的字符串实参的值是被镜像的 Java 类型的完全限定名。如果 Java 类型的简单名称中不包含仓颉标识符所禁止的字符，那么镜像得到的仓颉类型的名称将保持与 Java 类型简单名称一致；否则，镜像得到的仓颉类型的名称将由特殊规则处理得到，例如 Java 类型的简单名称中包含`$`，或是一个嵌套类型（嵌套类型经`javac`编译得到的类型简单名称由其所在类型的简单名称和该类型的简单名称通过`$`拼接而成），这些`$`将被自动替换为下划线`_`。
+## Classes and Interfaces {#java-classes-and-interfaces}
 
-被镜像的字段类型和方法的形参类型和返回类型`T`，如果是`class`或`interface`类型，将被自动装包为`Option<T'>`类型，其中`T'`是`T`的镜像类型。详情请参见[null 值处理](#java-null值处理)章节。
+Java class and interface _definitions_ are mirrored respectively into Cangjie
+class and interface declarations annotated with `@JavaMirror`.
+The value of that annotation is a string that retains the original
+fully qualified name of the mirrored Java type. Simple names of mirrored
+types are preserved unless they contain characters that are not permitted
+in Cangjie identifiers. Such characters, most notably the dollar sign `$`,
+the presence of which in a Java class file name is usually an indication
+of the respective type being a nested type, are replaced with underscores `_`.
 
-被`@JavaMirror`注解的类型定义与正常的仓颉类型定义存在若干差异：
+_Uses_ of Java class and interface types as types of mirrored fields,
+and/or as types of parameters and return values of mirrored methods and
+constructors, get wrapped in `Option<T>`
+(see [Null Handling](#java-null-handling) for details.)
 
-* `@JavaMirror class`的继承层次结构的根类不是`std.core.Object`，而是一个内置镜像类[`java.lang.JObject`](#javalangjobject)。
+`@JavaMirror`-annotated declarations differ from conventional
+Cangjie class/interface definitions in a few aspects:
 
-* Java 的`java.lang.String`在仓颉侧的镜像是一个内置镜像类[`java.lang.JString`](#javalangjstring)。
+* The root of the Java mirror classes hierarchy is not `std.core.Object`,
+  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject)
 
-* 镜像得到的类型定义中仅保留符号和类型信息，变量初始化器、函数体、属性体等均不会在`@JavaMirror`类型定义中体现。
+* The mirror for `java.lang.String` is also built-in, its name
+  is [`java.lang.JString`](#java.lang.jstring)
 
-示例如下，假设存在以下 Java 类定义：
+* Only the symbolic information is mirrored. Variable initializers
+  and function/constructor bodies are omitted.
+
+**Example:**
+
+For example, a mirror class for the following Java class:
 
 ```java
 public class Node {
@@ -1748,7 +2431,7 @@ public class Node {
 }
 ```
 
-其镜像得到的`@JavaMirror`类可能如下：
+might look like this:
 
 ```cangjie
 @JavaMirror["Node"]
@@ -1759,17 +2442,17 @@ public open class Node {
 }
 ```
 
-* 访问修饰符为`public`的 Java 类和接口会被镜像，其他则不会被镜像。
+Only public Java classes and interfaces are mirrored. Non-`final` classes
+are modified with `open`. The modifiers `sealed` and `non-sealed` are ignored,
+as well as the legacy modifier `strictfp`.
 
-* 非`final`的 Java 类被镜像得到的仓颉类将拥有`open`修饰符。
+Private and package-private members and constructors, as well as static
+and instance initializers, are not mirrored.
 
-* Java 的`sealed`、`non-sealed`以及遗留的`strictfp`修饰符均将被忽略。
-
-* 访问修饰符为默认或`private`的构造方法、实例/静态字段、实例/静态方法不会被镜像。
-
-* 静态初始化块和实例初始化块均不会被镜像。
-
-* 如果 Java 类型的成员名称与镜像得到的仓颉类型的成员名称不同（原因请参考[Java 名称](#java-名称)小节），那么 Java 类型的成员名称信息将通过`@ForeignName`注解传递到仓颉侧，例如：
+If the names of a Java type member and its mirror differ for one of the
+reasons outlined in [Names](#java-names) the original Java member name
+is propagated to Cangjie via the value of the `@ForeignName` annotation
+on the mirror member:
 
 ```java
     CurrencyAmount priceInUS$Per(WeightUnit wu) { ... }
@@ -1780,29 +2463,68 @@ public open class Node {
     public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
 ```
 
-> **注意：**
+> **NOTE:** The meaning of the access modifier `protected` is different
+> in Java and Cangjie.
 >
-> Java 和仓颉的访问修饰符`protected`的含义是不同的。
+> In Java, access to a `protected` member or constructor of a class
+> is permitted from anywhere within the same package and from subclassses
+> defined in other packages.
 >
-> 在 Java 中，`protected`成员的可见范围是**所在包**内，以及所在类的子类。
+> In Cangjie, that modifier also permits access from subpackages and
+> from any package within the same module.
 >
-> 而在仓颉中，`protected`成员的可见范围是**所在模块**内，以及所在类的子类。
->
-> 不过一般来说这个差异并不会导致任何问题。
+> Normally, this should not pose a problem.
 
-**字段**将被镜像为成员变量，变量类型为字段类型相应的镜像类型；变量名称与字段名称保持一致（一般情况下如此，特殊情况请参见[Java 名称](#java-名称)小节）；实例字段将被镜像为实例成员变量，静态字段将被镜像为静态成员变量；访问修饰符`public`、`protected`将直接保留；非访问修饰符`transient`、`volatile`将被忽略；`final`字段将被镜像为`let`成员变量，非`final`字段将被镜像为`var`成员变量；字段初始化器将被忽略。
+**Fields** are mirrored into member variables of the respective mirror types.
+Field names are preserved as long as they don't [clash](#java-names) with names
+of other members. The modifiers `public`, `protected` and `static` are
+preserved. The modifiers `transient` and `volatile` are ignored. `final` Java
+fields are mirrored into `let` member variables, non-`final` — into `var`
+member variables. Variable initializers are omitted.
 
-**方法**将被镜像为成员函数，其函数名与方法名保持一致（一般情况下如此，特殊情况请参见[Java 名称](#java-名称)小节）；其形参类型和返回类型为相应的镜像类型；返回类型为`void`的方法将被镜像为返回类型为`Unit`的成员函数；实例方法将被镜像为实例成员函数，静态方法将被镜像为静态成员函数；访问修饰符`public`、`protected`将直接保留；非访问修饰符`native`、`synchronized`及遗留的`strictfp`将被忽略；非`final`方法将被镜像为`open`成员函数。
+**Methods** are mirrored into member functions with the respective mirror
+types substituted for parameter types and return value type. Mirrors of `void`
+methods have the `Unit` return type. Instance method names are preserved.
+Static method names are reserved as long as they don't [clash](#java-names)
+with instance method names. The modifiers `public`, `protected` and `static`
+are preserved. The modifiers `native` and `synchronized` are ignored,
+as well as the legacy modifier `strictfp`. Mirrors of non-`final` methods
+are modified with `open`.
 
-**构造方法**将被镜像为构造函数，其形参类型均被替换为相应镜像类型；由于未定义构造方法而被隐式声明的默认构造方法也会被镜像；访问修饰符`public`、`protected`将直接保留。
+**Constructors** are mirrored into `init` constructors with the respective
+mirror types substituted for parameter types. _This includes the default
+constructor that might have been implicitly declared._ The modifiers `public`
+and `protected` are preserved.
 
-> **注意：**
->
-> 1. `@ Java Mirror`类中禁止包含主构造函数。
-> 2. `@ Java Mirror`类中如果没有任何显式定义的构造函数，并不会像正常仓颉类那样存在隐式定义的构造函数，于是该类并不能通过调用构造函数来实例化。对于自动生成的`@JavaMirror`类，出现这种情况一般意味着被镜像的 Java 类中仅声明有访问范围为默认或`private`的构造方法，而这样做一般是有意阻止下游用户直接通过调用构造方法来实例化该类。
-> 3. Java 镜像生成器的输入是`.class`文件，而方法/构造方法的形参名一般并不会保存在`.class`文件中，这种情况下，Java 镜像生成器会为生成的镜像自动合成形参名，诸如`arg0`、`arg1`。`javac`的编译选项`-parameters`可以使形参名得以在`.class`文件中留存，但只对`class`类型有效，`interface`类型则依旧无法保留。调试信息生成相关选项`-g`/`-g:vars`与之同理。
+**NOTES:**
 
-**成员类型**将被镜像为顶层类型定义，因为仓颉并不支持嵌套类型定义；镜像类型的名称是成员类型的二进制名称，也就是该成员类型的直接所在类型的二进制名称，加上`$`分隔符，再加上该成员类型自己的简单名称，如是递归得到，且由于仓颉标识符不支持`$`，所有`$`均被替换为下划线`_`（可参考[Java 名称](#java-名称)小节）；访问修饰符`public`、`protected`将直接保留；非访问修饰符`static`将被忽略；镜像类型的构造函数将新增一个额外的形参，该形参用于传入该成员类型直接所在类型的实例（在 Java 中，该形参是被隐式声明且被隐式传入的）。
+1. Mirror classes may not have primary constructors.
+
+2. Mirror classes that contain no `init` constructors do _not_ get a default
+   one defined implicitly, unlike the conventional Cangjie classes, and thus
+   cannot be instantiated by calling a constructor. For automatically
+   generated mirror classes, the absence of a constructor usually means that
+   the mirrored Java class declares only `private` or package-private
+   constructors so as to prevent its instantiation by arbitrary code.
+   See also [Enum Classes](#enum-classes).
+
+3. The Java mirror generator takes _class files_ as input, and the
+   names of method/constructor parameters are often absent in class files.
+   In that case, the mirror generator will assign them names `arg0`, `arg1`,
+   and so on. The `javac` compiler option `-parameters` forces parameter names
+   retention, but only for classes, not interfaces. Same goes for the debug
+   information generation option `-g` / `-g:vars`.
+
+**Member types** are mirrored into the respective top-level types, as Cangjie
+does not support type nesting. The name of a member type mirror is derived
+from the _binary_ name of the original member type, which consists of the
+binary name of its immediately enclosing type, followed by a dollar sign `$`,
+followed by the simple name of the member type itself. However, the dollar sign
+is not permitted in Cangjie identifiers, so it is replaced with an underscore
+`_` (see also [Names](#java-names)). The modifiers `public` and `protected` are
+preserved. The modifier `static` is ignored. `init` constructors of mirrored
+inner classes have an extra parameter for passing the enclosing instance
+(that parameter is implicit in Java):
 
 ```java
 public class Outer {
@@ -1813,128 +2535,172 @@ public class Outer {
 ```
 
 ```cangjie
-@ Java Mirror["Outer"]
+@JavaMirror["Outer"]
 public open class Outer {
     public init()
 
     public open func getInner(): ?Outer_Inner
 }
 
-@ Java Mirror["Outer$Static"]       // Original binary name is retained
+@JavaMirror["Outer$Static"]       // Original binary name is retained
 public open class Outer_Static {  // '$' is replaced with '_'
     public init()
 }
 
-@ Java Mirror["Outer$Inner"]       // Original binary name is retained
+@JavaMirror["Outer$Inner"]       // Original binary name is retained
 public open class Outer_Inner {  // '$' is replaced with '_'
     public init(p0: ?Outer)      // Extra parameter for enclosing instance
 }
 ```
 
-所有镜像得到的成员函数和构造函数均无函数体，代码外观上与正常仓颉的抽象成员函数相似。于是存在以下约束条件：
+Bodies are omitted in the mirrors of _all_ methods and constructors, so they
+all look like abstract member functions in regular Cangjie code. That
+imposes the following syntax alterations:
 
-* 抽象方法的`abstract`修饰符将被保留，否则单从仓颉侧无法区分原 Java 方法是否是抽象的，例如：
+* The modifier `abstract` on _class_ methods is preserved, as otherwise
+  there would have been no way to tell apart the mirrors of abstract and
+  concrete Java methods:
 
-    ```java
-    public abstract class A {
-        public void c() {}
-        public abstract void a();
-    }
-    ```
+  ```java
+  public abstract class A {
+      public void c() {}
+      public abstract void a();
+  }
+  ```
 
-    ```cangjie
-    @ Java Mirror["A"]
-    public abstract class A {
-        public init()
+  ```cangjie
+  @JavaMirror["A"]
+  public abstract class A {
+      public init()
 
-        public open func c(): Unit
+      public open func c(): Unit
 
-        public open abstract func a(): Unit
-    }
-    ```
+      public open abstract func a(): Unit
+  }
+  ```
 
-* 默认接口方法所镜像得到的成员函数将带有`@ Java HasDefault`注解，否则单从仓颉侧无法区分原 Java 接口方法是否拥有默认实现，例如：
+* For the same reason, mirrors of default interface methods are annotated
+  with `@JavaHasDefault`.
 
-    ```java
-    public interface I {
-        default void c() {}
-        void a();
-    }
-    ```
+  ```java
+  public interface I {
+      default void c() {}
+      void a();
+  }
+  ```
 
-    ```cangjie
-    @ Java Mirror["I"]
-    public interface I {
-        @ Java HasDefault
-        func c(): Unit
+  ```cangjie
+  @JavaMirror["I"]
+  public interface I {
+      @JavaHasDefault
+      func c(): Unit
 
-        func a(): Unit
-    }
-    ```
+      func a(): Unit
+  }
+  ```
 
-> **注意：**
->
-> 不支持数量可变参数​，对于拥有可变参数的方法，`, ...`部分将被忽略。
+In methods with a variable number of parameters, `, ...` is ignored.
 
-#### `@ Java Mirror`类型的继承层次结构
 
-`@ Java Mirror`类和接口自成一套继承层次结构，也就是说：
+### Mirror Type Inheritance
 
-* `@ Java Mirror`类的继承层次结构的根类并不是`std.core.Object`，而是一个内置`@JavaMirror`类[`java.lang.JObject`](#javalangjobject)。
+Mirror classes and interfaces form separate subtype hierarchies, which
+means that:
 
-* `@ Java Mirror`接口可以继承其他`@JavaMirror`接口，该继承关系反映的是原 Java 侧接口之间的继承关系。`@JavaMirror`接口禁止继承普通仓颉接口，普通仓颉接口也禁止继承`@JavaMirror`接口。
+* The root of the Java mirror classes hierarchy is not `std.core.Object`,
+  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject).
 
-* `@ Java Mirror`类可以继承其他`@JavaMirror`类，该继承关系反映的是原 Java 侧类之间的继承关系。`@JavaMirror`类禁止继承普通仓颉类，普通仓颉类也禁止继承`@JavaMirror`类。
+* Mirror interfaces may inherit other mirror interfaces, reflecting
+  the inheritance relationships between the original Java interfaces.
+  Mirror interfaces may not inherit regular Cangjie interfaces and
+  vice versa.
 
-* `@ Java Mirror`类可以实现`@JavaMirror`接口，该实现关系反映的是原 Java 侧类和接口之间的实现关系。`@JavaMirror`类禁止实现普通仓颉接口，包括`std.core.Any`，普通仓颉类也禁止实现`@JavaMirror`接口。
+* Mirror classes may inherit other mirror classes, reflecting
+  the inheritance relationships between the original Java classes.
+  Mirror classes may not inherit regular Cangjie classes and
+  vice versa.
 
-#### Java 泛型
+* Mirror classes may implement mirror interfaces, but not regular
+  Cangjie interfaces. In particular, they do not implement the
+  interface `Any`. Regular Cangjie classes may not implement mirror
+  interfaces.
 
- Java 泛型在经`javac`编译得到`.class`的过程中将被擦除，故由 Java 镜像生成器自动生成的`@JavaMirror`类型总是非泛型的，且所有原泛型参数均被替换为其最左边界类型的相应镜像类型。
 
-禁止手写泛型的`@ Java Mirror`类型定义，但内置类型[`JArray<T>`](#javalangjarrayt)（详情请参见[Java 数组类型](#java-数组类型)小节）除外。
+### Generics {#java-generics}
 
-### Java 数组类型
+Java generics are erased during compilation, so the automatically
+generated mirror types are always non-parameterized and have type variables
+replaced with mirrors of their leftmost bounds.
 
-[`JArray<T>`](#javalangjarrayt)是一个特殊的内置类型，其为 Java 数组类型的镜像类型。
+It is not possible to declare a parameterized mirror type manually
+either.
 
-元素类型为`T`的 Java 数组（即类型为`T[]`）被镜像为：
+The type `JArray<T>` (see [Arrays](#arrays)) is a special exception.
 
-* `?JArray<T'>`，如果`T`是基本数据类型
 
-* `?JArray<?T'>`，如果`T`是引用类型
+## Arrays
 
-其中`T'`是`T`的镜像类型。
+The special built-in type `java.lang.JArray<T>` is used to represent
+mirrors of Java arrays.
 
-有关为何进行`Option<T>`封装，请参见[null 值处理](#java-null值处理)章节。
+A Java array of type _`T`_ (_`T`_`[]`), is generally mirrored into:
 
-> **注意：**
->
-> Java 数组是协变的，而仓颉泛型是不变的，这个规格对于`JArray<T>`类型同样成立。
+* `?JArray<`_`T'`_`>`, if _`T`_ is a primitive type
 
-### Java 枚举类
+* `?JArray<`_`?T'`_`>`, if _`T`_ is a reference type
 
- Java 枚举类`E`将被镜像为`@JavaMirror`类`E'`，该类直接继承`java.lang.Enum`类的镜像。`E'`既不可能是`open`也不可能是`sealed`，故无法被继承。
+where _`T'`_ is the mirror of _`T`_.
+Refer to [Null Handling](#java-null-handling) for the reasoning
+behind `Option<T>` wrapping.
 
-`@ Java Mirror`类`E'`中包含有：
+**NOTE:** Java arrays are covariant, whereas Cangjie generics are
+invariant, and the class `JArray<T>` is no exception.
 
-* Java 枚举常量的镜像，形式为可见性为`public`的`let`静态成员变量，变量类型为`E'`。
 
-* Java 枚举类型中隐式定义的若干方法的镜像，即`public static E'[] values()`和`public static E' valueOf(String name)`。
+## Enum Classes
 
-* Java 枚举类型中所有访问范围为`public`/`protected`的字段和方法，其镜像规格与 Java 类的镜像规格完全一致。
+A Java enum class _`E`_ is mirrored into a Cangjie mirror class _`E'`_ that
+inherits the mirror of `java.lang.Enum` and is neither `open` nor `sealed`
+itself, thus cannot be extended.
 
-`@ Java Mirror`类`E'`中无任何显式定义的构造函数，且`@JavaMirror`类本身也不会隐式定义默认构造函数，从而杜绝了通过调用构造函数实例化`E'`的可能性。
+The class _`E'`_ contains:
 
-### 特殊注意事项
+* Mirrors of the enum constants of _`E`_, in the form of public static
+  member `let`-variables of type _`E'`_.
 
-### Java `null`值处理
+* No constructors, for the instantiation of the mirror class
+  to be impossible. (Mirror classes do not have default constructors.)
 
-仓颉没有空引用的概念，因此对 Java `null`类型没有直接对应物。假设一个 Java 方法的返回类型是引用类型`T`，如果该方法被镜像为仓颉成员函数后，成员函数的返回类型直接就是`T`的镜像类型`T'`，就将存在这个问题：当仓颉侧调用该成员函数，Java 侧的对应方法返回的是实例的引用时，仓颉侧的成员函数调用能够正常返回；但如果 Java 侧对应方法返回的是`null`值，则将直接导致段错误。反过来，这样同时也会使得仓颉侧无法传递`null`值回 Java 侧。
+* Mirrors of the implicitly defined methods
+  `public static `_`E`_`[] values()`
+   and `public static `_`E`_` valueOf(String name)`
 
-因此，如果 Java 侧的字段类型、数组元素类型、方法形参类型或返回类型等，是引用类型`R`，该实体的镜像所声明的类型将是`Option<R'>`，其中的`R'`是`R`的镜像类型。在仓颉侧，`None`代表的是`null`值，而`Some(r)`代表非`null`的引用值，其中`r`是类型为`R'`的值。为了实现上述规格，假设存在镜像类型或互操作类`T`， cjc 会将`Option<T>`识别为 Java 兼容类型，并据此对`T`值进行装包/拆包操作。
+* Mirrors of any `public`/`protected` fields and methods of the original
+  enum class as if they were fields and methods of an [ordinary class](#java-classes-and-interfaces)
 
-示例如下，对于以下的 Java `interface`：
+
+## Special Considerations
+
+
+
+## `null` Handling {#java-null-handling}
+
+Cangjie has no concept of null references and hence no equivalent for the Java
+null type. If the reference type of a Java method return value was mirrored
+direct to the respective mirror type, any `null` value returned from that
+method could lead to a segmentation fault. Conversely, there has to be a way
+to pass a `null` value from Cangjie to a Java method or constructor.
+
+Therefore, if the original Java type of a field, array element,
+method/constructor parameter or method return value is a reference type _`R`_,
+the mirror of that _entity_ will have the type `Option<`_`R'`_`>`, where _`R'`_
+is the mirror of the _type_ _`R`_. On the Cangjie side, `None` stands for the
+`null` value, and `Some(`_`r'`_`)` represents a (non-null) reference value
+_`r'`_ of the type _`R'`_. The `cjc` compiler recognizes `Option<T>`
+as a Java-compatible type if `T` is a mirror type or interop class and
+wraps/unwraps the values of `T` accordingly.
+
+For instance, consider the following Java interface:
 
 ```java
 interface Concatenator {
@@ -1942,29 +2708,47 @@ interface Concatenator {
 }
 ```
 
-形参`ss`本身可能为`null`，`ss`作为数组，其中每个元素都有可能为`null`，`concat`方法的返回值也同样可能为`null`。因此，对于该`interface`来说最保险的镜像的方式如下：
+The `ss` parameter itself may be `null`, each element of the `ss` array may be
+`null` and the `concat` method may return `null`. Therefore, the _safe_ way
+to mirror that interface is as follows:
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 interface Concatenator {
     func concat(ss: ?JArray<?JString>): ?JString
 }
 ```
 
-同理，当开发者在互操作类中定义具有外部类型`T`的局部变量时，也应该使用`Option<T>`而不是直接`T`，除非开发者能百分之百确定该局部变量不会被赋`null`值。
+For the same reason, you should use `Option<T>` wrapping when declaring
+a local variable of a foreign type in the code of an interop class, unless you
+are 100% sure that it won't be assigned `null`.
 
 ```cangjie
-    // 假设M是 Java 镜像类型
-    let m: M = M() // 如果M()能够成功返回，开发者能够保证一定返回 M 实例而不是空引用
+    // Suppose M is a Java mirror type
+    let m: M = M()     // If M() returns successfully, it is guaranteed
+                       // to have returned a new instance of M
 ```
 
-上述`Option<T>`封装保证了即便 Java 侧往仓颉侧传入空引用也不会导致程序崩溃，但这也同时引入了性能和内存占用代价，以及使得[型变被丢失](#型变丢失)。
+The `Option<T>` wrapping ensures that the code won't break if a `null` value
+sneaks into the Cangjie world from the Java one, but it does that at the cost
+of performance and memory footprint. The other disadvantage of this approach is
+the [loss of variance](#loss-of-variance).
 
-#### 型变丢失
 
-为 Java 镜像类型和互操作类进行[`Option<T>`装包](#java-null值处理)带来了一个显著的限制：向这样装包的类型在所有其他方面均完全遵循仓颉语义规则。具体而言，根据仓颉语义规则，`Option<T>`对其类型变元`T`是**不变**的，换句话说，对于两个类型`U`和`T`，除非`U`和`T`是相同的类型，否则即便`U`是`T`的子类型，`Option<U>`也与`Option<T>`不存在任何子类型关系。这意味着，对于镜像类型中存在重写关系的方法，如果这两个方法的返回类型存在**协变**的关系，这个协变的关系无法在仓颉侧保留下来，子类中的重写方法的返回类型的镜像必须改为父类中方法的返回类型的镜像。
+### Loss of Variance
 
-示例如下，在以下代码片段中，`class Foo`是`class Bar`的父类：
+One limitation imposed by the [`Option<T>` wrapping](#java-null-handling)
+of Java mirror types and interop classes is that such wrapped types follow
+the semantics of Cangjie in all other respects. In particular, `Option<T>` is
+_invariant by its type parameter `T`_: `Option<U>` is not a subtype
+of `Option<T>` if `U` is a subtype of `T`, unless `U` and `T` are the same
+type. For mirror types that means that any overriding Java method that relies
+on return type covariance may not be mirrored that way with `Option<T>`
+wrapping. Its return type has to be propagated from the superclass method.
+
+**Example:**
+
+Suppose a Java class `Foo` is a direct superclass of the class `Bar`:
 
 ```java
 public class Foo {}
@@ -1972,7 +2756,7 @@ public class Foo {}
 public class Bar extends Foo {}
 ```
 
-`interface C`中的`get`方法的返回类型是`Foo`：
+and the interface `C` declares a method `get` that returns an instance of `Foo`:
 
 ```java
 public interface C {
@@ -1980,7 +2764,8 @@ public interface C {
 }
 ```
 
-`interface D`作为`interface C`的子类型，可以通过重写`get`方法，来让方法的返回类型更加精确，从`Foo`改为`Bar`：
+A subinterface of `C` may then override `get` with a more precise return type,
+`Bar`:
 
 ```java
 public interface D extends C {
@@ -1989,86 +2774,114 @@ public interface D extends C {
 }
 ```
 
-假设不进行`Option<T>`的装包，上述 Java 类型定义将被镜像为以下仓颉类型定义：
+Without `Option<T>` wrapping, all those types could be mirrored to:
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open class Bar <: Foo {}
 
-@ Java Mirror
+@JavaMirror
 public interface C {
     public open func get(): Foo
 }
 
-@ Java Mirror
+@JavaMirror
 public interface D <: C {
-    public override open func get(): Bar // 此处存在返回类型协变
+    public override open func get(): Bar       // Return type covariance in action
 }
 ```
 
-但正如前文所述，若不进行`Option<T>`装包，而调用`get`实际返回`null`值，则不可避免地导致程序崩溃。
+but if `get()` can possibly return `null`, an application crash is inevitable.
 
-如果进行`Option<T>`装包，就可以解决`null`的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
+`Option<T>` wrapping makes it safe, but the return types of all overriding
+methods have to be lowered to the return type of the original method:
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open class Bar <: Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open interface C {
     public open func get(): ?Foo
 }
 
-@ Java Mirror
+@JavaMirror
 public open interface D <: C {
-    // public open func get(): ?Bar    // 错误，Option<T> 对于 T 不协变，?Bar 不是 ?Foo 的子类型
-    public open func get(): ?Foo       // 正确，但返回类型被降级了
+    // public open func get(): ?Bar    // Error, `Option<T>` is not covariant by T
+    public open func get(): ?Foo       // OK, but the return type is lowered
 }
 ```
 
- Java 的可空性注解，如`@Nullable`、`@NotNull`等，可以部分消减上述问题，但当前版本尚不支持此处理。
+Nullability annotations could partially alleviate the problem, but the current
+version of the Cangjie SDK does not support them.
 
-### 处理循环导入依赖
 
- Java 源码中普遍存在包间的循环导入，例如，Java 最基础的类，`java.lang`包中的`String`类依赖：
+## Circular Import Dependencies Handling
 
-* `java.io`包中的`Serializable`接口
-* `java.nio.charset`包中的`Charset`类
-* `java.util`包中的`Locale`类
+Circular dependencies between packages are not only possible, but omnipresent
+in Java. For instance, the ubiquitous class `java.lang.String` depends on:
 
-而上述的所有类型均无一例外依赖`java.lang`包中的`Object`类，从而构成循环导入依赖。
+* the interface `Serializable` from the `java.io` package,
+* the class `Charset` from  `java.nio.charset`, and
+* the class `Locale` from `java.util`,
 
-之所以 Java 允许循环导入依赖，是因为对于每个类型，都会被编译为单独的`.class`文件。而对于仓颉来说，假设一个仓颉包`a`导入另一个包`b`，则包`b`必须先于包`a`编译完毕，然后才能正常编译包`b`。因此，同属于一个仓颉包的所有源文件必须在同一次 cjc 编译中被编译得到一个单独的二进制文件。仓颉的最小编译单元是一个包，而不是像 Java 那样的单个源文件，故在仓颉源码中，包间循环导入依赖是禁止的。
+and all those three types of course depend on the class `Object`
+from `java.lang`!
 
-#### 单包模式
+Compilation to separate `.class` files and late binding effectively circumvent
+this problem in Java. For a Cangjie import declaration to compile, however,
+the entire package that it imports (from) must be already compiled.
+Consequently, all Cangjie source files that belong to a given package must be
+compiled together in one session into a single binary. One can say that the
+minimum unit of compilation in Cangjie is an entire package, not an individual
+file. Hence circular import dependencies between packages are not possible
+in Cangjie code.
 
-由于上述的 Java 与仓颉之间的[区别](#处理循环导入依赖)，镜像生成器无法直接将原 Java 包名作为生成的仓颉包名。为了避免仓颉侧出现循环导入依赖，镜像生成器不得不总是将所有生成的镜像类型放在同一个仓颉包中，即便原 Java 类型来自于若干不同的 Java 包。这个仓颉包名于是是由用户决定的，通过`--package-name`选项指定，默认为`UNNAMED`。
 
-举例来说，假设开发者运行镜像生成器，指定以下选项：
+### Single-Package Mode
 
-`--package-name java.world`
+The above [difference](#circular-import-dependencies-handling) between the
+two languages precludes the preservation of Java package names during mirror
+generation. In practical terms, the mirror generator must _always_ collect all
+generated mirror types in a single Cangjie package. The desired name of that
+package must be specified with the option `--package-name`.
 
-镜像生成器将把生成的仓颉类型放在`java.world`包中，而原 Java 包名则通过`@JavaMirror`注解的参数得以传递至仓颉侧：
+For instance, if you run the mirror generator with the following option:
+
+`    --package-name java.world`
+
+it will place all generated mirror type declarations in the `java.world`
+package and propagate the fully qualified names of the original Java types
+to the `cjc` compiler via arguments of the `@JavaMirror` annotations:
 
 ```cangjie
 package java.world
 
 import java.lang.*
 
-@ Java Mirror["java.lang.Cloneable"]
+@JavaMirror["java.lang.Cloneable"]
 public interface Cloneable {
 }
 ```
 
-#### Java 镜像类型名称冲突
 
-不同 Java 包中可能定义有完全限定名不同，但拥有相同简单名称的类型。例如，JDK 的`javax.management`包中存在`Attribute`类，`javax.naming.directory`包中存在`Attribute`接口。显然，如果它们生成的镜像类型的简单名称不改名，同为`Attribute`，那么这两个类型的镜像类型无法同时存在在一个仓颉包中。因此，镜像生成器在[单包模式](#单包模式)下，将自动检测命名冲突，对所有存在冲突的类型名称进行修饰。具体而言，存在冲突的镜像类型的名称会采用原 Java 类型的完全限定名，其中的点`.`均替换为下划线`_`。
+### Name Clashes
+
+Java types declared in different packages may have the same simple name,
+because their fully qualified names are different. For example, there is
+a class `Attribute` in the JDK package `javax.management` and an interface
+`Attribute` in `javax.naming.directory`. Their mirrors cannot co-exist
+in a single Cangjie package. Therefore, the mirror generator detects such
+name clashes when operating in the [single-package mode](#single-package-mode)
+and mangles _all_ conflicting names. Specifically, it uses the fully qualified
+name of each such type in place of its simple name, replacing dots `.`
+with underscores `_`:
 
 ```cangjie
 // src/java/world/src/javax_management_Attribute.cj
@@ -2076,10 +2889,9 @@ package java.world
 
 import java.lang.*
 
-@ Java Mirror["javax.management.Attribute"]
+@JavaMirror["javax.management.Attribute"]
 public open class javax_management_Attribute <: Serializable {
    .  .  .
-}
 ```
 
 ```cangjie
@@ -2088,75 +2900,576 @@ package java.world
 
 import java.lang.*
 
-@ Java Mirror["javax.naming.directory.Attribute"]
+@JavaMirror["javax.naming.directory.Attribute"]
 public interface javax_naming_directory_Attribute <: Cloneable & Serializable {
    .  .  .
-}
 ```
 
-## Java 镜像生成器参考
 
-### 准备工作
+### Incremental Mirroring
 
- Java 镜像生成器依赖 JDK17，在使用前请确保开发者本地已安装 JDK17 并配置好相应的`PATH`环境变量。
+Putting all Java mirror types into a single Cangjie package such
+as `java.world` not only leads to [name clashes](#name-clashes), but
+also increases the compile-time overheads and is generally inconvenient.
+Breaking that mass of declarations down into several packages is
+therefore highly desirable. Fortunately, not all Java packages are
+in a single import dependency circle, so at least some breaking down is
+possible.
 
-开发者需要知道本地所有需要为之生成镜像的 jar 文件的路径和`.class`文件所在目录的路径，这包括安卓标准库的 jar，以及安卓应用运行时的类路径等。
+First of all, you may notice that there are three sets of packages in any
+Android application that may not have circular dependencies between them:
 
-#### Java 镜像生成器命令行语法
+* Application packages
+* Android API packages
+* JDK API packages
 
-共有两种使用 Java 镜像生成器的方式：
+This means that even in the worst possible case all mirror types could be
+segregated into three Cangjie packages, respectively code-named "`app`",
+"`android`" and "`java`".
+
+Furthermore, the JDK API has been modularized since Java 9, and circular
+import dependencies may _not_ exist between Java modules. Therefore it is
+perfectly possible to replicate the structure of the JDK API _modules_
+during mirroring. For instance, the Cangjie package `java.base` would
+then contain mirrors of types from the packages exported from the
+`java.base` JDK API module: `java.lang` and its subpackages,
+`java.io`, `java.math`, and so on.
+
+Finally, a third party library should have no circular import dependencies
+with other application components and APIs. If your application contains
+any such libraries that you also need to use from Cangjie code, you may
+want to mirror each library into its own Cangjie package.
+
+The _incremental mirroring_ process enables such segregation. You run
+the mirror generator _once for each target Cangjie package_ (set with the
+`--package-name` option, as usual), each time specifying two additional
+parameters:
+
+1. A _complete_ list of Java packages to mirror into that specific
+   target Cangjie package. Those Java packages may have circular
+   import dependencies between them, and may also import _previously_
+   mirrored packages/types.
+
+2. A cumulative list of fully qualified name mappings for all _previously_
+   mirrored Java types. Initially this list is empty.
+
+The mirror generator emits mirrors for all public classes and interfaces
+that belong to the packages appearing on the list (1), and any dependencies
+they may have that are _not_ already on the list (2). Then it appends all
+newly established Java → Cangjie name mappings to the list (2).
+
+
+#### Command-line Syntax {#incremental-mirroring-command-line-syntax}
+
+Incremental mirroring is only supported in the single-jar mode at present,
+which means that the second variant
+of the mirror generator [command-line syntax](#jmg-command-line-syntax)
+has to be used:
+
+`java-mirror-gen [`_`options`_`] -jar `_`jar-file`_
+
+_`options`_ must include the following:
+
+`--package-name `_`target-package-name`_
+
+_`target-package-name`_ is the name of the target Cangjie package.
+The mirror generator will place _all_ mirror types into that package.
+
+**IMPORTANT: You must specify a new, previously unused target Cangjie
+package name every time you run the mirror generator in the incremental mode.
+If you mirror some types into, say, `my.java.libs` package in the first
+run of the mirror generator using `--package-name my.java.libs` and
+run it again against different input but without changing the value
+of `--package-name`, that would completely invalidate the results
+of mirroring, making them inconsistent.**
+
+> In a certain sense, a target Cangjie package is the minimal unit
+> of mirroring, just like a source Cangjie package is the minimal unit
+> of compilation when you develop in Cangjie: you cannot compile two
+> Cangjie source files belonging to the same package separately.
+
+`--package-list `_`pathname`_
+
+_`pathname`_ must point to a plain text file that contains a list
+of Java package names. Specifically, each line of that file must be
+a fully qualified package name, optionally followed by a wildcard `.*`:
+
+```
+com.example.model
+com.example.ui.*
+   .  .  .
+```
+
+**NOTICE:** If the wildcard is present, that entry matches all subpackages
+of the named package _and_ that package itself. This is different from
+the semantics of the wildcard in Java and Cangjie import statements.
+
+The generator will emit mirrors for _all_ non-anonymous non-private types
+defined in the listed packages _and_ all their dependencies _except_
+for the dependencies that are already present in the import mappings file,
+if any. All those mirror types will be placed in a single Cangjie package
+specified using the `--package-name` option (see above).
+
+This option may only be used in the single-jar mode.
+
+`--import-mappings `_`import-mappings-file`_
+
+_`import-mappings-file`_ is the pathname of the _import mappings file_,
+a plain text file that accumulates a set of Java to Cangjie fully qualified
+name mappings for all mirror types as they are generated. The mirror generator
+reads that file at startup and does _not_ mirror the Java types for which
+mappings already exist, assuming that they were mirrored on its prior
+invocation(s). If mirroring completes without errors, the mirror generator
+adds the mappings for all mirrors it has just generated to the set and writes
+it out to the `./imports_config.txt` file before termination.
+
+**NOTE:** If _`import-mappings-file`_ is set to `./imports_config.txt`, that
+file will get overwritten. Make a copy after each incremental run of the mirror
+generator if you want to keep the intermediate sets of mappings,
+e.g. for debugging purposes.
+
+
+### Example: JDK API Mirroring
+
+As mentioned [above](#incremental-mirroring), the JDK API is modularized,
+so one could look at the
+[list of modules](https://docs.oracle.com/en/java/javase/17/docs/api/index.html)
+and their dependency graphs, collect lists of exported packages, and run the
+mirror generator using the following command line template:
+
+```bash
+java-mirror-gen \
+    --android-jar /path/to/android.jar \
+    --package-name java.base \
+    --package-list ./java.base.txt \
+    --import-mappings ./imports_config.txt \
+    --destination src/cj \
+    --class-path /path/to/android/SDK/platform/files/directory \
+    -jar /path/to/android.jar
+```
+
+The file `./java.base.txt` should contain the list of packages exported
+from the `java.base` JDK API module _for public use_:
+
+```
+java.io
+java.lang
+java.lang.annotation
+   .  .  .
+```
+
+and the file `./imports_config.txt` should be empty or non-existent.
+
+Upon the successful completion of the above command:
+
+* The directory `./src/cj/java/base/src` will contain Cangjie source files
+  with mirror type declarations for all public classes and interfaces
+  defined in the packages listed in `./java.base.txt`, and
+
+* The file `./imports_config.txt` will contain mappings of fully qualified
+  names of all those Java types to the names of their Cangjie mirrors in the
+  `java.base` package, for use in subsequent mirror generator invocations.
+
+> **NOTICE:** The _implementations_ of many types exported from the module
+> `java.base` depend on classes and interfaces defined in internal JDK
+> packages, such as `sun.util.locale.provider.LocaleDataMetaInfo`
+> or `jdk.internal.misc.Unsafe`. However, mirror types are _declarations_;
+> they do not expose any private members of the respective Java types nor
+> the implementation details of their public methods or constructors.
+> So the mirror generator will not process the class files that belong
+> to such internal packages at all.
+
+Now we can pick a JDK API module that depends only on the `java.base`
+module, e.g. `java.xml`, and run the mirror generator again, changing
+only the values of two options:
+
+* Set the value of `--package-name` to `java.xml`
+
+* Set the value of `--package-list` to the pathname of a file
+  containing the list of packages exported from the `java.xml` JDK API
+  module:
+
+  ```
+  javax.xml.*
+  org.w3c.dom
+     .  .  .
+  ```
+
+Note that it is possible to put a wildcard `.*` after a package name to denote
+that package _and_ all its subpackages at once. In the above excerpt,
+`javax.xml.*` matches the package `javax.xml` itself, as well as
+ `javax.xml.catalog`, `javax.xml.transform`, `javax.xml.transform.stream`,
+and so on.
+
+```bash
+java-mirror-gen \
+    --android-jar /path/to/android.jar \
+    --package-name java.xml \
+    --package-list ./java.xml.txt \
+    --import-mappings ./imports_config.txt \
+    --destination src/cj \
+    --class-path /path/to/android/SDK/platform/files/directory \
+    -jar /path/to/android.jar
+```
+
+`./src/cj/java/xml/src` should now contain mirror declarations for all
+`java.xml` module exports, whereas `./imports_config.txt` should now contain
+mappings for _both_ `java.base` and `java.xml` Cangjie packages.
+
+Repeat this process for the remaining modules, in any order that ensures
+mirroring of all dependencies of each module before mirroring that module
+itself.
+
+
+
+### Using Incremental Mirroring
+
+You can use [incremental mirroring](#incremental-mirroring) to segregate
+arbitrary components of the application code that need to be used
+from Cangjie, as long as there are no circular import dependencies between
+those components and/or the rest of the Java code. In particular, the public
+classes and interfaces of each third party Java library that Cangjie code
+needs to use can be mirrored separately into an appropriately named Cangjie
+package.
+
+To accomplish that, first break down the set of packages constituting
+the application into subsets that have no circular import dependencies
+between them. Then use the incremental mirroring process described above:
+
+1. Pick any subset that has no import dependencies on packages
+   from other subsets. Mirror it all at once into an appropriately named
+   package.
+
+2. Mirror any subset that only depends on zero or more of the previously
+   mirrored subsets.
+
+3. Repeat the previous step until all Java types that you want to use in
+   Cangjie code are mirrored, _each time picking a new target Cangjie
+   package name_.
+
+
+## Closure Depth Limiting
+
+In addition to numerous
+[circular import dependencies between packages](#circular-import-dependencies-handling),
+another property is inherent to the standard Java API and many popular Java
+libraries and frameworks: enormous sizes of import closures.
+
+For instance, invoking the mirror generator to produce a mirror for an empty
+enum type
+
+```java
+public enum E {}
+```
+
+makes it also generate mirrors for `java.lang.Enum` _and all its dependencies_
+from the standard Java library, about 300 mirror types total:
+
+```
+AbstractInterruptibleChannel.cj
+AbstractStringBuilder.cj
+AccessControlContext.cj
+AccessMode.cj
+AccessibleObject.cj
+   .  .  .
+ZoneOffsetTransitionRule.cj
+ZoneRules.cj
+ZonedDateTime.cj
+```
+
+For all those mirror types, the compiler will generate glue code, most of which
+a real program will never use. That may be tolerated in a desktop or server
+environment, but not on a mobile platform such as Android.
+
+Asking the developer to supply an exact list of types and members to mirror
+would be too much. Fortunately, the simple _limiting of depth_ during the
+calculation of dependency closures yields reasonably good results: the number
+of generated mirrors can drop by an order of magnitude or more. For instance,
+mirroring the above empty enum type `E` with depth limited to 2 produces just
+six mirror types in addition to the mirror of the type `E` itself: the enum
+base class `java.lang.Enum`, three interfaces that it implements, and the
+return types of two of its methods:
+
+```
+Class.cj
+Comparable.cj
+Constable.cj
+E.cj
+Enum.cj
+Optional.cj
+Serializable.cj
+```
+
+Here is how depth limiting works exactly:
+
+* The set of mirrored _types_ always includes:
+
+    - Primitive Java types,
+      [mirrored into the respective Cangjie value types](#primitive-types);
+    - [Class and interface types](#java-classes-and-interfaces) explicitly
+      specified on the mirror generator command line;
+    - `java.lang.Object` and `java.lang.String`, [pre-mirrored respectively
+      into `JObject` and `JString`](#interop-library-api-reference); and
+    - [Array types](#arrays), the element types of which are among the above
+      listed types, mirrored into `JArray<T>`.
+
+* _Members_ of types included in the set are then filtered as follows:
+
+    - Inherited members are _not_ mirrored as "own" members even if the
+      respective supertypes are not included in the set of mirrored types.
+
+    - Fields, the types of which are not included in the set of mirrored
+      types, are omitted.
+
+    - Methods, the signatures of which contain types that are not included
+      in the set of mirrored types, are omitted.
+
+    - Member types are treated just like top-level types: unless they are
+      explicitly specified on the mirror generator command line, they only
+      get mirrored if included in the set of mirrored types during the
+      limited-depth dependency closure calculation process described here.
+
+* The [command-line option](#jmg-command-line-syntax) `--closure-depth-limit`
+  sets the depth limit for the explicitly specified class and interface
+  types.
+
+* If the depth limit for a given type _`T`_ is zero, _no types on which `T`
+  depends get added to the set_. Even the supertypes of _`T`_ are not added.
+
+  **Example:**
+
+  ```java
+  // A.java
+  public class A {
+      public void f(String s) {}
+  }
+
+  // B.java
+  public class B extends A {
+      public void g(String s) {}
+  }
+  ```
+
+  If the mirror generator is instructed to mirror the class `B` with depth
+  limited to 0, it will only generate a mirror for `B` and its method
+  `g(String)`, because `JString` is automatically included in the set of
+  mirrored types. At the same time, the method `f(String)` that `B` inherits
+  from `A` will not be available:
+
+  ```cangjie
+  // B.cj
+     .  .  .
+  @JavaMirror["B"]
+  public open class B {
+      public init()
+
+      public open func g(s: ?JString): Unit
+  }
+  ```
+
+* If the depth limit for a given type _`T`_ is any positive _`N`_, the set
+  of mirrors _additionally_ includes the following types, with the depth
+  limit of _`N`_`-1`:
+
+    - All (that is, recursively collected) supertypes of _`T`_;
+    - Types of the non-`private` fields _declared in `T` itself_,
+      that is, not the types of inherited fields;
+    - Types of parameters of the non-`private` constructors of _`T`_; and
+    - Types of parameters and return values of the non-`private` methods
+      _declared in `T` itself_. Note again that the inherited methods
+      are _not_ scanned.
+
+  If a type is already included in the set, but with a lower depth limit,
+  the latter is changed to _`N`_`-1`.
+
+  The process is repeated recursively for all types newly added to the set
+  of mirrors.
+
+  **Example:**
+
+  ```java
+  // A.java
+  public class A {
+      public void f(C c) {}
+  }
+
+  // B.java
+  public class B extends A {
+      public void g(D d) { }
+  }
+
+  // C.java
+  public class C { }
+
+  // D.java
+  public class D extends C {}
+  ```
+
+  If the mirror generator is instructed to mirror the class `B` with depth
+  limited to 1, it will generate mirrors for `B`, its superclass `A` and
+  the class `D` that is the type of the sole `B.g(D)` method parameter.
+  However, `A` and `D` will be mirrored with depth limit set to 0, so the
+  class `C`, and hence the method `A.f(C)` will not be mirrored:
+
+  ```cangjie
+  // A.cj
+     .  .  .
+  @JavaMirror["A"]
+  public open class A {
+      public init()
+  }
+
+  // B.cj
+     .  .  .
+  @JavaMirror["B"]
+  public open class B <: A {
+      public init()
+
+      public open func g(d: ?D): Unit
+  }
+
+  // D.cj
+     .  .  .
+  @JavaMirror["D"]
+  public open class D {
+      public init()
+  }
+  ```
+
+  Finally, setting the depth limit to 2 will make the mirror generator
+  include mirrors of the class `C` and the method `A.f(C)` in its output.
+
+
+# Java Mirror Generator Reference
+
+
+## Prerequisites
+
+The Java mirror generator requires a copy of JDK 17 to run.
+If you do not have JDK 17 installed and added to your executable search `PATH`
+install and/or add it before using the Java mirror generator.
+
+
+You also need to know the _local_ pathnames of the jar files and directories
+that contain all dependencies of the classes you are going to mirror. This
+includes the Android standard library jar as well as the jars that will appear
+on the classpath when your application launches.
+
+
+## Command-line Syntax {#jmg-command-line-syntax}
+
+The Java mirror generator can be run in two ways:
 
 `java-mirror-gen [`_`options`_`] [`_`type-names`_`]`
 
-这一种方式用于为一到若干个 Java 类或接口，及其所依赖的所有其他 Java 类型生成镜像。
+to generate mirrors for one or more Java classes and/or interfaces _and_ all
+their dependencies, _or_
 
-`java-mirror-gen [`_`options`_`] -jar` _`jar-file`_   _(单 Jar 包模式)_
+`java-mirror-gen [`_`options`_`] -jar `_`jar-file`_     _(single-jar mode)_
 
-这一种方式则用于为指定的 jar 文件`jar-file`中包含的所有`.class`文件中的所有类型，以及其所依赖的所有其他 Java 类型生成镜像，注意，后者这些依赖的 Java 类型所在的`.class`文件可能并不在指定的 Jar 包中，而存在于其他类路径上（如果确实存在）。
+to generate mirrors for all types the `.class` files of which the given
+_`jar-file`_ contains _and_ all their dependencies residing elsewhere
+on the supplied class path, if any,
 
-在上述命令中：
+where
 
-* _`options`_ 是 Java 镜像生成器的若干[命令行选项](#java-镜像生成器命令行参数)。
+* _`options`_ are the [command-line options](#command-line-options)
+  of the mirror generator.
 
-* _`type-names`_ 是需要为之生成镜像的的 Java 类和接口的完全限定名。
+* _`type-names`_ are the _fully qualified names_ of Java classes and
+  interfaces that need to be mirrored (that is, _not_ pathnames
+  of their `.class` files).
 
-* _`jar-file`_ 是单个 jar 文件的路径。
+* _`jar-file`_ is the pathname of a single jar file.
 
-### Java 镜像生成器命令行参数
+**NOTE:** ([Incremental mirroring](#incremental-mirroring) and/or
+[closure depth limiting](#closure-depth-limiting) may restrict the
+set of mirrored types and/or their members during each invocation
+of the mirror generator.
 
-* `-a` _`pathname`_, `--android-jar` _`pathname`_   _(必选)_
 
-    _`pathname`_ 必须是用于构建安卓项目的安卓 SDK 的`android.jar`文件的路径。该选项必须指定，且`android.jar`文件路径必须有效，否则将导致镜像生成器失败并打印报错信息。
+## Command-line Options
 
-* `-d` _`directory`_, `--destination` _`directory`_
+* `-a `_`pathname`_, `-android-jar `_`pathname`_   _(mandatory)_
 
-    _`directory`_ 指定了一个目录路径，镜像生成器将把生成的镜像仓颉源文件放置在该目录中，放置的目录结构将遵循 CJMP 相关的要求。如果该选项未被指定，默认为当前目录。
+    _`pathname`_ must point to the `android.jar` file from the Android SDK
+    used to build the Java part of the application. This option must always
+    be present and point to an existing file, otherwise the script shall
+    fail with an error message.
 
-* `-cp` _`path`_, `--class-path` _`path`_
 
-    _`path`_ 是一系列的目录路径、jar 文件路径或 zip 文件路径，不同路径之间使用冒号`:`（非 Windows）或分号`;`（Windows）分隔。镜像生成器在为指定的类型 _`type-names`_ 及其依赖类型生成镜像时，将会在这些路径下尝试搜索这些类型。
+* `-d `_`directory`_, `--destination `_`directory`_
 
-* `-p` _`name`_, `--package-name` _`name`_
+    _`directory`_ is the pathname of the directory into which the mirror
+    generator shall place its output Cangjie source code files containing
+    the generated mirror type declarations, in a hierarchy of subdirectories
+    conforming to CJPM requirements.
+    If this option is not specified, the current directory is assumed.
 
-    _`name`_ 是仓颉包名，镜像生成器将把所有本次生成的镜像仓颉类型置于该包中。详情请参见[单包模式](#单包模式)。
 
-* `-c` _`number`_, `--closure-depth-limit` _`number`_
+* `-cp `_`path`_, `--class-path `_`path`_
 
-   _`number`_ 为非负十进制整数值，限制了镜像生成类型在确定需要为哪些类型及其成员生成镜像时，其搜索依赖的深度。
+    _`path`_ is a list of pathnames of directories, jar files and zip files,
+    separated with semicolons `;` on Windows and colons `:` on all other
+    platforms. The mirror generator shall go through those directories and
+    archives when looking for the class files of the Java types specified
+    on the command line (_`type-names`_) _and_ their dependencies.
 
-* `-jar` _`jar-file`_
 
-    _`jar-file`_ 是一个 jar 文件的路径，在单 jar 包模式下，镜像生成器将处理该 jar 文件。详情请参见[命令行语法](#java-镜像生成器命令行语法)。
+* `-p `_`name`_, `--package-name `_`name`_   _(mandatory?)_
+
+    _`name`_ is the name of the Cangjie package into which all generated
+    mirror types will be placed.
+    See [Single-Package Mode](#single-package-mode) for details.
+
+
+* `-c `_`number`_, `--closure-depth-limit `_`number`_
+
+    _`number`_ is a non-negative decimal integer limiting the depth
+    of dependency graph scanning when determining the set of types
+    and their members that will be mirrored.
+
+    See [Closure Depth Limiting](#closure-depth-limiting) for details.
+
+
+* `-jar `_`jar-file`_
+
+    _`jar-file`_ is the pathname of the jar file to be processed in the
+    "single-jar" mode (see [Command-Line Syntax](#jmg-command-line-syntax)
+    above).
+
+
+* `-l `_`pathname`_, `--package-list `_`pathname`_
+
+    _`pathname`_ is the pathname of a plain text file containing a list
+    of package names. Only the class files that belong to the listed
+    packages _and_ their dependencies will be mirrored. Requires `-jar`.
+    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
+    in the [Incremental Mirroring](#incremental-mirroring) section for details.
+
+
+* `-i `_`pathname`_, `--imports `_`pathname`_
+
+    _`pathname`_ is the pathname of a plain text file containing
+    mirror type mappings accumulated during previous mirror generator
+    runs. Requires `-l` and `-jar`.
+    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
+    in the [Incremental Mirroring](#incremental-mirroring) section for details.
+
 
 * `-h`, `-?`, `--help`
 
-    指定该选项， Java 镜像生成器将打印帮助信息，简要解释各命令行选项的用法然后终止。
+    Prints a help message with a brief description of the command-line syntax
+    and all options and exits.
+
 
 * `-v`, `--verbose`
 
-    指定该选项， Java 镜像生成器将详细输出其执行的操作步骤。
+    Instructs the mirror generator to emit messages about what it is doing.
 
-### Java 镜像生成器使用示例
+
+
+## Examples
 
 ```sh
 java-mirror-gen \
@@ -2176,26 +3489,39 @@ java-mirror-gen \
     -jar App.jar
 ```
 
-## 互操作库预置 API 参考
+For a more complex example, see
+[Example: JDK API Mirroring](#example-jdk-api-mirroring).
 
- CJMP 所提供的 Java 互操作库`java.lang`中预置了`java.lang.Object`和`java.lang.String`这两个基础 Java 类的镜像类型，以及一个对标 Java 数组的泛型镜像类型。
 
-由于`Object`、`String`和`Array`在仓颉`std.core`包中均有同名的类型，为了避免[Java 镜像类型名称冲突](#java-镜像类型名称冲突)，这几个 Java 类型的镜像类型分别被改名为`JObject`、`JString`和`JArray<T>`。
+# Interop Library API Reference
 
-为了提升互操作使用体验，这几个镜像类型中特别重命名了部分成员函数，也新增了若干成员函数，详情请参见下文阐述。
+The Android interop library includes enhanced versions of mirror types
+for two fundamental Java classes, `java.lang.Object` and `java.lang.String`,
+and a generic mirror type for representing Java arrays.
 
-### `java.lang.JObject`
+To enable the use of unqualified names, those mirror types are called
+respectively `JObject`, `JString`, and `JArray<T>` so as to avoid name
+clashes with Cangjie types from `std.core`.
 
-`java.lang.JObject`是整个 Java 镜像类和互操作类继承层次结构的根类，其本身是`java.lang.Object`的 Java 镜像类，不过删除了部分不支持的成员函数，重命名或新增了部分成员函数，以更好地与仓颉标准库保持协调。
+They also have some methods renamed and new methods added to enhance
+interoperability.
 
-> **注意：**
->
-> 被删除的成员函数是`clone()`、`finalize()`和`getClass()`。由于`JObject`是所有镜像类的根类，这些被删除的成员函数在所有其他镜像类中自然也不可用。
+
+## `java.lang.JObject`
+
+`java.lang.JObject` is the root of the hierarchy of Java mirror classes
+and interop classes. It is itself a mirror of the `java.lang.Object`
+class, but has some unsupported methods removed and some methods
+renamed and added for better alignment with the Cangjie standard library.
+
+**NOTE:** The methods removed from `JObject` are not available
+in any other mirror classes either. Those are `clone()`, `finalize()`,
+and `getClass`.
 
 ```cangjie
 package java.lang
 
-@ Java Mirror["java.lang.Object"]
+@JavaMirror["java.lang.Object"]
 open class JObject {
     public open func equals(obj: ?JObject): Bool
 
@@ -2215,48 +3541,60 @@ open class JObject {
 }
 ```
 
-`equals`以及所有`wait/notify`相关实例成员函数都是对应 Java 实例方法的镜像。
+The instance member function `equals` and all `wait/notify` functions
+are mirrors of the respective Java methods.
 
- Java 的`java.lang.Object`的`hashCode`方法的返回类型是`int`，对应仓颉`Int32`，而仓颉标准库中的`hashCode`成员函数的返回类型则是`Int64`。因此，`java.lang.JObject`内置了两个不同的`hashCode`成员函数来解决这个差异：
 
 ```cangjie
 public func hashCode(): Int64
 ```
 
-该实例成员函数将调用 Java 实例方法`hashCode`，并将 Java 侧的 32 位的`int`返回值强制类型转换为`Int64`，从而更符合仓颉开发者的习惯预期。而另一个实例成员函数：
+Calls the original Java method `hashCode` and casts the returned 32-bit `int`
+value to `Int64`. Introduced to better meet the expectations of Cangjie
+developers.
 
 ```cangjie
 @ForeignName["hashCode"]
 public open func hashCode32(): Int32
 ```
 
-则是原本的 Java 方法`hashCode`的镜像，为避免名称冲突而重命名为`hashCode32`。
+The original Java method `hashCode`, renamed to `hashCode32` to avoid a name
+clash.
 
 ```cangjie
 public func toString(): String
 ```
 
-该实例成员函数将调用原本的 Java 的`toString`实例方法，并将返回值转换为仓颉`String`。Java 侧`toString`方法的调用极低概率会返回`null`，但为了方便使用，并没有为此进行`Option<T>`装包，而是在返回`null`时，仓颉侧的`toString`实例成员函数将抛出异常。
+Calls the original Java method `toString` and converts its result to a
+Cangjie `String`. In the _very_ unlikely event of receiving `null`
+from the underlying Java method, throws an exception.
 
-> **注意：**
->
-> 该成员函数的返回类型是仓颉`String`类型，这明显违反了规格，因为规格要求镜像类的所有`public`成员函数的形参类型和返回类型必须是 Java 兼容类型。之所以可行是因为 cjc 针对该成员函数有专门的支持。
+Introduced to better meet the expectations of Cangjie developers.
+
+**NOTE:** This function returns a Cangjie `String`, breaking the requirement
+to use only Java-compatible types for parameters and return values of public
+member functions and constructors of mirror types and interop classes.
+This is only possible because the `cjc` compiler has dedicated support for this
+member function.
 
 ```cangjie
 @ForeignName["toString"]
 public open func toJString(): JString
 ```
 
-该实例成员函数是 Java 原方法`toString`的镜像类型，为避免名称冲突而改名为`toJString`。
+The original Java method `toString`, renamed to `toJString` to avoid a name
+clash.
 
-同上述原因， Java 的`toString`方法极低概率返回`null`，故`toJString`函数返回类型设计为`JString`而不是`?JString`。
+An implementation of Java `toString` is very unlikely to return `null`, hence
+the return type is `JString`, not `?JString`.
 
-### `java.lang.JString`
+
+## `java.lang.JString`
 
 ```cangjie
 package java.lang
 
-@ Java Mirror["java.lang.String"]
+@JavaMirror["java.lang.String"]
 open class JString {
        .  .  .
     public init(cjString: String)
@@ -2268,43 +3606,62 @@ open class JString {
 public init(cjString: String)
 ```
 
-将仓颉`String`实例转换为`JString`。
+Effectively converts the given Cangjie `String` to a Java string (`JString`).
 
-> **注意：**
->
-> 该构造函数的形参类型是仓颉`String`类型，这明显违反了规格，因为规格要求镜像类的所有`public`构造函数的形参类型必须是 Java 兼容类型。之所以可行是因为 cjc 针对`JString`有专门的支持。
+**NOTE:** This constructor accepts a parameter of the Cangjie type `String`,
+breaking the requirement to use only Java-compatible types for parameters
+and return values of non-private member functions and constructors of mirror
+types and interop classes. This is only possible because the `cjc` compiler
+has dedicated support for `JString`.
 
-`JString`从[`JObject`](#javalangjobject)继承得到以下成员函数：`equals`、`hashCode`、`hashCode32`、`toString`、`toJString`、`wait/notify`等。
+Members inherited from [`JObject`](#java.lang.jobject):
+`equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
+methods.
 
-### `java.lang.JArray<T>`
 
-`JArray<T>`是互操作库中内置的特殊泛型镜像类型，用作所有 Java 数组类型的镜像类型，类型变元`T`必须是能够映射至 Java 基本数据类型的值类型（例如`Int32`和`Bool`等）、镜像类型或互操作类。
+## `java.lang.JArray<T>`
 
-当前版本存在以下使用限制：
+`JArray<T>` is a special built-in generic mirror type that mirrors all Java array
+types. `T` must be either a value type mapped to a primitive Java type, such as
+`Int32` or `Bool`, a mirror type, or an interop class.
 
-* 不支持数组元素类型为可空引用的类型。换句话说，假设`T`是镜像类型或互操作类，则`JArray<T>`类型是支持的，而对元素类型进行了`Option<T>`装包的`JArray<?T>`类型则是不支持的。
+**Limitations:**
 
-* 不支持变量和形参的类型为可空引用的`JArray<T>`类型。也就是说，即便`JArray<T>`是支持的，`?JArray<T>`却是不支持的。
+As of the current version:
 
-`JArray<T>`所提供的 API 相对仓颉原生`Array<T>`来说相对受限，除`JArray<T>`构造函数外，仅提供了用于获取数组长度的`length`实例成员属性、数组元素访问的操作符重载函数，以及由`java.lang.JObject`继承而来的若干成员函数。
+* Java arrays with nullable elements are not supported. In other words, if `T`
+  is a mirror type or an interop class, the type `JArray<T>` is supported,
+  but the type `JArray<?T>` is not.
+
+* Variables and parameters of Java array types may not be marked as
+  nullable using the `Option` enum. That is, even if `JArray<T>` is a valid
+  type, `?JArray<T>` is not recognized as such.
+
+The API of Java arrays is limited compared to that of the Cangjie `Array<T>`
+struct type; the only operations besides construction are length query,
+element access, and the inherited methods of `java.lang.Object`.
 
 ```cangjie
 public init(length: Int32)
 ```
 
-实例化一个长度为`length`的 Java 数组。
+Constructs a new Java array of the given `length`.
 
 ```cangjie
 public prop length: Int32
 ```
 
-获取 Java 数组的元素个数。
+The number of elements in the array.
 
 ```cangjie
 public operator func [](index: Int32): T
 public operator func [](index: Int32, value!: T): Unit
 ```
 
-数组元素访问`[]`操作符重载函数。
+The element access operator `[]`.
 
-`JArray<T>`从[`JObject`](#javalangjobject)继承得到以下成员函数：`equals`、`hashCode`、`hashCode32`、`toString`、`toJString`、`wait/notify`等。
+Members inherited from [`JObject`](#java.lang.jobject):
+`equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
+methods.
+
+
