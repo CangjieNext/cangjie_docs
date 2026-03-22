@@ -1,5 +1,9 @@
 # 仓颉-ObjC 互操作
 
+> **注意：**
+>
+> 当前版本仅支持[在仓颉侧使用 Objective-C 的场景](#在仓颉侧使用-objective-c)，而[在 Objective-C 侧使用仓颉的场景](#在-objective-c-侧使用仓颉)则尚不支持。
+
 仓颉跨平台方案支持开发者将仓颉语言接入 Android/iOS 应用开发，无论是项目中尚未实现的新逻辑，还是已存在的存量逻辑，都可通过仓颉语言完成开发与适配。
 
 镜像类型是仓颉跨平台实现跨语言、跨运行时互操作的核心机制。它允许一门语言中定义的类型向另一门语言暴露接口，进而实现该类型在不同语言环境中的直接使用。
@@ -303,36 +307,38 @@ __attribute__((objc_subclassing_restricted))
 
 cjc 编译选项`--enable-interop-cjmapping`使得其所编的仓颉包中所有的`public`用户自定义类型均生成仓颉镜像类型，且这些用户自定义类型中的所有`public`成员和构造函数都会被暴露给 Objective-C 侧。但在实际开发场景中，这种全盘暴露的方式通常没有必要，因为 Objective-C 侧需要直接调用的仓颉接口，往往仅占整个仓颉库的很小一部分。
 
-开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循[TOML](https://toml.io)语法。
+开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循TOML语法。
 
 该配置文件的`[default]`配置块中，开发者可以指定对所有仓颉包的默认 API 暴露策略，如果需要，还可以在对应的`[[packages]]`配置块中对特定的仓颉包的暴露策略进行修改，示例如下：
 
 ```toml
 [default]
-APIStrategy="None"       ## Expose nothing by default
+APIStrategy = "None"       # 对于所有仓颉包，默认不暴露任何实体
 
 [[packages]]
-name="com.example.pkg1"  ## From this specific package,
-APIStrategy="Full"       ## expose everything
-##   .  .  .
+name = "com.example.pkg1"  # 而对于该仓颉包，
+APIStrategy = "Full"       # 默认暴露所有实体
+# ...（后接下方代码块）
 ```
 
 而对于每个仓颉包，开发者可以使用`included_apis`或`exluded_apis`配置项来指定暴露哪些类型/成员，隐藏哪些类型/成员，示例如下：
 
 ```toml
-##   .  .  .
+# ...（前接上方代码块）
 [[packages]]
-name="com.example.pkg2"          ## From this specific package,
-included_apis = [ "Vector",      ## Only the type 'Vector'
-                  "Vector.add"   ## and its member function 'add'
-                ]                ## are exposed
+name = "com.example.pkg2"  # 对于该仓颉包，
+included_apis = [          # 仅暴露
+    "Vector",              # 类型 `Vector`
+    "Vector.add"           # 以及其成员函数 `add`。
+]
 
 [[packages]]
-name="com.example.pkg3"          ## From this specific package,
-APIStrategy="Full"               ## everything
-excluded_apis = [ "TopSecret",   ## but the type 'TopSecret' and
-                  "Auth.getPwd"  ## member function 'Auth.getPwd'
-                ]                ## are exposed
+name = "com.example.pkg3"  # 而对于该仓颉包，
+APIStrategy = "Full"       # 默认暴露所有实体，
+excluded_apis = [          # 但其中的
+    "TopSecret",           # 类型 `TopSecret`
+    "Auth.getPwd"          # 以及类型 `Auth` 的成员函数 `getPwd`
+]                          # 不被暴露。
 ```
 
 详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
@@ -890,7 +896,7 @@ __attribute__((objc_subclassing_restricted))
 
 ### 仓颉镜像生成配置
 
-仓颉镜像生成配置文件是符合[TOML](https://toml.io)语法的纯文本文件，其中指定了：
+仓颉镜像生成配置文件是符合TOML语法的纯文本文件，其中指定了：
 
 * 需要为哪些非泛型仓颉类型生成镜像类型
 * 需要为哪些泛型仓颉类型进行单态化以生成相应非泛型的镜像类型
@@ -1678,7 +1684,7 @@ Objective-C 的`@implementation`声明将被忽略。
 
 类的前向声明（`@class`标记）被镜像为空的仓颉类定义（即类中无任何成员）。
 
-仓颉存在构造函数和非构造函数的成员函数之间的区分，而 Objective-C 则并没有直接的“构造方法”和“非构造方法”的区分。根据[Method families section of the Clang documentation on Objective-C ARC](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families)中所描述而被归类为`init`方法的方法，将被镜像为仓颉构造函数，且存在以下两个限制：
+仓颉存在构造函数和非构造函数的成员函数之间的区分，而 Objective-C 则并没有直接的“构造方法”和“非构造方法”的区分。被归类为`init`方法的方法，将被镜像为仓颉构造函数，且存在以下两个限制：
 
 * Objective-C 类中，如果两个`init`方法的方法签名仅仅区别于选择器的名称，即，两个方法的形参个数相同，且对应的形参类型相同，那么镜像生成器将把这两个方法所镜像得到的两个构造函数声明注释掉，并输出告警表明存在冲突。
 
@@ -1937,8 +1943,6 @@ XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与�
 > 另外，指针类型也可以被`_Nullable`、`_Nonnull`注解，与上述各关键字的语义相同。
 >
 > Objective-C 属性也可以被指定为`null_resettable`，语义是该属性的 getter 不可能返回`nil`值，而如果调用 setter 时传入`nil`值，该属性将被重置为某默认值。
->
-> 详情请参见[Designating Nullability in Objective-C APIs](https://developer.apple.com/documentation/swift/designating-nullability-in-Objective-C-apis)
 
 因此，如果某处对 Objective-C 引用类型的使用被标记为不可为空（例如被`nonnull`标记），则该使用处将被免去`Option<T>`装包。换句话说，镜像生成器只会为所有未被`nonnull`或`_Nonnull`注解的成员属性类型、成员函数形参类型和成员函数返回类型进行`Option<T>`装包。
 
@@ -1999,14 +2003,14 @@ _`config-file`_
 
 ### Objective-C 镜像生成器配置文件语法
 
-Objective-C 镜像生成器配置文件是一个纯文本文件，遵循[TOML](https://toml.io)语法，其中指定了以下配置信息：
+Objective-C 镜像生成器配置文件是一个纯文本文件，遵循TOML语法，其中指定了以下配置信息：
 
 * 将生成的镜像源文件保存在哪个目录下。
 * 源 Objective-C 头文件名（`.h`文件）。
 * 生成的仓颉包的包名，以及将生成的哪些镜像类型放置在哪个仓颉包中。
 * 对于部分开发者需要特殊处理的类型，需要将类型进行如何的映射。
 
-对于配置文件中将被视作正则表达式的字符串，必须遵循[ECMAScript 正则表达式语法](https://262.ecma-international.org/#sec-regular-expressions)。
+对于配置文件中将被视作正则表达式的字符串，必须遵循 ECMAScript 正则表达式语法。
 
 #### 输出根目录
 

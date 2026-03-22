@@ -1,5 +1,9 @@
 # 仓颉-Java 互操作
 
+> **注意：**
+>
+> 当前版本仅支持[在仓颉侧使用 Java 的场景](#在仓颉侧使用-java)，而[在 Java 侧使用仓颉的场景](#在-java-侧使用仓颉)则尚不支持。
+
 仓颉跨平台方案支持开发者将仓颉语言接入 Android/iOS 应用开发，无论是项目中尚未实现的新逻辑，还是已存在的存量逻辑，都可通过仓颉语言完成开发与适配。
 
 镜像类型是仓颉跨平台实现跨语言、跨运行时互操作的核心机制。它允许一门语言中定义的类型向另一门语言暴露接口，进而实现该类型在不同语言环境中的直接使用。
@@ -52,7 +56,7 @@ public class Node {
 其对应的 Java 镜像类型定义可能如下：
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Node {
     public static let A: Int32
     public init(id: Int32)
@@ -84,13 +88,13 @@ public class Node {
 public final class Node {
     /* 胶水代码 */
     public Node(long id) {
-        /* Glue code constructing a Cangjie Node instance and associating
-         * it with the  Java  Node instance being constructed, i.e. 'this'.
+        /* 此处胶水代码将构造仓颉 Node 类的实例，
+         * 并将其与当前正在构造的 Java Node 类的实例（即 `this`）关联。
          */
     }
     public long getId() {
-        /* Glue code invoking the Cangjie 'id' property getter of the
-           associated Cangjie Node instance and returning the result.
+        /* 此处胶水代码将调用 `this` 所关联的仓颉 Node 类实例的 `id` 成员属性，
+         * 并将调用结果作为该方法的返回值。
          */
      }
     /* 其他胶水代码 */
@@ -104,7 +108,7 @@ public final class Node {
 接下来将举例说明，当使用 cjc 编译以下互操作类时：
 
 ```cangjie
-@ Java Impl
+@JavaImpl
 public class BooleanNode <: Node {
     private let flag: Bool
     public init(id: Int32, flag: Bool) {
@@ -155,10 +159,10 @@ public class BooleanNode extends Node {
 互操作类的`public`成员变量的类型可以是任意类型，但只有当成员变量的类型为 OC 兼容类型时，该成员变量才可以在仓颉和 OC 侧均可访问。
 
 ```cangjie
-@ Java Impl
+@JavaImpl
 class NamedNode <: Node {
-    public var jName: JString  // resides in the conjugate wrapper class instance
-    public var cjName: String  // resides in the interop class instance
+    public var jName: JString  /* 该实例成员变量保存在互操作类的共轭 Java 包装类实例中 */
+    public var cjName: String  /* 该实例成员变量保存在互操作类实例中 */
     init(name: JString) {
         jName = name
         cjName = name.toCangjieString()
@@ -229,36 +233,38 @@ public final class Vector {
 
  cjc 编译选项`--enable-interop-cjmapping`使得其所编的仓颉包中所有的`public`用户自定义类型均生成仓颉镜像类型，且这些用户自定义类型中的所有`public`成员和构造函数都会被暴露给 Java 侧。但在实际开发场景中，这种全盘暴露的方式通常没有必要，因为 Java 侧需要直接调用的仓颉接口，往往仅占整个仓颉库的很小一部分。
 
-开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循[TOML](https://toml.io)语法。
+开发者可以通过 cjc 编译选项`--import-interop-cj-package-config-path`来指定一个配置文件的路径，该配置文件使得开发者可以精确控制仓颉用户自定义类型及其成员的暴露范围。该配置文件为纯文本，格式遵循 TOML 语法。
 
 该配置文件的`[default]`配置块中，开发者可以指定对所有仓颉包的默认 API 暴露策略，如果需要，还可以在对应的`[[packages]]`配置块中对特定的仓颉包的暴露策略进行修改，示例如下：
 
 ```toml
 [default]
- API Strategy="None"       # Expose nothing by default
+APIStrategy = "None"       # 对于所有仓颉包，默认不暴露任何实体
 
 [[packages]]
-name="com.example.pkg1"  # From this specific package,
- API Strategy="Full"       # expose everything
-   .  .  .
+name = "com.example.pkg1"  # 而对于该仓颉包，
+APIStrategy = "Full"       # 默认暴露所有实体
+# ...（后接下方代码块）
 ```
 
 而对于每个仓颉包，开发者可以使用`included_apis`或`exluded_apis`配置项来指定暴露哪些类型/成员，隐藏哪些类型/成员，示例如下：
 
 ```toml
-   .  .  .
+# ...（前接上方代码块）
 [[packages]]
-name="com.example.pkg2"          # From this specific package,
-included_apis = [ "Vector",      # Only the type 'Vector'
-                  "Vector.add"   # and its member function 'add'
-                ]                # are exposed
+name = "com.example.pkg2"  # 对于该仓颉包，
+included_apis = [          # 仅暴露
+    "Vector",              # 类型 `Vector`
+    "Vector.add"           # 以及其成员函数 `add`。
+]
 
 [[packages]]
-name="com.example.pkg3"          # From this specific package,
- API Strategy="Full"               # everything
-excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
-                  "Auth.getPwd"  # member function 'Auth.getPwd'
-                ]                # are exposed
+name = "com.example.pkg3"  # 而对于该仓颉包，
+APIStrategy = "Full"       # 默认暴露所有实体，
+excluded_apis = [          # 但其中的
+    "TopSecret",           # 类型 `TopSecret`
+    "Auth.getPwd"          # 以及类型 `Auth` 的成员函数 `getPwd`
+]                          # 不被暴露。
 ```
 
 详情请参见[仓颉镜像生成参考](#仓颉镜像生成参考)。
@@ -276,13 +282,13 @@ excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
 ```cangjie
 package p
 
-public class Pair<T, U> { . . . }
+public class Pair<T, U> { /* ... */ }
 ```
 
 如果希望在 Java 侧能够使用`Pair<Int, String>`和`Pair<Foo, Bar>`两种类型，开发者可以在配置文件中`name`为`p`的`[[packages]]`配置块中，新增`generic_object_configuration`配置项，具体配置内容如下：
 
 ```toml
-#   .  .  .
+# ...
 [[packages]]
 name = "p"
 generic_object_configuration = [
@@ -291,16 +297,16 @@ generic_object_configuration = [
           "Int, String",
           "Foo, Bar"
       ] },
-#   .  .  .
+# ...
 ]
 ```
 
  cjc 将生成以下两个 Java 类：
 
 ```java
-public final class GIntString { . . . }
+public final class GIntString { /* ... */ }
 
-public final class GFooBar { . . . }
+public final class GFooBar { /* ... */ }
 ```
 
 分别对应了`Pair<T, U>`的两种特定的实例化情况。
@@ -387,37 +393,40 @@ public class SimpleTupleExample {
 ```
 
 ```java
-// java-gen/SimpleTupleExample.java
+// 位于源文件 java-gen/SimpleTupleExample.java
 package tuples;
-// Glue code
+// 胶水代码
 public class SimpleTupleExample {
-    // Glue code
+    // 胶水代码
     public static native TupleOfInt64Int64 z();
-    // Glue code
+    // 胶水代码
 }
 ```
 
 ```java
-// java-gen/TupleOfInt64Int64.java
+// 位于源文件 java-gen/TupleOfInt64Int64.java
 package tuples;
-// Glue code
+// 胶水代码
 final public class TupleOfInt64Int64 {
-    // Glue code
+    // 胶水代码
     public TupleOfInt64Int64(long item0, long item1) {
-        // Glue code constructing a Cangjie (Int, Int) tuple and associating it
-        // with the  Java  object being constructed, i.e. 'this'.
+        /* 此处胶水代码将构造仓颉 (Int, Int) 元组实例，
+         * 并将其与当前正在构造的 Java 类的实例（即 `this`）关联。
+         */
     }
 
     public long item0() {
-        // Glue code retrieving the 0th element from the Cangjie (Int, Int)
-        // tuple associated with 'this' and returning it.
+        /* 此处胶水代码将取得 `this` 所关联的仓颉 (Int, Int) 元组实例的第 0 个元素，
+         * 并将其作为该方法的返回值。
+         */
     }
 
     public long item1() {
-        // Glue code retrieving the 1th element from the Cangjie (Int, Int)
-        // tuple associated with 'this' and returning it.
+        /* 此处胶水代码将取得 `this` 所关联的仓颉 (Int, Int) 元组实例的第 1 个元素，
+         * 并将其作为该方法的返回值。
+         */
     }
-    // Glue Code
+    // 胶水代码
 }
 ```
 
@@ -442,11 +451,11 @@ final public class TupleOfInt64Int64 {
 * cjc 在编译过程中并不会自动对所有遇到的元组类型自动生成其对应的镜像类型，如果需要生成某元组类型的镜像类型，必须由用户手动显式在[配置文件](#仓颉镜像生成配置)中列举该元组类型：
 
     ```toml
-    #   .   .  .
+    # ...
     [[package]]
     name = "tuples"
     tuple_configuration = [ "(Int, Int)" ]
-    #   .   .  .
+    # ...
     ```
 
     如果 cjc 在编译过程中遇到任何逻辑上必须被镜像的元组类型，但该元组类型并未在配置文件中对应仓颉包的`tuple_configuration`配置项中被列举，那么 cjc 将报错提示。
@@ -493,38 +502,35 @@ public class IntFuncBox {
 
 ```java
 package cjworld;
-// Glue code
-
+// 胶水代码
 @FunctionalInterface
 public interface Int64ToInt64
 {
-// Glue code
-
+    // 胶水代码
     public long call(long p1);
-
-// Glue code
+    // 胶水代码
 }
 ```
 
 ```java
 package cjworld;
-// Glue code
 
+// 胶水代码
 public class IntFuncBox {
-// Glue code
-
+    // 胶水代码
     public IntFuncBox(Int64ToInt64 f) {
-        // Glue code creating an instance of the Cangjie class IntFuncBox
-        // and associating it with the object being constructed, i.e. 'this'.
+        /* 此处胶水代码将构造仓颉类 `IntFuncBox` 实例，
+         * 并将其与当前正在构造的 Java 类的实例（即 `this`）关联。
+         */
     }
 
     public Int64ToInt64 unbox() {
-        // Glue code calling the unbox() instance member function of the
-        // Cangjie object associated with 'this' and wrapping it into an
-        // instance of a helper class that implements Int64ToInt64.
+        /* 此处胶水代码将调用 `this` 所关联的仓颉实例的 `unbox()` 实例成员函数，
+         * 将其返回值包装进实现了 `Int64ToInt64` 的 Java 辅助类的实例中
+         * 并作为该方法返回值。
+         */
     }
-
-//  Glue code
+    // 胶水代码
 }
 ```
 
@@ -561,14 +567,14 @@ public class IntFuncBox {
 * cjc 在编译过程中并不会自动对所有遇到的函数类型自动生成其对应的镜像类型，如果需要生成某函数类型的镜像类型，必须由用户手动显式在[配置文件](#仓颉镜像生成配置)中列举该函数类型：
 
     ```toml
-    #   .   .  .
+    # ...
     [[package]]
     name = "lambdas"
     lambda_patterns = [
         { signature = "(Int) -> Int" },
         { signature = "(Float64) -> Bool" },
-    #   .   .  .
     ]
+    # ...
     ```
 
     当 cjc 编译时遇到一个理论上必须被镜像，但事实上并未被列举在配置文件的相应仓颉包的`[[packages]]`配置块中的`lambda_patterns`配置项中的函数类型时将报错。
@@ -610,10 +616,10 @@ public struct Vector {
 ```java
 package cj;
 
-// Glue code imports
+// 此处胶水代码将导入若干类型
 
 final public class Vector {
-    // Glue code
+    // 胶水代码
 
     public Vector(int x, int y) {
         // Glue code that constructs an instance of the Cangjie Vector struct
@@ -634,7 +640,7 @@ final public class Vector {
         // with 'v'/
     }
 
-    // 其他胶水代码
+    // 胶水代码
 }
 ```
 
@@ -905,7 +911,7 @@ public final class Node {
     Node(Node next) { /* 胶水代码 */ }
 }
    .  .  .
-     Node list = new Node(null);   /* NullPointerException */
+     Node list = new Node(null);   /* 此处调用将抛出 NullPointerException 异常 */
 ```
 
 反过来，无法通过返回类型为 Java 兼容类型的`public`成员函数从仓颉侧返回`null`值到 Java 侧。
@@ -943,7 +949,7 @@ public final class Node {
 
 ### 仓颉镜像生成配置
 
-仓颉镜像生成配置文件是符合[TOML](https://toml.io)语法的纯文本文件，其中指定了：
+仓颉镜像生成配置文件是符合 TOML 语法的纯文本文件，其中指定了：
 
 * 需要为哪些非泛型仓颉类型生成镜像类型
 * 需要为哪些泛型仓颉类型进行单态化以生成相应非泛型的镜像类型
@@ -1108,9 +1114,9 @@ generic_object_configuration  = [
 1. 假设存在以下仓颉类型定义：
 
     ```cangjie
-    public class G<T> { . . . }
-    public func f<T>(): Unit { . . . }
-    public struct S<T, U> { . . . }
+    public class G<T> { /* ... */ }
+    public func f<T>(): Unit { /* ... */ }
+    public struct S<T, U> { /* ... */ }
     ```
 
     以及以下配置：
@@ -1151,7 +1157,7 @@ generic_object_configuration  = [
     ```toml
     [[package]]
     name = "cjworld"
-     API Strategy = "Full"
+    APIStrategy = "Full"
     GenericTypeStrategy = "Partial"
 
     lambda_patterns = [
@@ -1170,35 +1176,35 @@ generic_object_configuration  = [
     * Java 函数式接口`Int64ToFloat64`：
 
         ```java
-        // .  .  .
+        // ...
         @FunctionalInterface
         public interface Int64ToFloat64 {
             public double call(long p1);
-            // .  .  .
+            // ...
         }
         ```
 
     * Java 函数式接口`Float64ToBool`：
 
         ```java
-        // .  .  .
+        /* ... */
         @FunctionalInterface
         public interface Float64ToBool {
             public boolean call(double p1);
-            // .  .  .
+            /* ... */
         }
         ```
 
     * Java 类`ComposerInt64Float64Bool`：
 
         ```java
-        // .  .  .
+        /* ... */
         public class ComposerInt64Float64Bool {
-            // .  .  .
+            /* ... */
             public static Int64ToBool compose(Int64ToFloat64 f, Float64ToBool g) {
-                // .  .  .
+                /* ... */
             }
-            // .  .  .
+            /* ... */
         }
         ```
 
@@ -1254,7 +1260,7 @@ generic_object_configuration  = [
 根据上述描述，事实上已经确定了，未来在步骤四中通过 cjc 为互操作类生成的镜像类型定义的骨架如下：
 
 ```java
-//  Java 包名为`cjworld`
+// Java 包名为`cjworld`
 package cjworld;
 
 // 为定义静态方法`m`，需要依赖以下两个其他包中定义的类型
@@ -1339,7 +1345,7 @@ java-mirror-gen \
 1. 互操作类所在的包名和类名与步骤一中的设计保持一致（ cjc 编译互操作类自动生成的 Java 封装类的包名和类名与互操作类的包名和类名是完全一样的）。
 2. 导包`java.lang.*`。
 3. 导入实现互操作类所必要的镜像类型，这些镜像类型是开发者在步骤二中通过 Java 镜像生成器生成的。不过，暂时先不要导入其他依赖类型。
-4. 为互操作类加上注解`@ Java Impl`。
+4. 为互操作类加上注解`@JavaImpl`。
 5. 互操作类继承某 Java 类的镜像类型。被注解了`@JavaImpl`的互操作类默认继承预置在互操作库中的`java.lang.Object`的镜像类型。
 6. 仓颉代码中，任何需要使用`java.lang.Object`、`java.lang.String`和 Java 数组的地方，分别使用`JObject`、`JString`和`JArray<T>`来实现相应功能逻辑。
 
@@ -1375,7 +1381,7 @@ package cjworld
 import java.lang.*
 import javaworld.*
 
-@ Java Impl
+@JavaImpl
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         /* 此处可以实现各种逻辑 */
@@ -1572,7 +1578,7 @@ import javaworld.B
 // 新增导入
 import javaworld.C
 
-@ Java Impl
+@JavaImpl
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         let s1: JString = match (a) {
@@ -1798,8 +1804,8 @@ public open class Node {
 
 > **注意：**
 >
-> 1. `@ Java Mirror`类中禁止包含主构造函数。
-> 2. `@ Java Mirror`类中如果没有任何显式定义的构造函数，并不会像正常仓颉类那样存在隐式定义的构造函数，于是该类并不能通过调用构造函数来实例化。对于自动生成的`@JavaMirror`类，出现这种情况一般意味着被镜像的 Java 类中仅声明有访问范围为默认或`private`的构造方法，而这样做一般是有意阻止下游用户直接通过调用构造方法来实例化该类。
+> 1. `@JavaMirror`类中禁止包含主构造函数。
+> 2. `@JavaMirror`类中如果没有任何显式定义的构造函数，并不会像正常仓颉类那样存在隐式定义的构造函数，于是该类并不能通过调用构造函数来实例化。对于自动生成的`@JavaMirror`类，出现这种情况一般意味着被镜像的 Java 类中仅声明有访问范围为默认或`private`的构造方法，而这样做一般是有意阻止下游用户直接通过调用构造方法来实例化该类。
 > 3. Java 镜像生成器的输入是`.class`文件，而方法/构造方法的形参名一般并不会保存在`.class`文件中，这种情况下，Java 镜像生成器会为生成的镜像自动合成形参名，诸如`arg0`、`arg1`。`javac`的编译选项`-parameters`可以使形参名得以在`.class`文件中留存，但只对`class`类型有效，`interface`类型则依旧无法保留。调试信息生成相关选项`-g`/`-g:vars`与之同理。
 
 **成员类型**将被镜像为顶层类型定义，因为仓颉并不支持嵌套类型定义；镜像类型的名称是成员类型的二进制名称，也就是该成员类型的直接所在类型的二进制名称，加上`$`分隔符，再加上该成员类型自己的简单名称，如是递归得到，且由于仓颉标识符不支持`$`，所有`$`均被替换为下划线`_`（可参考[Java 名称](#java-名称)小节）；访问修饰符`public`、`protected`将直接保留；非访问修饰符`static`将被忽略；镜像类型的构造函数将新增一个额外的形参，该形参用于传入该成员类型直接所在类型的实例（在 Java 中，该形参是被隐式声明且被隐式传入的）。
@@ -1813,19 +1819,19 @@ public class Outer {
 ```
 
 ```cangjie
-@ Java Mirror["Outer"]
+@JavaMirror["Outer"]
 public open class Outer {
     public init()
 
     public open func getInner(): ?Outer_Inner
 }
 
-@ Java Mirror["Outer$Static"]       // Original binary name is retained
+@JavaMirror["Outer$Static"]       // Original binary name is retained
 public open class Outer_Static {  // '$' is replaced with '_'
     public init()
 }
 
-@ Java Mirror["Outer$Inner"]       // Original binary name is retained
+@JavaMirror["Outer$Inner"]       // Original binary name is retained
 public open class Outer_Inner {  // '$' is replaced with '_'
     public init(p0: ?Outer)      // Extra parameter for enclosing instance
 }
@@ -1843,7 +1849,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     ```
 
     ```cangjie
-    @ Java Mirror["A"]
+    @JavaMirror["A"]
     public abstract class A {
         public init()
 
@@ -1853,7 +1859,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     }
     ```
 
-* 默认接口方法所镜像得到的成员函数将带有`@ Java HasDefault`注解，否则单从仓颉侧无法区分原 Java 接口方法是否拥有默认实现，例如：
+* 默认接口方法所镜像得到的成员函数将带有`@JavaHasDefault`注解，否则单从仓颉侧无法区分原 Java 接口方法是否拥有默认实现，例如：
 
     ```java
     public interface I {
@@ -1863,9 +1869,9 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     ```
 
     ```cangjie
-    @ Java Mirror["I"]
+    @JavaMirror["I"]
     public interface I {
-        @ Java HasDefault
+        @JavaHasDefault
         func c(): Unit
 
         func a(): Unit
@@ -1876,23 +1882,23 @@ public open class Outer_Inner {  // '$' is replaced with '_'
 >
 > 不支持数量可变参数​，对于拥有可变参数的方法，`, ...`部分将被忽略。
 
-#### `@ Java Mirror`类型的继承层次结构
+#### `@JavaMirror`类型的继承层次结构
 
-`@ Java Mirror`类和接口自成一套继承层次结构，也就是说：
+`@JavaMirror`类和接口自成一套继承层次结构，也就是说：
 
-* `@ Java Mirror`类的继承层次结构的根类并不是`std.core.Object`，而是一个内置`@JavaMirror`类[`java.lang.JObject`](#javalangjobject)。
+* `@JavaMirror`类的继承层次结构的根类并不是`std.core.Object`，而是一个内置`@JavaMirror`类[`java.lang.JObject`](#javalangjobject)。
 
-* `@ Java Mirror`接口可以继承其他`@JavaMirror`接口，该继承关系反映的是原 Java 侧接口之间的继承关系。`@JavaMirror`接口禁止继承普通仓颉接口，普通仓颉接口也禁止继承`@JavaMirror`接口。
+* `@JavaMirror`接口可以继承其他`@JavaMirror`接口，该继承关系反映的是原 Java 侧接口之间的继承关系。`@JavaMirror`接口禁止继承普通仓颉接口，普通仓颉接口也禁止继承`@JavaMirror`接口。
 
-* `@ Java Mirror`类可以继承其他`@JavaMirror`类，该继承关系反映的是原 Java 侧类之间的继承关系。`@JavaMirror`类禁止继承普通仓颉类，普通仓颉类也禁止继承`@JavaMirror`类。
+* `@JavaMirror`类可以继承其他`@JavaMirror`类，该继承关系反映的是原 Java 侧类之间的继承关系。`@JavaMirror`类禁止继承普通仓颉类，普通仓颉类也禁止继承`@JavaMirror`类。
 
-* `@ Java Mirror`类可以实现`@JavaMirror`接口，该实现关系反映的是原 Java 侧类和接口之间的实现关系。`@JavaMirror`类禁止实现普通仓颉接口，包括`std.core.Any`，普通仓颉类也禁止实现`@JavaMirror`接口。
+* `@JavaMirror`类可以实现`@JavaMirror`接口，该实现关系反映的是原 Java 侧类和接口之间的实现关系。`@JavaMirror`类禁止实现普通仓颉接口，包括`std.core.Any`，普通仓颉类也禁止实现`@JavaMirror`接口。
 
 #### Java 泛型
 
  Java 泛型在经`javac`编译得到`.class`的过程中将被擦除，故由 Java 镜像生成器自动生成的`@JavaMirror`类型总是非泛型的，且所有原泛型参数均被替换为其最左边界类型的相应镜像类型。
 
-禁止手写泛型的`@ Java Mirror`类型定义，但内置类型[`JArray<T>`](#javalangjarrayt)（详情请参见[Java 数组类型](#java-数组类型)小节）除外。
+禁止手写泛型的`@JavaMirror`类型定义，但内置类型[`JArray<T>`](#javalangjarrayt)（详情请参见[Java 数组类型](#java-数组类型)小节）除外。
 
 ### Java 数组类型
 
@@ -1916,7 +1922,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
 
  Java 枚举类`E`将被镜像为`@JavaMirror`类`E'`，该类直接继承`java.lang.Enum`类的镜像。`E'`既不可能是`open`也不可能是`sealed`，故无法被继承。
 
-`@ Java Mirror`类`E'`中包含有：
+`@JavaMirror`类`E'`中包含有：
 
 * Java 枚举常量的镜像，形式为可见性为`public`的`let`静态成员变量，变量类型为`E'`。
 
@@ -1924,7 +1930,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
 
 * Java 枚举类型中所有访问范围为`public`/`protected`的字段和方法，其镜像规格与 Java 类的镜像规格完全一致。
 
-`@ Java Mirror`类`E'`中无任何显式定义的构造函数，且`@JavaMirror`类本身也不会隐式定义默认构造函数，从而杜绝了通过调用构造函数实例化`E'`的可能性。
+`@JavaMirror`类`E'`中无任何显式定义的构造函数，且`@JavaMirror`类本身也不会隐式定义默认构造函数，从而杜绝了通过调用构造函数实例化`E'`的可能性。
 
 ### 特殊注意事项
 
@@ -1945,7 +1951,7 @@ interface Concatenator {
 形参`ss`本身可能为`null`，`ss`作为数组，其中每个元素都有可能为`null`，`concat`方法的返回值也同样可能为`null`。因此，对于该`interface`来说最保险的镜像的方式如下：
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 interface Concatenator {
     func concat(ss: ?JArray<?JString>): ?JString
 }
@@ -1992,18 +1998,18 @@ public interface D extends C {
 假设不进行`Option<T>`的装包，上述 Java 类型定义将被镜像为以下仓颉类型定义：
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open class Bar <: Foo {}
 
-@ Java Mirror
+@JavaMirror
 public interface C {
     public open func get(): Foo
 }
 
-@ Java Mirror
+@JavaMirror
 public interface D <: C {
     public override open func get(): Bar // 此处存在返回类型协变
 }
@@ -2014,18 +2020,18 @@ public interface D <: C {
 如果进行`Option<T>`装包，就可以解决`null`的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
 
 ```cangjie
-@ Java Mirror
+@JavaMirror
 public open class Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open class Bar <: Foo {}
 
-@ Java Mirror
+@JavaMirror
 public open interface C {
     public open func get(): ?Foo
 }
 
-@ Java Mirror
+@JavaMirror
 public open interface D <: C {
     // public open func get(): ?Bar    // 错误，Option<T> 对于 T 不协变，?Bar 不是 ?Foo 的子类型
     public open func get(): ?Foo       // 正确，但返回类型被降级了
@@ -2061,7 +2067,7 @@ package java.world
 
 import java.lang.*
 
-@ Java Mirror["java.lang.Cloneable"]
+@JavaMirror["java.lang.Cloneable"]
 public interface Cloneable {
 }
 ```
@@ -2076,7 +2082,7 @@ package java.world
 
 import java.lang.*
 
-@ Java Mirror["javax.management.Attribute"]
+@JavaMirror["javax.management.Attribute"]
 public open class javax_management_Attribute <: Serializable {
    .  .  .
 }
@@ -2088,7 +2094,7 @@ package java.world
 
 import java.lang.*
 
-@ Java Mirror["javax.naming.directory.Attribute"]
+@JavaMirror["javax.naming.directory.Attribute"]
 public interface javax_naming_directory_Attribute <: Cloneable & Serializable {
    .  .  .
 }
@@ -2195,7 +2201,7 @@ java-mirror-gen \
 ```cangjie
 package java.lang
 
-@ Java Mirror["java.lang.Object"]
+@JavaMirror["java.lang.Object"]
 open class JObject {
     public open func equals(obj: ?JObject): Bool
 
@@ -2256,7 +2262,7 @@ public open func toJString(): JString
 ```cangjie
 package java.lang
 
-@ Java Mirror["java.lang.String"]
+@JavaMirror["java.lang.String"]
 open class JString {
        .  .  .
     public init(cjString: String)
