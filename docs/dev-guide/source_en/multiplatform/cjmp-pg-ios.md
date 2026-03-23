@@ -447,8 +447,7 @@ provided by a Cangjie library or framework.
 You may precisely control the exposure of Cangjie types and their members
 by passing the pathname of a dedicated configuration file to `cjc` via the
 option `--import-interop-cj-package-config-path`. That file is a plain
-text file the contents of which must conform to the [TOML](https://toml.io)
-syntax.
+text file the contents of which must conform to the TOML syntax.
 
 In the `[default]` section of that file, you can specify the default API
 exposure strategy for all Cangjie packages, and then modify it
@@ -1221,7 +1220,7 @@ for details.
 ## Cangjie Mirror Generation Configuration
 
 A Cangjie mirror generation configuration file is a plain text file
-in the [TOML](https://toml.io) syntax. It specifies:
+in the TOML syntax. It specifies:
 
 * Non-generic Cangjie types to mirror
 * Specific instances of generic Cangjie types to mirror
@@ -1482,7 +1481,7 @@ file from the Cangjie open source repository:**
 
 ### Setup
 
-1. Install the `llvm@16` [Homebrew](https://brew.sh/) formula:
+1. Install the `llvm@16` Homebrew formula:
 
     ```bash
     brew install llvm@16
@@ -2290,7 +2289,7 @@ classes (without any members).
 
 
 Methods identified as `init` methods as described in the
-[Method families section of the Clang documentation on Objective-C ARC](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families)
+Method families section of the Clang documentation on Objective-C ARC
 are mirrored into Cangjie constructors, with two limitations:
 
 * If two or more `init` methods of a class differ only by name, i.e. have
@@ -2658,9 +2657,6 @@ utilizing those APIs.
 > Finally, a property may also ne annotated with `null_resettable`, meaning that
 > its getter will never return `nil`, but passing `nil` to its setter would
 > reset the property to some default value.
->
-> For details, see
-> [Designating Nullability in Objective-C APIs](https://developer.apple.com/documentation/swift/designating-nullability-in-objective-c-apis)
 
 All uses of Objective-C reference types annotated as non-nullable are therefore
 exempt from `Option<T>` wrapping. In other words, the Objective-C mirror
@@ -2746,7 +2742,7 @@ The pathname of the configuration file.
 ## Configuration File Syntax
 
 An Objective-C mirror generator configuration file is a plain text file
-in the [TOML](https://toml.io) syntax. It specifies:
+in the TOML syntax. It specifies:
 
 * Output directories
 * Names of the source Objective-C headers (`.h`-files)
@@ -2754,7 +2750,7 @@ in the [TOML](https://toml.io) syntax. It specifies:
 * Mappings for types that you want to be handled in a special way
 
 String values that are interpreted as regular expressions must follow the
-[ECMAScript regular expression syntax](https://262.ecma-international.org/#sec-regular-expressions).
+ECMAScript regular expression syntax.
 
 
 ### Output Directories Roots

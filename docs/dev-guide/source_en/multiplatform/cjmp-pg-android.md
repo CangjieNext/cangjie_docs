@@ -369,7 +369,7 @@ by a Cangjie library or framework.
 You may precisely control the exposure of Cangjie types and their members
 by passing the pathname of a dedicated configuration file to `cjc` via the
 option `--import-interop-cj-package-config-path`. That file is a plain
-text file the contents of which must conform to the [TOML](https://toml.io)
+text file the contents of which must conform to the TOML
 syntax.
 
 In the `[default]` section of that file, you can specify the default API
@@ -1346,7 +1346,7 @@ for details.
 ## Cangjie Mirror Generation Configuration
 
 A Cangjie mirror generation configuration file is a plain text file
-in the [TOML](https://toml.io) syntax. It specifies:
+in the TOML syntax. It specifies:
 
   * Non-generic Cangjie types to mirror
   * Specific instances of generic Cangjie types to mirror
@@ -3032,9 +3032,8 @@ e.g. for debugging purposes.
 ### Example: JDK API Mirroring
 
 As mentioned [above](#incremental-mirroring), the JDK API is modularized,
-so one could look at the
-[list of modules](https://docs.oracle.com/en/java/javase/17/docs/api/index.html)
-and their dependency graphs, collect lists of exported packages, and run the
+so one could look at the list of modules and their dependency graphs,
+collect lists of exported packages, and run the
 mirror generator using the following command line template:
 
 ```bash
