@@ -853,7 +853,8 @@ cjpm install org::boo-2.0.0         # 从中心仓安装 org 组织下名为 boo
 
 > **注意：**
 >
-> `cjpm` 在 `Windows` 平台暂不支持在中文路径下使用，如果遇到问题，请通过修改目录名规避。
+> - `cjpm` 在 `Windows` 平台暂不支持在中文路径下使用，如果遇到问题，请通过修改目录名规避；
+> - `cjpm` 在 `Linux/macOS` 平台不支持带 `\` 的路径，如果遇到问题，请通过修改目录名规避。
 
 ## 模块配置文件说明
 
@@ -2002,12 +2003,16 @@ aoo = { path = "${DEPENDENCY_PATH}/aoo" }
 [repository.home]
   registry = "central/repo/url"
   token = "user-token"
+
+[global]
+  strict-tls = true
 ```
 
 配置内容说明如下：
 
 - `repository.home` 用于配置中心仓 url 和用户的个人 token，`cjpm` 会与 `registry` 字段中的中心仓地址进行交互，交互请求中会附带用户 token 信息。
 - `repository.cache` 用于配置存放从中心仓和 git 下载的源码模块的本地路径，可以用环境变量配置字段值，参考[环境变量配置](#环境变量配置)，不配置时默认为用户空间目录下的 `.cjpm` 目录。确定本地路径后，git 源码模块会下载到该路径的 `git` 目录下，中心仓源码模块会下载到 `repository/source` 目录下。
+- `global.strict-tls` 用于配置 TLS 证书验证方式，默认为正常验证方式，配置为 `false` 时会禁用证书验证。
 
 ## 配置和缓存文件夹
 

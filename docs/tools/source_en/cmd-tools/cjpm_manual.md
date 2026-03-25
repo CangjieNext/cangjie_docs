@@ -713,7 +713,8 @@ The `uninstall` command removes a Cangjie project, deleting its executables and 
 
 > **Note:**
 >
-> `cjpm` does not support Chinese paths on Windows. If issues arise, modify the directory name.
+> - `cjpm` does not support Chinese paths on `Windows`. If issues arise, modify the directory name;
+> - `cjpm` does not support paths containing `\` on `Linux/macOS`. If issues arise, modify the directory name.
 
 ## Module Configuration File Description
 
@@ -1567,12 +1568,16 @@ The configuration file format is as follows:
 [repository.home]
   registry = "central/repo/url"
   token = "user-token"
+
+[global]
+  strict-tls = true
 ```
 
 The configuration content is described as follows:
 
 - `repository.home` is used to configure the central repository URL and the user's personal token. The `cjpm` tool interacts with the central repository address specified in the `registry` field, and all interaction requests will include the user's token information for authentication.
 - `repository.cache` is used to configure the local path for storing source code modules downloaded from the central repository or Git. Environment variables can be used to configure field values, Refer to[Environment Variable Configuration](#environment-variable-configuration), If not configured, it defaults to the `.cjpm` directory in the user's home directory. Once the local path is determined, Git source code modules are downloaded to the `git` subdirectory under this path. Central repository source code modules are downloaded to the `repository/source` subdirectory under this path.
+- `global.strict-tls` is used to configure the TLS certificate verification method. The default is normal verification; when set to `false`, certificate verification is disabled.
 
 ## Configuration and Cache Directories
 
