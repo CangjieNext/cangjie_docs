@@ -4,66 +4,102 @@ Developers can cross-compile their Cangjie programs to run on different architec
 
 |  Compilation  Platform        | Target Platform     | Common Scenarios / Tools              | Corresponding SDK Installation Package                          |
 |-------------------------|-----------------------|-------------------------------|-------------------------------------------------|
-| Windows (x64)             | Android (aarch64)          | Android physical devices | cangjie-sdk-windows-x64-android.x.y.z.zip (or .exe) |
-| Linux (x64)               | Android (aarch64)         | Android physical devices  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz       |
-| macOS (aarch64/x64)     | Android (aarch64)          |  Android physical devices and Android Studio Emulator     | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz     |
-| macOS (aarch64)         | iOS (aarch64)              | iOS physical devices              | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
-| macOS (aarch64)         | iOS Simulator (aarch64/x86_64)   |Xcode Simulator        | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz         |
+| Windows (x64)           | Android (aarch64)     | Android physical devices | cangjie-sdk-windows-x64-android.x.y.z.zip (or .exe) |
+| Linux (x64)             | Android (aarch64)     | Android physical devices  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz |
+| macOS (aarch64/x64)     | Android (aarch64)     | Android physical devices and Android Studio Emulator | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz |
+| macOS (aarch64)     | Android (arm32)       | Android physical devices | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
+| macOS (aarch64)         | iOS (aarch64)         | iOS physical devices | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
+| macOS (aarch64)         | iOS Simulator (aarch64/x86_64)   | Xcode Simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
 
-The Cangjie programming language now supports cross-compilation to `Android API 26+` and `iOS`, enabling developers to build applications across different platforms.
+The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 26+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.
 
-## Cross-Compiling Cangjie to Android API 26+
+## Cross-Compiling Cangjie to Android
 
 ### Package Download
 
-Developers can use Cangjie installation packages that support cross-compilation for specific platforms (`android-aarch64`, `android-x86_64`). Cangjie provides installation packages for some cross-compilation supported platforms.
+Developers can use Cangjie installation packages that support cross-compilation for specific platforms (`android-aarch64`, `android-arm32`). `Android aarch64` and `Android arm32` require different SDK installation packages.
 
-**Cangjie installation packages supporting cross-compilation to Android API 26+:**
+**Cangjie installation packages supporting cross-compilation to Android are listed below (the exact version number depends on the actual release package):**
 
-- `cangjie-sdk-linux-x64-android.x.y.z.tar.gz`
-- `cangjie-sdk-windows-x64-android.x.y.z.zip`
-- `cangjie-sdk-windows-x64-android.x.y.z.exe`
-- `cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz`
+- Android `aarch64`:
+  `cangjie-sdk-linux-x64-android.x.y.z.tar.gz`, `cangjie-sdk-windows-x64-android.x.y.z.zip`, `cangjie-sdk-windows-x64-android.x.y.z.exe`, `cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz`
+- Android `arm32`:
+  `cangjie-sdk-mac-aarch64-android-arm32.tar.gz`
 
-For example: To cross-compile to `Android API 26+` on a `linux x64` platform, download and install the `cangjie-sdk-linux-x64-android.x.y.z.tar.gz` package.
+For example: To cross-compile to `Android aarch64` on a `linux x64` platform, download and install `cangjie-sdk-linux-x64-android.x.y.z.tar.gz`.
 
-In addition to the cross-compilation supported Cangjie package, you also need to download the `Android NDK` supporting `Android API 26+`. Please download the latest `NDK` package from the official `Android` website.
+In addition to the cross-compilation-supported Cangjie package, you also need `Android NDK` (recommended: `ndk-r27d`).
 
 ### Compilation
 
-Cross-compiling Cangjie to `Android API 26+` requires the following two dependency directories:
+Cross-compiling Cangjie to `Android` requires the following three dependency directories:
 
 1. `sysroot` directory, provided by `Android NDK`, typically located at `<ndk-path>/toolchains/llvm/prebuilt/<platform>/sysroot`.
 
-2. Directory containing `libclang_rt.builtins-aarch64-android.a`, provided by `Android NDK`, typically located at `<ndk-path>/toolchains/llvm/prebuilt/<platform>/lib64/clang/<version>/lib/linux`.
+2. Directory containing `libclang_rt.builtins-<arch>-android.a` (for example, `libclang_rt.builtins-aarch64-android.a` or `libclang_rt.builtins-arm-android.a`), provided by `Android NDK`, typically located at `<ndk-path>/toolchains/llvm/prebuilt/<platform>/lib/clang/<version>/lib/linux`.
+
+3. Toolchain binary directory, provided by `Android NDK`, typically located at `<ndk-path>/toolchains/llvm/prebuilt/<platform>/bin`.
 
 When using `cjc` for cross-compilation, the following additional options must be specified (replace `< >` parts with actual directories):
 
 - `--target=aarch64-linux-android` defaults to Android API 26 for cross-compilation; append the API level suffix explicitly for a higher version, e.g. `--target=aarch64-linux-android31` for Android API 31.
+- `--target=arm-linux-android23` specifies the `arm32` target platform (Android API 23).
 - `--sysroot=<sysroot-path>` specifies the toolchain's root directory path `<sysroot-path>`
-- `-L<lib-path>` specifies the directory `<lib-path>` containing `libclang_rt.builtins-aarch64-android.a`
+- `-L<lib-path>` specifies the directory `<lib-path>` containing `libclang_rt.builtins-<arch>-android.a`
+- `-B<toolchain-bin-path>` specifies the `Android NDK` toolchain binary directory `<toolchain-bin-path>`
 
-Example command:
+For cross-compiling to `aarch64`, run:
 
 ```shell
-$ cjc main.cj --target=aarch64-linux-android31 --sysroot /opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/sysroot -L /opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/14.0.6/lib/linux
+$ cjc main.cj --target=aarch64-linux-android31 \
+  --sysroot /opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
+  -L /opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/14.0.6/lib/linux
 ```
 
-`main.cj` is the Cangjie code being cross-compiled, `aarch64-linux-android31` is the target platform, `/opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/sysroot` is the toolchain's root directory path `<sysroot-path>`, and `/opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/14.0.6/lib/linux` is the directory `<lib-path>` containing `libclang_rt.builtins-aarch64-android.a`.
+- `main.cj` is the Cangjie code being cross-compiled, `aarch64-linux-android31` is the target platform
+- `/opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/sysroot` is the toolchain root directory `<sysroot-path>`
+- `/opt/buildtools/android_ndk-r25b/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/14.0.6/lib/linux` is the directory `<lib-path>` containing `libclang_rt.builtins-aarch64-android.a`
+
+For cross-compiling to `arm32`, run:
+
+```shell
+$ cjc test.cj --target=arm-linux-android23 \
+  --sysroot /home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
+  -L /home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/ \
+  -B/home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/bin
+```
+
+- `test.cj` is the Cangjie code being cross-compiled, `arm-linux-android23` is the target platform
+- `/home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/sysroot` is the toolchain root directory `<sysroot-path>`
+- `/home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/lib/clang/18/lib/linux/` is the directory `<lib-path>` containing `libclang_rt.builtins-arm-android.a`
+- `/home/rus/opt/android-ndk-r27d/toolchains/llvm/prebuilt/linux-x86_64/bin` is the toolchain binary directory `<toolchain-bin-path>`
+
+> **Notes：**
+>
+> ARM32 does not support reflection-related features, stack expansion, runtime tracing, and other related functionalities.
 
 ### Deployment and Execution
 
 After compilation, the following files need to be pushed to the `Android` device:
 
 - The executable and all its dependent dynamic libraries: e.g., `main` and its dependent `.so` files
-- Cangjie runtime dependencies: `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`
+- Cangjie runtime dependencies: choose the corresponding directory based on the target platform (for example, `aarch64-linux-android31` uses `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`, while `arm-linux-android23` uses `$CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/*.so`; actual directory names depend on the SDK)
 
 Use the `Android` Debug Bridge `adb` tool to push the executable and Cangjie libraries to the device. Example:
+
+`aarch64` target example:
 
 ```shell
 $ adb push ./main /data/local/tmp/
 $ adb push $CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/* /data/local/tmp/
+```
+
+`arm32` target example:
+
+```shell
+$ adb push ./main /data/local/tmp/
+$ adb push $CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/* /data/local/tmp/
 ```
 
 For detailed usage of the `adb` tool, please refer to the `Android` Debug Bridge (`adb`) documentation on the official `Android` website.
