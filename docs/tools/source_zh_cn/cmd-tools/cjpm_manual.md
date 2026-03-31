@@ -2618,6 +2618,8 @@ cjpm build --no-feature-deduce --enable-features=user.tests_in_source_sets.arch.
 
 上述示例中，通过 `user.tests_in_source_sets.arch.big` 制定了具体所编译的 `source-set` 生成了二进制文件。具体各个配置项含义、选项含义与项目结构信息将在后续逐步展开说明。
 
+关于跨平台编译的通用概念与配置原理，请参见[跨平台编译](../../../dev-guide/source_zh_cn/multiplatform/common_platform.md#跨平台编译)。
+
 #### feature
 
 feature 是一个命名的标志，用于指定需要编译的源代码。以下是 `cjpm` 中内置支持的 feature 列表：
