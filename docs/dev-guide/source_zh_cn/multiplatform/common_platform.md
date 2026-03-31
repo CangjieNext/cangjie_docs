@@ -1365,9 +1365,11 @@ main() {
 >
 > 跨平台包的平台部分代码中的导入语句需要是公共部分代码中导入语句的超集，否则可能会有编译错误。
 
+<!--Del-->关于多平台工程构建的具体操作和配置，请参见[多平台构建使用说明](../../../tools/source_zh_cn/cmd-tools/cjpm_manual.md#多平台构建使用说明)。<!--DelEnd-->
+
 #### cjc 编译
 
-如下目录组织
+如下目录组织：
 
 ```text
 cjmp_project(package cjmp)
