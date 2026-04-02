@@ -2,7 +2,7 @@
 
 ## 功能简介
 
-`cjprof`（Cangjie Profile）是仓颉语言的性能分析工具，支持以下功能：
+`cjprof（Cangjie Profile）` 是仓颉语言的性能分析工具，支持以下功能：
 
 - 对仓颉语言程序进行 CPU 热点函数采样，导出采样数据。
 

@@ -2,7 +2,7 @@
 
 ## Open Source Project Introduction
 
-`HLE` (Hyper-Lang extension) is an automatic code template generation tool for Cangjie-ARKTS interoperation.
+`HLE (Hyper-Lang extension)` is an automatic code template generation tool for Cangjie-ARKTS interoperation.
 
 This tool takes ARKTS interface declaration files (such as files with .d.ts or .d.ets extensions) as input, and outputs a directory containing BUILD.gn files and an src folder. The src folder contains .cj files storing the generated interoperation code. The tool also outputs a JSON file containing all information from the ARKTS files.
 
