@@ -37,6 +37,18 @@ Options:
                      eg: cjfmt -f a.cj -o ./fmta.cj -l 1:25
 ```
 
+`cjfmt` option list:
+
+| Option | Description |
+|---|---|
+| [`-h`] | Print command help |
+| [`-v`] | Print version information |
+| [`-f`] | Specify target file |
+| [`-d`] | Specify target directory |
+| [`-o <value>`] | Specify output file or directory |
+| [`-c <value>`] | Specify formatting configuration file |
+| [`-l <region>`] | Specify region to format |
+
 ### File Formatting
 
 `cjfmt -f`
