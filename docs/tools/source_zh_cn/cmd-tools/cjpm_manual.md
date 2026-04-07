@@ -78,6 +78,24 @@ Available options:
 
 ## 命令说明
 
+`cjpm` 命令列表如下：
+
+|命令名|命令描述|
+|---|---|
+|[`init`](#init)|初始化仓颉模块或者工作空间|
+|[`check`](#check)|检查项目中所需的依赖项|
+|[`update`](#update)|更新远程依赖信息|
+|[`tree`](#tree)|可视化展示仓颉源码中的包依赖关系|
+|[`build`](#build)|构建当前仓颉项目|
+|[`run`](#run)|运行当前项目构建出的可执行产物|
+|[`test`](#test)|编译并运行单元测试用例|
+|[`bench`](#bench)|编译并运行性能用例|
+|[`clean`](#clean)|清理构建过程中的临时产物|
+|[`bundle`](#bundle)|将当前仓颉项目打包成制品源码包|
+|[`publish`](#publish)|将制品源码包上传到中心仓|
+|[`install`](#install)|安装仓颉项目|
+|[`uninstall`](#uninstall)|卸载仓颉项目|
+
 ### init
 
 `init` 用于初始化一个新的仓颉模块或者工作空间。初始化模块时，默认在当前文件夹创建配置文件 `cjpm.toml`，并新建 `src` 源码文件夹。如果该模块的产物为可执行类型，则会在 `src` 下生成默认的 `main.cj` 文件，并在编译后打印输出 `hello world`。初始化工作空间时仅会创建 `cjpm.toml` 文件，默认会扫描该路径下已有的仓颉模块并添加到 `members` 字段中。若已存在 `cjpm.toml` 文件，或源码文件夹内已存在 `main.cj`，则会跳过对应的文件创建步骤。

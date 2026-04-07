@@ -38,6 +38,24 @@ Options:
 cjcov -version 或者 cjcov -v
 ```
 
+`cjcov` 选项说明如下：
+
+|选项|选项描述|
+|---|---|
+|[`-h, --help`](#cjcov--h----help)|显示基本使用方法|
+|[`-v, --version`](#cjcov--v----version)|显示版本号|
+|[`--verbose`](#cjcov---verbose)|将日志信息生成到 `cjcov_logs` 目录中|
+|[`--html-details`](#cjcov---html-details)|生成源代码文件对应的 `html` 覆盖报告|
+|[`-x, --xml`](#cjcov--x----xml)|在指定输出路径生成 `coverage.xml` 文件|
+|[`-j, --json`](#cjcov--j----json)|在指定输出路径生成 `coverage.json` 文件|
+|[`-k, --keep`](#cjcov--k-----keep)|保留生成的 `gcov` 中间文件|
+|[`-b, --branches`](#cjcov--b----branches)|生成分支覆盖率信息|
+|[`-r ROOT, --root=ROOT`](#cjcov--r-root----rootroot)|在 `ROOT` 目录或其递归子目录中查找 `gcda` 文件|
+|[`-o OUTPUT, --output=OUTPUT`](#cjcov--o-output-----outputoutput)|指定 `html` 覆盖率报告的输出路径|
+|[`-s SOURCE, --source=SOURCE`](#-s-source----sourcesource)|指定仓颉源文件的代码路径|
+|[`-e EXCLUDE, --exclude=EXCLUDE`](#-e-exclude----excludeexclude)|表示不需要生成覆盖率信息的源文件列表|
+|[`-i INCLUDE, --include=INCLUDE`](#-i-include----includeinclude)|表示需要生成覆盖率信息的源文件列表|
+
 ### 使用步骤
 
 #### 单文件场景

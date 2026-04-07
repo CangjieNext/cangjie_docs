@@ -75,6 +75,24 @@ Available options:
 
 ## Command Descriptions
 
+`cjpm` command list:
+
+| Command | Description |
+|---|---|
+| [`init`](#init) | Initialize a Cangjie module or workspace |
+| [`check`](#check) | Check the dependencies required by the project |
+| [`update`](#update) | Update remote dependency information |
+| [`tree`](#tree) | Visualize package dependency relationships in Cangjie source code |
+| [`build`](#build) | Build the current Cangjie project |
+| [`run`](#run) | Run the executable artifact built from the current project |
+| [`test`](#test) | Compile and run unit test cases |
+| [`bench`](#bench) | Compile and run benchmark cases |
+| [`clean`](#clean) | Clean temporary artifacts from the build process |
+| [`bundle`](#bundle) | Package the current Cangjie project into a source distribution package |
+| [`publish`](#publish) | Upload the distribution package to the central repository |
+| [`install`](#install) | Install a Cangjie project |
+| [`uninstall`](#uninstall) | Uninstall a Cangjie project |
+
 ### init
 
 `init` is used to initialize a new Cangjie module or workspace. When initializing a module, it creates a configuration file `cjpm.toml` in the current folder by default and creates a `src` source code folder. If the module's output is of the executable type, it generates a default `main.cj` file under `src`, which prints `hello world` after compilation. When initializing a workspace, only the `cjpm.toml` file is created, and it scans existing Cangjie modules under the path and adds them to the `members` field by default. If `cjpm.toml` already exists or `main.cj` is already present in the source folder, the corresponding file creation steps will be skipped.
