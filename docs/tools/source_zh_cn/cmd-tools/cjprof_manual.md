@@ -10,7 +10,7 @@
 
 - 导出仓颉语言应用程序堆内存，并对其进行分析生成分析报告。
 
-目前 `cjprof` 仅支持 `Linux` 系统。
+目前 `cjprof` 在 `Linux` 系统上支持上述功能，在 `macOS` 系统和 `Windows` 系统上仅支持仓颉语言应用程序堆内存分析功能。
 
 ## 使用说明
 
@@ -147,7 +147,7 @@ cjprof heap [<options>]
 
 `-o, --output <file>` 指定导出的堆内存数据文件名，默认为 `cjprof.data` 。
 
-`--show-reference[=<objnames>]` 分析报告中展示对象的引用关系，`objnames` 为需要展示的对象名，多个对象使用 `;` 隔开，不指定时默认展示所有对象。
+`--show-reference[=<objnames>]` 分析报告中展示对象的引用关系，`objnames` 为需要展示的对象名，多个对象使用 `;` 隔开，不指定时默认展示所有对象。如果该对象是堆根，还会展示它所属的堆根类别。
 
 `--incoming-reference` 展示对象的被引用关系，而非引用关系，需要与 `--show-reference` 配合使用。
 
