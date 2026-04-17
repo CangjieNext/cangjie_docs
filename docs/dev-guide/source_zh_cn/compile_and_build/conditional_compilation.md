@@ -4,7 +4,7 @@
 
 ## 导入和声明的条件编译
 
-仓颉支持使用内置编译标记 `@When` 来完成条件编译，编译条件使用 `[]` 括起来，`[]` 内支持输入一组或多组编译条件。`@When` 可以作用于导入节点和除 `package` 外的声明节点。
+仓颉内置编译标记 @When 用于实现条件编译，编译标记参数为编译条件。@When 仅允许修饰 1. import 节点和 2. 除 package 声明外的其他所有声明类节点。
 
 ### 使用方法
 
@@ -14,15 +14,15 @@
 
 ```cangjie
 @When[os == "Linux"]
-class mc{}
+class MyClass{}
 
 main(): Int64 {
-    var a = mc()
+    var a = MyClass()
     return 0
 }
 ```
 
-在上面代码中，开发者在 `Linux` 系统中可以正确编译执行；在`非 Linux` 系统中，则会遇到找不到 `mc` 类定义的编译错误。
+在上面代码中，开发者在 `Linux` 系统中可以正确编译执行；在非 `Linux` 系统中，则会遇到找不到 `MyClass` 类定义的编译错误。
 
 值得注意的是：
 
@@ -84,7 +84,7 @@ main() {
 }
 ```
 
-如果在 `Windows` 环境下编译执行，会得到 `Windows, NOT Linux` 的信息；如果是在 `Linux` 环境下，则会得到 `Linux, NOT Windows` 的信息。
+如果 `cjc` 编译目标平台为 Windows，实际运行时将打印 `Windows, NOT Linux`；如果 `cjc` 编译目标平台为 `Linux`，则实际运行时将打印 `Linux, NOT Windows`。
 
 ### arch
 
@@ -111,7 +111,7 @@ main() {
 }
 ```
 
-在 `x86_64` 架构的目标平台编译执行，会得到 `x86_64` 的信息；在 `aarch64` 架构的目标平台编译执行，会得到 `aarch64` 的信息，在 `arm` 架构的目标平台编译执行，会得到 `arm` 的信息。
+如果 `cjc` 编译目标平台为 `x86_64` 架构，实际运行时将会得到 `x86_64` 的信息；如果 `cjc` 编译目标平台为 `aarch64` 架构，则实际运行时将会得到 `aarch64` 的信息；如果 `cjc` 编译目标平台为`arm` 架构，则实际运行时将会得到 `arm` 的信息。
 
 ### env
 
@@ -135,7 +135,7 @@ main() {
 }
 ```
 
-在 OpenHarmony 目标平台上编译执行，会得到 `ohos` 的信息；在其他目标平台编译执行，会得到 `other` 的信息。
+如果 `cjc` 编译目标平台为 `OpenHarmony` ，实际运行时将会得到 `ohos` 的信息；如果 `cjc` 编译目标平台为其他目标平台，则实际运行时将会得到`other` 的信息。
 
 ### backend
 
@@ -371,7 +371,7 @@ main() {
 仓颉交叉编译支持的目标平台由内置条件变量 `os`、 `arch`、 `env` 共同确定，三者与目标平台的对应关系如下表所示：
 
 | 目标平台                      | arch      | os        | env         |
-| ----------------------------- | --------- | --------- | ----------- |
+| ----------------------------- |-----------| --------- | ----------- |
 | x86_64-windows-gnu            | "x86_64"  | "Windows" | "gnu"       |
 | x86_64-linux-gnu              | "x86_64"  | "Linux"   | "gnu"       |
 | x86_64-apple-darwin           | "x86_64"  | "macOS"   | ""            |
@@ -384,6 +384,7 @@ main() {
 | aarch64-linux-ohos            | "aarch64" | "Linux"   | "ohos"      |
 | arm64-apple-ios[11+]<sup>[ios target]</sup>           | "aarch64" | "iOS"     |    ""         |
 | arm64-apple-ios[11+]-simulator<sup>[ios target]</sup> | "aarch64" | "iOS"     | "simulator" |
+| arm-linux-android23 | "arm"     | "Linux"     | "android23" |
 
 <sup>[android target]</sup> x86_64-linux-android[26+] 中 android 后缀的数字用于指定 Android API Level。未指定数字时，默认 API Level 为 26；指定数字（如 x86_64-linux-android33）表示 Android API Level 为 33，指定的数字应大于等于 26。
-<sup>[ios target]</sup> arm64-apple-ios[11+] 中 ios 后缀的数字用于指定 ios 版本信息。未指定数字时，默认为 11；指定数字（如 arm64-apple-ios26）表示 ios 版本为 26，指定的数字应大于等于 11。
+<sup>[ios target]</sup> arm64-apple-ios[11+] 中 iOS 后缀的数字用于指定 iOS 版本信息。未指定数字时，默认为 11；指定数字（如 arm64-apple-ios26）表示 iOS 版本为 26，指定的数字应大于等于 11。
