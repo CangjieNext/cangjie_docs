@@ -4,7 +4,7 @@
 
 ## 导入和声明的条件编译
 
-仓颉内置编译标记 `@When` 用于实现条件编译，编译标记参数为编译条件。@When 仅允许修饰 1. import 节点和 2. 除 package 声明外的其他所有声明类节点。
+仓颉内置编译标记 `@When` 用于实现条件编译，编译标记参数为编译条件。`@When` 仅允许修饰 1. import 节点和 2. 除 package 声明外的其他所有声明类节点。
 
 ### 使用方法
 
@@ -22,7 +22,7 @@ main(): Int64 {
 }
 ```
 
-在上面代码中，开发者在 `Linux` 系统中可以正确编译执行；在非 Linux 系统中，则会遇到找不到 `MyClass` 类定义的编译错误。
+在上面代码中，开发者在 Linux 系统中可以正确编译执行；在非 Linux 系统中，则会遇到找不到 `MyClass` 类定义的编译错误。
 
 值得注意的是：
 
@@ -84,7 +84,7 @@ main() {
 }
 ```
 
-如果 cjc 编译目标平台为 Windows，实际运行时将打印 `Windows, NOT Linux`；如果 cjc 编译目标平台为 `Linux`，则实际运行时将打印 `Linux, NOT Windows`。
+如果 cjc 编译目标平台为 Windows，实际运行时将打印 `Windows, NOT Linux`；如果 cjc 编译目标平台为 Linux，则实际运行时将打印 `Linux, NOT Windows`。
 
 ### arch
 
