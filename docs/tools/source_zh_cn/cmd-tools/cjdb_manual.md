@@ -548,25 +548,34 @@ error: unsupported expression
 
 ### 仓颉线程
 
-支持查看仓颉线程 `id` 状态以及 `frame` 信息，暂不支持仓颉线程切换。
+支持查看仓颉线程状态查询以及仓颉线程控制。
 
-#### 显示当前目标进程中的线程
+#### 显示当前目标进程中的所有仓颉线程
 
 ```text
 (cjdb) cjthread list
-cjthread id: 1, state: running name: cjthread1
-    frame #0: 0x000055555557c140 main`ab::main() at varray.cj:16:1
-cjthread id: 2, state: pending name: cjthread2
-    frame #0: 0x00007ffff7d8b9d5 libcangjie-runtime.so`CJ_CJThreadPark + 117
+Process 22024 stopped
+* thread #11: tid = 0x0004, state = ready, 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233, name = 'spawn4', stop reason = trace
+  thread #12: tid = 0x0003, state = pending, 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233, name = 'spawn3', stop reason = trace
+  thread #13: tid = 0x0002, state = pending, 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233, name = 'spawn2', stop reason = trace
+  thread #14: tid = 0x0001, state = pending, 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233, name = 'spawn1', stop reason = trace
 (cjdb)
+```
+
+#### 显示指定仓颉线程
+
+```text
+(cjdb) cjthread info 2
+  thread #25: tid = 0x0002, state = pending, 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233, name = 'spawn0', stop reason = trace
+    frame #0: 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233
 ```
 
 #### 堆栈回溯
 
-- 查看指定仓颉线程调用栈。
+查看当前仓颉线程调用栈。
 
 ```text
-(cjdb) cjthread backtrace 1
+(cjdb) cjthread backtrace
 cjthread #1 state: pending name: cangjie
   frame #0: 0x00007ffff7d8b9d5 libcangjie-runtime.so`CJ_CJThreadPark + 117
   frame #1: 0x00007ffff7d97252 libcangjie-runtime.so`CJ_TimerSleep + 66
@@ -580,7 +589,45 @@ cjthread #1 state: pending name: cangjie
 (cjdb)
 ```
 
-`cjthread backtrace 1` 命令中 `1` 为指定的 `cjthread ID`。
+#### 仓颉线程切换
+
+```text
+(cjdb) cjthread select 2
+ * thread #25, name = 'spawn2', tid = 0x0002, state = pending, stop reason = trace
+    frame #0: 0x00007ffbe2f90a19 libcangjie-runtime.dll`CJ_CJThreadPark + 233
+libcangjie-runtime.dll`CJ_CJThreadPark:
+->  0x7ffbe2f90a19 <+233>: movl   0x1b4(%rsi), %eax
+    0x7ffbe2f90a1f <+239>: addq   $0x38, %rsp
+    0x7ffbe2f90a23 <+243>: popq   %rbx
+    0x7ffbe2f90a24 <+244>: popq   %rdi
+(cjdb)
+```
+
+#### 仓颉线程控制
+
+切换到指定仓颉线程以后可以使用仓颉线程控制命令控制该仓颉线程运行，例如源码单步 `cjthread s` 、`cjthread n` ，汇编单步 `cjthread si` 、 `cjthread ni` ，返回上一层调用栈 `cjthread finish` 。如下所示：
+
+```text
+(cjdb) cjthread sn
+Process 22024 stopped
+* thread #9, tid = 0x1dfc, stop reason = instruction step over
+    frame #0: 0x00007ffbe2f90a23 libcangjie-runtime.dll`CJ_CJThreadPark + 243
+libcangjie-runtime.dll`CJ_CJThreadPark:
+->  0x7ffbe2f90a23 <+243>: popq   %rbx
+    0x7ffbe2f90a24 <+244>: popq   %rdi
+    0x7ffbe2f90a25 <+245>: popq   %rsi
+    0x7ffbe2f90a26 <+246>: popq   %r14
+(cjdb) cjthread finish
+Process 22024 stopped
+* thread #9, tid = 0x1dfc, stop reason = step out
+    frame #0: 0x00007ffbe2f9d97e libcangjie-runtime.dll`CJ_TimerSleep + 78
+libcangjie-runtime.dll`CJ_TimerSleep:
+->  0x7ffbe2f9d97e <+78>: testl  %eax, %eax
+    0x7ffbe2f9d980 <+80>: je     0x7ffbe2f9d9d8            ; <+168>
+    0x7ffbe2f9d982 <+82>: movl   %eax, %esi
+    0x7ffbe2f9d984 <+84>: leaq   0xa9695(%rip), %rax       ; _ZTIN12MapleRuntime12MachineFrameE + 1256
+(cjdb)
+```
 
 ## 可执行文件调试
 
