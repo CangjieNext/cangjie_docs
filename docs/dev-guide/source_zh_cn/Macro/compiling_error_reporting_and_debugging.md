@@ -303,18 +303,18 @@ cjc --debug-macro demo.cj --import-path ./target
 ```cangjie
 // demo.cj.macrocall
 /* ===== Emitted by MacroCall @Outer in demo.cj:3:1 ===== */
-/* 3.1 */class Demo {
-/* 3.2 */    var state = 1
-/* 3.3 */    var cnt = 42
-/* 3.4 */    public func getCnt() {
-/* 3.5 */        state + cnt + 0
-/* 3.6 */    }
-/* 3.7 */}
-/* 3.8 */
+class Demo {
+    var state = 1
+    var cnt = 42
+    public func getCnt() {
+        state + cnt + 0
+    }
+}
+
 /* ===== End of the Emit ===== */
 ```
 
-如果宏展开后的代码有语义错误，则编译器的错误信息会溯源到宏展开后代码的具体行列号。如果在编译时开启了 _debug_ 模式，那么编译器的错误信息中不会打印完整的宏展开代码，仅打印实际错误位置和临时文件路径，开发者可以通过临时文件路径跳转至对应的错误位置；非 _debug_ 模式下，报错信息中会打印出完整的宏展开代码。仓颉宏的 _debug_ 模式有以下注意事项：
+如果宏展开后的代码有语义错误，则编译器的错误信息会溯源到宏展开后代码的具体行列号。如果在编译时开启了 _debug_ 模式，那么编译器的错误信息中不会打印完整的宏展开代码，仅打印实际错误位置和临时文件路径，开发者可以通过临时文件路径跳转至对应的错误位置；非 _debug_ 模式下，报错信息中会给出 `==debug-macro` 提示，不会打印出完整的宏展开代码。仓颉宏的 _debug_ 模式有以下注意事项：
 
 - 宏的 _debug_ 模式会重排源码的行列号信息，不适用于某些特殊的换行场景。例如：
 
