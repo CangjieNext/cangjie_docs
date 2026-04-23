@@ -48,7 +48,8 @@ $ cjc tool.cj --output-type=dylib
 
 例如以下命令分步编译链接生成可执行文件：
 
-<!--compile-->
+<!-- compile -->
+
 ```cangjie
 // main.cj
 main(){
@@ -162,7 +163,7 @@ void printHello() {
 
 仓颉文件 `main.cj`：
 
-<!-- code_check_manual -->
+<!-- compile -->
 
 ```cangjie
 foreign func printHello(): Unit
@@ -526,13 +527,60 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--compile-as-exe`
 
-该选项启用后，将屏蔽 LTO 模式下加载 BC 文件的符号可见性，仅保留 package init 符号的可见性。基于此，LLVM 原生优化会执行激进的无效符号剔除操作。该选项仅在开启 `--lto` 编译参数时生效。
+该选项已废弃且将在未来版本中移除，请改用 `--lto-keep-pkg-visibility` 。
 
-``` shell
-# 编译通过
-$ cjc test.cj --lto=[full|thin] --compile-as-exe
-# 编译报错
-$ cjc test.cj --compile-as-exe
+### `--lto-keep-pkg-visibility=<value>`
+
+指定 LTO 模式下保持符号可见性的包名。未指定的包符号将被隐藏，LLVM 可据此执行更激进的无用代码删除。
+
+**参数说明：**
+
+- `<value>` 为包名列表，多个包名用逗号分隔
+- `--lto-keep-pkg-visibility` 可以被多次使用，效果累加
+- `<value>` 可以为空字符串`""`， 表示隐藏所有包的符号
+
+**注意：**
+
+- 仅在开启 `--lto` 时有效，否则将报错
+- 不能与 `--compile-as-exe` 同时使用，否则将报错
+- 仅在编译动态库（`--output-type=dylib`）时有效，否则会告警
+- Windows 和 macOS 平台不支持 LTO 功能，因此该选项在这些平台无效
+
+**使用示例：**
+
+假设有以下两个包：
+
+<!-- compile -->
+
+```cangjie
+// lib1.cj
+package lib1
+import lib2.*
+
+public func hw(): Unit {
+    fxx()
+}
+
+// lib2.cj
+package lib2
+
+public func fxx() {
+    println("to be called")
+}
+
+public func foo() {
+    println("to be DCE")
+}
+```
+
+```shell
+# 编译 LTO 静态库
+$ cjc lib2.cj --lto=full --output-type=staticlib -o lib2.bc
+# 保持 lib1 包的符号可见性，隐藏 lib2 包内符号
+# fxx()将被作为内部函数保留，foo()将被作为死代码删除
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1" -o lib.so
+# 隐藏所有包中符号
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="" -o lib.so
 ```
 
 ### `--pgo-instr-gen`, `--pgo-instr-gen=<.profraw>`
