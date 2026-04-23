@@ -1142,16 +1142,29 @@ To specify `C` library configurations for different platforms, refer to [target]
 
 ```text
 [profile.build]
-lto = "full"  # Whether to enable `LTO` (Link Time Optimization) compilation mode. This feature is only supported on target platforms of `Linux/OpenHarmony`.
+lto = "full"  # Whether to enable `LTO` (Link Time Optimization) compilation mode. This feature is only supported on target platforms of `Linux/OpenHarmony/Android`.This setting has the same effect as the `level` configuration option of `[profile.build.lto]`.This string-type configuration will be deprecated in future versions. Please use the level option under `[profile.build.lto]` to enable LTO.
 performance_analysis = true # Enable compilation performance analysis.
 incremental = true # Whether to enable incremental compilation by default.
+
+[profile.build.lto]
+level = "full" # Whether to enable `LTO` (Link Time Optimization) compilation mode. This feature is only supported on target platforms of `Linux/OpenHarmony/Android`.
+keep-pkg-visibility = ["pkgA", "pkgB", ...] # This configuration is used to control symbol hiding for `LTO` is enabled.
+
 [profile.build.combined]
 demo = "dynamic" # Compile the module into a single dynamic library file. The key is the module name.
 ```
 
 Compilation process control items. All fields are optional and will not take effect if not configured. Only the `profile.build` settings of the top-level module take effect.
 
-The `lto` configuration can be `full` or `thin`, corresponding to two compilation modes supported by `LTO` optimization: `full LTO` merges all compilation modules for global optimization, offering the highest optimization potential but requiring longer compilation time; `thin LTO` uses parallel optimization across multiple modules and supports incremental compilation during linking by default, with shorter compilation time than `full LTO` but less optimization due to reduced global information.
+The `lto` / `level` configuration can be `full` or `thin`, corresponding to two compilation modes supported by `LTO` optimization: `full LTO` merges all compilation modules for global optimization, offering the highest optimization potential but requiring longer compilation time; `thin LTO` uses parallel optimization across multiple modules and supports incremental compilation during linking by default, with shorter compilation time than `full LTO` but less optimization due to reduced global information.
+
+The `keep-pkg-visibility` configuration is a string array and is only valid when `LTO` is enabled; otherwise, an error will be reported.
+ 	 
+When `LTO` is enabled, `keep-pkg-visibility` supports three configuration scenarios:
+
+1. If `keep-pkg-visibility` is not configured, the symbol visibility in all packages remains unchanged.
+2. If `keep-pkg-visibility` is configured as an empty array, the symbol visibility in all packages is set to hidden.
+3. If `keep-pkg-visibility` is configured as a non-empty array, the symbol visibility in the specified packages remains unchanged.
 
 The `performance_analysis` configuration can be `true` or `false`, indicating whether to enable compilation performance analysis. When enabled, `cjpm` generates `.prof` and `.json` files in the `performance_analysis` directory under the compilation output directory, recording time and memory consumption during compilation. For example, if the default compilation output directory is `target` and the compilation mode is `debug`, the directory structure is as follows:
 
@@ -1269,7 +1282,7 @@ Test configuration supports specifying options during test compilation and execu
 Specifies supported compilation options, including:
 
 - `compile-option`: A string containing additional `cjc` compilation options, supplementing the top-level `compile-option` field.
-- `lto`: Specifies whether to enable `LTO` optimization. Can be `thin` or `full`. This feature is only supported on target platforms of `Linux/OpenHarmony`.
+- `lto`: Specifies whether to enable `LTO` optimization. Can be `thin` or `full`. This feature is only supported on target platforms of `Linux/OpenHarmony/Android`.
 - `mock`: Explicitly sets the `mock` mode. Possible values: `on`, `off`, `runtime-error`. The default value for `test`/`build` subcommands is `on`, and for `bench` subcommands, it is `runtime-error`.
 
 #### "profile.test.env"
