@@ -556,13 +556,59 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 
 ### `--compile-as-exe`
 
-This option hides the visibility of symbols in bc files loaded in `LTO` mode, retaining only the visibility of the `package init` symbol. Based on this, LLVM's native optimization performs aggressive dead symbol elimination. This option only takes effect when `--lto` is enabled.
+This option is deprecated and will be removed in a future version. Please use `--lto-keep-pkg-visibility` instead.
 
+### `--lto-keep-pkg-visibility=<value>`
+
+Specifies package names whose symbol visibility is preserved in LTO mode. Symbols from unspecified packages will be hidden, enabling LLVM to perform more aggressive dead code elimination.
+
+**Parameter Description:**
+
+- `<value>` is a list of package names, separated by commas
+- `--lto-keep-pkg-visibility` can be used multiple times, with cumulative effect
+- `<value>` can be an empty string `""`, which means hiding symbols from all packages
+
+**Note:**
+
+- Only effective when --lto is enabled, otherwise an error will be reported
+- Cannot be used together with --compile-as-exe, otherwise an error will be reported
+- Only effective when compiling dynamic libraries (--output-type=dylib), otherwise a warning will be issued
+- Windows and macOS platforms do not support LTO, so this option is ineffective on these platforms
+
+**Usage Example:**
+
+Assume the following two packages:
+
+<!-- compile -->
+
+```cangjie
+// lib1.cj
+package lib1
+import lib2.*
+
+public func hw(): Unit {
+    fxx()
+}
+
+// lib2.cj
+package lib2
+
+public func fxx() {
+    println("to be called")
+}
+
+public func foo() {
+    println("to be DCE")
+}
+```
 ```shell
-# Compilation succeeds
-$ cjc test.cj --lto=[full|thin] --compile-as-exe
-# Compilation fails
-$ cjc test.cj --compile-as-exe
+# Compile LTO static library
+$ cjc lib2.cj --lto=full --output-type=staticlib -o lib2.bc
+# Preserve symbol visibility of lib1, hide all symbols from lib2
+# fxx() will be retained as an internal function, foo() will be removed as dead code
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1" -o lib.so
+# Hide symbols from all packages
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="" -o lib.so
 ```
 
 ### `--pgo-instr-gen`, `--pgo-instr-gen=<.profraw>`
