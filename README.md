@@ -26,6 +26,29 @@ The directory structure of this repository is as follows:
     └── dev-guide    # This directory stores the Cangjie programming language development guide
 ```
 
+## Documentation versions and branches
+
+The remote branches for this repository are defined on [cangjie_docs](https://atomgit.com/Cangjie/cangjie_docs). The list below matches the current layout (verify with `git branch -a`; branches may change with releases).
+
+### Main branch
+
+- [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main): default branch. Use it as the baseline for day-to-day collaboration and merges.
+
+### Development branch
+
+- [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev): development branch for ongoing work or pre-integration on the main line.
+
+### Release and feature branches
+
+- [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1): documentation for the 1.1 release line.
+- [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0): documentation for the 1.0 release line.
+- [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta): `v1.0.3` cjmp-related beta documentation.
+
+### OpenHarmony-aligned documentation
+
+- [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2): this repo’s documentation branch aligned with the OpenHarmony 6.0.2 line.
+- [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0): this repo’s documentation branch aligned with the OpenHarmony 6.0 line.
+
 ## License
 
 Please refer to the [License](./LICENSE) for the Cangjie developer documentation license.
@@ -38,6 +61,6 @@ You can evaluate existing documentation, make simple changes, provide feedback o
 
 ## Related Repositories
 
-- [**cangjie_docs**](https://gitcode.com/Cangjie/cangjie_docs)
-- [cangjie_runtime](https://gitcode.com/Cangjie/cangjie_runtime)
-- [cangjie_stdx](https://gitcode.com/Cangjie/cangjie_stdx)
+- [**cangjie_docs**](https://atomgit.com/Cangjie/cangjie_docs)
+- [cangjie_runtime](https://atomgit.com/Cangjie/cangjie_runtime)
+- [cangjie_stdx](https://atomgit.com/Cangjie/cangjie_stdx)
