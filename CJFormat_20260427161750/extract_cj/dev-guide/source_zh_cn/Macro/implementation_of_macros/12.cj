@@ -1,0 +1,4 @@
+@ModifyFunc
+func myFunc() {
+    counter++
+}

@@ -1,0 +1,3 @@
+func returnTuple(a: Int64, b: Int64): (Int64, Int64) {
+    (a, b)
+}

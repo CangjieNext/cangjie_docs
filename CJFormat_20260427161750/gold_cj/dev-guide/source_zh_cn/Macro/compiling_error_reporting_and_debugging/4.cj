@@ -1,0 +1,1 @@
+public func diagReport(level: DiagReportLevel, tokens: Tokens, message: String, hint: String): Unit

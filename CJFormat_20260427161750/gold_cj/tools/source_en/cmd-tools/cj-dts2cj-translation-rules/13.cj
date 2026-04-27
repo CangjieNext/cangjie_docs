@@ -1,0 +1,1 @@
+public type AnimalAlias = Animal

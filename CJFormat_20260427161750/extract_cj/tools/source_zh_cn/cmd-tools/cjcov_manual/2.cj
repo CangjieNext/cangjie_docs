@@ -1,0 +1,1 @@
+let HIGH_1_UInt8: UInt8 = 0b10000000;

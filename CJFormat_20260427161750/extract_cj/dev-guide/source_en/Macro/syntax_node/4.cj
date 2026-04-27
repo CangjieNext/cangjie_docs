@@ -1,0 +1,8 @@
+let funcDecl = FuncDecl(quote(func f1(x: Int64) { x + 1 }))
+funcDecl.identifier = Token(TokenKind.IDENTIFIER, "foo")
+println("Number of parameters: ${funcDecl.funcParams.size}")
+funcDecl.funcParams[0].identifier = Token(TokenKind.IDENTIFIER, "a")
+println("Number of nodes in body: ${funcDecl.block.nodes.size}")
+let binExpr = (funcDecl.block.nodes[0] as BinaryExpr).getOrThrow()
+binExpr.leftExpr = parseExpr(quote(a))
+println(funcDecl.toTokens())
