@@ -135,8 +135,9 @@ main() {
     let x = -10
     let y = match (x) {
         case 0 => "zero"
-        case n => n = n + 0 // Error, 'n' cannot be modified.
-                  "x is not zero"
+        case n =>
+            n = n + 0 // Error, 'n' cannot be modified.
+            "x is not zero"
     }
     println(y)
 }
@@ -151,9 +152,10 @@ main() {
     let x = -10
     let y = match (x) {
         case 0 => "zero"
-        case n => let n = 0 // Error, redefinition
-                  println(n)
-                  "x is not zero"
+        case n =>
+            let n = 0 // Error, redefinition
+            println(n)
+            "x is not zero"
     }
     println(y)
 }
@@ -282,8 +284,8 @@ func test1() {
 func test2() {
     var b = Base()
     var r = match (b) {
-        case d: Derived => d.a  // Type pattern match failed.
-        case _ => 0             // Matched.
+        case d: Derived => d.a // Type pattern match failed.
+        case _ => 0 // Matched.
     }
     println("r = ${r}")
 }

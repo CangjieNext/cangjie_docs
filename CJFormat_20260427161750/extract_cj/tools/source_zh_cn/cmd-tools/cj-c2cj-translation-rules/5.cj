@@ -1,1 +1,0 @@
-foreign func test(a: CString): Unit

@@ -1,1 +1,0 @@
-foreign func atexit(cb: CFunc<() -> Unit>): Int32

@@ -1,4 +1,0 @@
-@ModifyFunc
-func myFunc() {
-    counter++
-}

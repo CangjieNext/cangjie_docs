@@ -1,1 +1,0 @@
-cjc main.cj -o main -L. -lB

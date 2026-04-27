@@ -1,1 +1,0 @@
-foreign func test(arr: VArray<Int32, $3>): Unit

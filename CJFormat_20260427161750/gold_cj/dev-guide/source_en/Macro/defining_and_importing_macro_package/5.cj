@@ -1,1 +1,0 @@
-cjc C.cj --compile-macro -L. -lB

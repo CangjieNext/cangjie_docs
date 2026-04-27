@@ -12,15 +12,16 @@
 
     ```cangjie
     @OverflowThrowing
-    func add(a: Int8, b: Int8){
+    func add(a: Int8, b: Int8) {
         return a + b
     }
+
     main() {
-        add(100,29)
+        add(100, 29)
         /* 100 + 29 在数学上等于 129，
-        * 在 Int8 的表示范围上发生了上溢出，
-        * 程序抛出异常
-        */
+         * 在 Int8 的表示范围上发生了上溢出，
+         * 程序抛出异常
+         */
     }
     ```
 
@@ -32,11 +33,12 @@
     @OverflowThrowing
     main() {
         let res: Int8 = Int8(100) + Int8(29) // Error, arithmetic operation '+' overflow
+
         // 100 + 29 在数学上等于 129，在 Int8 的表示范围上发生了上溢出，编译器检测出来并报错
         let con: UInt8 = UInt8(-132) // Error, integer type conversion overflow
         /* -132 在 UInt8 的表示范围上发生了下溢出，
-        * 程序抛出异常
-        */
+         * 程序抛出异常
+         */
     }
     ```
 
@@ -49,18 +51,18 @@
     main() {
         let res: Int8 = Int8(105) * Int8(4)
         /* 105 * 4 在数学上等于 420，
-        * 对应的二进制为 1 1010 0100，
-        * 超过了用于接收该结果的 8 位内存空间，
-        * 截断后的结果在二进制上表示为 1010 0100，
-        * 对应为有符号整数 -92
-        */
+         * 对应的二进制为 1 1010 0100，
+         * 超过了用于接收该结果的 8 位内存空间，
+         * 截断后的结果在二进制上表示为 1010 0100，
+         * 对应为有符号整数 -92
+         */
         let temp: Int16 = Int16(-132)
         let con: UInt8 = UInt8(temp)
         /* -132 对应的二进制为 1111 1111 0111 1100，
-        * 超过了用于接收该结果的 8 位内存空间，
-        * 截断后的结果在二进制上表示为 0111 1100
-        * 对应为有符号整数 124
-        */
+         * 超过了用于接收该结果的 8 位内存空间，
+         * 截断后的结果在二进制上表示为 0111 1100
+         * 对应为有符号整数 124
+         */
     }
     ```
 
@@ -73,13 +75,13 @@
     main() {
         let res: Int8 = Int8(-100) - Int8(45)
         /* -100 - 45 在数学上等于 -145，
-        * 在 Int8 的表示范围上发生了下溢出，
-        * 选择 Int8 的最小值 -128 作为结果
-        */
+         * 在 Int8 的表示范围上发生了下溢出，
+         * 选择 Int8 的最小值 -128 作为结果
+         */
         let con: Int8 = Int8(1024)
         /* 1024 在 Int8 的表示范围上发生了上溢出，
-        * 选择 Int8 的最大值 127 作为结果
-        */
+         * 选择 Int8 的最大值 127 作为结果
+         */
     }
     ```
 
@@ -194,11 +196,14 @@ import std.unittest.mock.*
 public class TestA {
     @TestCase
     func case1(): Unit {
-        { =>
-            let matcher0 = Matchers.eq("z")
-            let matcher1 = Matchers.eq("y")
-            let stubCall = @EnsurePreparedToMock { => return(test(matcher0.value(), matcher1.value())) }
-            ConfigureMock.stubFunction(stubCall,[matcher0.withDescription(#"eq("z")"#), matcher1.withDescription(#"eq("y")"#)], Option<String>.None, "test", #"test("z", "y")"#, 15)
+        {
+            =>
+                let matcher0 = Matchers.eq("z")
+                let matcher1 = Matchers.eq("y")
+                let stubCall = @EnsurePreparedToMock {=> return (test(matcher0.value(), matcher1.value()))}
+                ConfigureMock.stubFunction(stubCall,
+                    [matcher0.withDescription(#"eq("z")"#), matcher1.withDescription(#"eq("y")"#)], Option<String>.None,
+                    "test", #"test("z", "y")"#, 15)
         }().returns("mocked value")
         println(test("z", "y")) // prints "mocked value"
     }

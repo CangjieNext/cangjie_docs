@@ -1,8 +1,0 @@
-main() {
-    let a: String
-    try {
-        a = "1"
-    } catch (_) {
-        a = "2" // Error, cannot assign to immutable value
-    }
-}

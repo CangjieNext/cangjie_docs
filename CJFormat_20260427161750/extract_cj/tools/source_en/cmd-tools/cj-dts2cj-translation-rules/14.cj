@@ -1,1 +1,0 @@
-public type MathOperation = (a: Float64, b: Float64) -> Float64

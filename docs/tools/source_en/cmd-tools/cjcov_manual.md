@@ -418,31 +418,31 @@ Some code will not be recorded in line coverage data, which is normal. In genera
 - Global variable definitions, for example:
 
     ```cangjie
-    let HIGH_1_UInt8: UInt8 = 0b10000000;  
+    let HIGH_1_UInt8: UInt8 = 0b10000000
     ```
 
 - Member variable declarations without initialization assignments, for example:
 
     ```cangjie
-    public class StringBuilder <: Collection & ToString {  
-        private var myData: Array  
-        private var mySize: Int64  
-        private var endIndex: Int64  
-    }  
+    public class StringBuilder <: Collection & ToString {
+        private var myData: Array
+        private var mySize: Int64
+        private var endIndex: Int64
+    }
     ```
 
 - Function declarations without function bodies (including `foreign` functions, etc.), for example:
 
     ```cangjie
-    foreign func cj_core_free(p: CPointer): Unit  
+    foreign func cj_core_free(p: CPointer): Unit
     ```
 
 - Enum type definitions, for example:
 
     ```cangjie
-    enum Numeric {  
-        NumDay | NumYearDay | NumYearWeek | NumHour12 | NumHour24 | NumMinute | NumSecond  
-    }  
+    enum Numeric {
+        NumDay | NumYearDay | NumYearWeek | NumHour12 | NumHour24 | NumMinute | NumSecond
+    }
     ```
 
 - `class`, `extend`, and other definitions. The lines containing `extend` and `class` will not be recorded in coverage data, for example:

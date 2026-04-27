@@ -1,1 +1,0 @@
-let a: Int64 = @testDef(1 + 2)

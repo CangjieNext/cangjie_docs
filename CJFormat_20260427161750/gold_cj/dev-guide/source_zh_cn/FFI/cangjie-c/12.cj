@@ -1,1 +1,0 @@
-foreign func addPoint(p1: Point3D, p2: Point3D): Point3D

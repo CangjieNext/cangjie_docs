@@ -42,23 +42,27 @@ import ohos.base.*
 
 /***********METHOD***********/
 /**
-* @brief greeter(fn: (a: string) => void): void
-*/
+ * @brief greeter(fn: (a: string) => void): void
+ */
 public func greeter(fn: (a: String) -> Unit): Unit {
-    hmsGlobalApiCall < Unit >( "_ark_interop_api", "greeter", { ctx =>[ctx.function({ ctx, info =>
-            let p0 = String.fromJSValue(ctx, info[0])
-            fn(p0)
-            ctx.undefined().toJSValue()
-        }).toJSValue()] })
+    hmsGlobalApiCall<Unit>("_ark_interop_api", "greeter", {
+        ctx => [ctx.function(
+            {
+                ctx, info =>
+                    let p0 = String.fromJSValue(ctx, info[0])
+                    fn(p0)
+                    ctx.undefined().toJSValue()
+            }
+        ).toJSValue()]
+    })
 }
 
 /**
-* @brief printToConsole(s: string): void
-*/
+ * @brief printToConsole(s: string): void
+ */
 public func printToConsole(s: String): Unit {
-    hmsGlobalApiCall < Unit >( "_ark_interop_api", "printToConsole", { ctx =>[s.toJSValue(ctx)] })
+    hmsGlobalApiCall<Unit>("_ark_interop_api", "printToConsole", {ctx => [s.toJSValue(ctx)]})
 }
-
 ```
 
 泛型函数示例：
@@ -73,14 +77,13 @@ declare function testMultiGenericT<T, M>(t: T, m: M): T;
 
 ```cangjie
 /**
-  * @brief testMultiGenericT(t: T, m: M): T
-  */
-public func testMultiGenericT < T, M >(t: T, m: M): T where T <: JSInteropType<T>, M <: JSInteropType<M> {
-    hmsGlobalApiCall < T >( "my_module_genericFunction", "testMultiGenericT", { ctx =>[t.toJSValue(ctx), m.toJSValue(ctx)] }) {
+ * @brief testMultiGenericT(t: T, m: M): T
+ */
+public func testMultiGenericT<T, M>(t: T, m: M): T where T <: JSInteropType<T>, M <: JSInteropType<M> {
+    hmsGlobalApiCall<T>("my_module_genericFunction", "testMultiGenericT", {ctx => [t.toJSValue(ctx), m.toJSValue(ctx)]}) {
         ctx, info => T.fromJSValue(ctx, info)
     }
 }
-
 ```
 
 ### 全局变量
@@ -128,41 +131,37 @@ interface GreetingSettings {
 
 ```cangjie
 public class GreetingSettings {
-
-    protected GreetingSettings(public var greeting: String,
-    public var duration!: Option<Float64> = None,
-    public var color!: Option<String> = None) {}
-
+    protected GreetingSettings(public var greeting: String, public var duration!: Option<Float64> = None,
+        public var color!: Option<String> = None) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["greeting"] = greeting.toJSValue(context)
-        if(let Some(v) <- duration) {
+        if (let Some(v) <- duration) {
             obj["duration"] = v.toJSValue(context)
         }
-        if(let Some(v) <- color) {
+        if (let Some(v) <- color) {
             obj["color"] = v.toJSValue(context)
         }
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): GreetingSettings {
+    public static func fromJSValue(context: JSContext, input: JSValue): GreetingSettings {
         let obj = input.asObject()
         GreetingSettings(
-        String.fromJSValue(context, obj["greeting"]),
-        duration: if(obj["duration"].isUndefined()) {
-            None
-        } else {
-            Float64.fromJSValue(context, obj["duration"])
-        },
-        color: if(obj["color"].isUndefined()) {
-            None
-        } else {
-            String.fromJSValue(context, obj["color"])
-        }
+            String.fromJSValue(context, obj["greeting"]),
+            duration: if (obj["duration"].isUndefined()) {
+                None
+            } else {
+                Float64.fromJSValue(context, obj["duration"])
+            },
+            color: if (obj["color"].isUndefined()) {
+                None
+            } else {
+                String.fromJSValue(context, obj["color"])
+            }
         )
     }
-
 }
 ```
 
@@ -181,29 +180,24 @@ interface Product {
 
 ```cangjie
 public class Product {
-
     protected Product(public var price!: Option<Float64> = None) {}
-
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
-        if(let Some(v) <- price) {
+        if (let Some(v) <- price) {
             obj["price"] = v.toJSValue(context)
         }
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): Product {
+    public static func fromJSValue(context: JSContext, input: JSValue): Product {
         let obj = input.asObject()
-        Product(
-        price: if(obj["price"].isUndefined()) {
+        Product(price: if (obj["price"].isUndefined()) {
             None
         } else {
             Float64.fromJSValue(context, obj["price"])
-        }
-        )
+        })
     }
-
 }
 ```
 
@@ -223,10 +217,7 @@ interface Point {
 
 ```cangjie
 public class Point {
-
-    protected Point(public let x: Float64,
-    public let y: Float64) {}
-
+    protected Point(public let x: Float64, public let y: Float64) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
@@ -235,14 +226,13 @@ public class Point {
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): Point {
+    public static func fromJSValue(context: JSContext, input: JSValue): Point {
         let obj = input.asObject()
         Point(
-        Float64.fromJSValue(context, obj["x"]),
-        Float64.fromJSValue(context, obj["y"])
+            Float64.fromJSValue(context, obj["x"]),
+            Float64.fromJSValue(context, obj["y"])
         )
     }
-
 }
 ```
 
@@ -275,36 +265,33 @@ interface Person {
 
 ```cangjie
 public class Person {
-
     protected Person(let arkts_object: JSObject) {}
-
 
     public mut prop name: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["name"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["name"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief greet(): String
-    */
+     * @brief greet(): String
+     */
     public func greet(): String {
-        jsObjApiCall < String >( arkts_object, "greet", emptyArg)
+        jsObjApiCall<String>(arkts_object, "greet", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Person {
+    static func fromJSValue(context: JSContext, input: JSValue): Person {
         Person(input.asObject())
     }
 }
@@ -326,28 +313,26 @@ interface Calculator {
 
 ```cangjie
 public class Calculator {
-
     protected Calculator(let arkts_object: JSObject) {}
 
-
     /**
-    * @brief add(x: number,y: number): number
-    */
+     * @brief add(x: number,y: number): number
+     */
     public func add(x: Float64, y: Float64): Float64 {
-        jsObjApiCall < Float64 >( arkts_object, "add", { ctx =>[x.toJSValue(ctx), y.toJSValue(ctx)] })
+        jsObjApiCall<Float64>(arkts_object, "add", {ctx => [x.toJSValue(ctx), y.toJSValue(ctx)]})
     }
     /**
-    * @brief add(x: string,y: string): String
-    */
+     * @brief add(x: string,y: string): String
+     */
     public func add(x: String, y: String): String {
-        jsObjApiCall < String >( arkts_object, "add", { ctx =>[x.toJSValue(ctx), y.toJSValue(ctx)] })
+        jsObjApiCall<String>(arkts_object, "add", {ctx => [x.toJSValue(ctx), y.toJSValue(ctx)]})
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Calculator {
+    static func fromJSValue(context: JSContext, input: JSValue): Calculator {
         Calculator(input.asObject())
     }
 }
@@ -369,36 +354,33 @@ interface List {
 
 ```cangjie
 public class List {
-
     protected List(let arkts_object: JSObject) {}
-
 
     public mut prop items: Array<String> {
         get() {
-            checkThreadAndCall < Array<String> >(getMainContext()) {
+            checkThreadAndCall<Array<String>>(getMainContext()) {
                 ctx: JSContext => Array<String>.fromJSValue(ctx, arkts_object["items"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["items"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief add(item: string): void
-    */
+     * @brief add(item: string): void
+     */
     public func add(item: String): Unit {
-        jsObjApiCall < Unit >( arkts_object, "add", { ctx =>[item.toJSValue(ctx)] })
+        jsObjApiCall<Unit>(arkts_object, "add", {ctx => [item.toJSValue(ctx)]})
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): List {
+    static func fromJSValue(context: JSContext, input: JSValue): List {
         List(input.asObject())
     }
 }
@@ -436,138 +418,120 @@ interface F extends C {
 
 ```cangjie
 public open class A {
-    
     protected A(public var p: Float64) {}
-    
-    
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["p"] = p.toJSValue(context)
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): A {
         let obj = input.asObject()
-        A(
-        Float64.fromJSValue(context, obj["p"])
-        )
+        A(Float64.fromJSValue(context, obj["p"]))
     }
-    
 }
 
-/*interface B {
+/* interface B {
     p1: number;
     }*/
-
 public open class B <: A {
-    
-    protected B(p: Float64,
-    public var p1: Float64) { super(p) }
-    
-    
+    protected B(p: Float64, public var p1: Float64) {
+        super(p)
+    }
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["p"] = p.toJSValue(context)
         obj["p1"] = p1.toJSValue(context)
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): B {
         let obj = input.asObject()
         B(
-        Float64.fromJSValue(context, obj["p"]),
-        Float64.fromJSValue(context, obj["p1"])
+            Float64.fromJSValue(context, obj["p"]),
+            Float64.fromJSValue(context, obj["p1"])
         )
     }
-    
 }
 
-/*interface C {
+/* interface C {
     f(): void
     }*/
-
 public open class C {
-    
     protected C(public var arkts_object: JSObject) {}
-    
-    
+
     /**
      * @brief f(): void
      */
     public func f(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "f", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "f", emptyArg)
     }
-    
+
     public open func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
-    
+
     static func fromJSValue(context: JSContext, input: JSValue): C {
         C(input.asObject())
     }
 }
 
-/*interface D {
+/* interface D {
     }*/
-
 public open class D <: C {
-    
-    protected D(arkts_object: JSObject) { super(arkts_object) }
-    
-    
-    
+    protected D(arkts_object: JSObject) {
+        super(arkts_object)
+    }
+
     public open func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
-    
+
     static func fromJSValue(context: JSContext, input: JSValue): D {
         D(input.asObject())
     }
 }
 
-/*interface E {
+/* interface E {
     }*/
-
 public open class E <: A {
-    
-    protected E(p: Float64) { super(p) }
-    
-    
+    protected E(p: Float64) {
+        super(p)
+    }
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["p"] = p.toJSValue(context)
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): E {
         let obj = input.asObject()
-        E(
-        Float64.fromJSValue(context, obj["p"])
-        )
+        E(Float64.fromJSValue(context, obj["p"]))
     }
-    
 }
 
-/*interface F {
+/* interface F {
     g(): void
     }*/
-
 public open class F <: C {
-    
-    protected F(arkts_object: JSObject) { super(arkts_object) }
-    
-    
+    protected F(arkts_object: JSObject) {
+        super(arkts_object)
+    }
+
     /**
      * @brief g(): void
      */
     public func g(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "g", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "g", emptyArg)
     }
-    
+
     public open func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
-    
+
     static func fromJSValue(context: JSContext, input: JSValue): F {
         F(input.asObject())
     }
@@ -595,18 +559,18 @@ interface UserProfile {
 ```cangjie
 
 public open class AutoGenType0 {
-    
+
     protected AutoGenType0(public var : String,
     public var : String) {}
-    
-    
+
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["city"] = .toJSValue(context)
         obj["zipCode"] = .toJSValue(context)
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): AutoGenType0 {
         let obj = input.asObject()
         AutoGenType0(
@@ -614,17 +578,17 @@ public open class AutoGenType0 {
         String.fromJSValue(context, obj["zipCode"])
         )
     }
-    
+
 }
 
 
 public open class UserProfile {
-    
+
     protected UserProfile(public var id: Float64,
     public var name: String,
     public var address: AutoGenType0) {}
-    
-    
+
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["id"] = id.toJSValue(context)
@@ -632,7 +596,7 @@ public open class UserProfile {
         obj["address"] = address.toJSValue(context)
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): UserProfile {
         let obj = input.asObject()
         UserProfile(
@@ -641,7 +605,7 @@ public open class UserProfile {
         AutoGenType0.fromJSValue(context, obj["address"])
         )
     }
-    
+
 }
 ```
 
@@ -797,7 +761,7 @@ public enum GreetingLike {
     | NUMBER(Float64)
 
     public func toJSValue(context: JSContext): JSValue {
-        match(this) {
+        match (this) {
             case STRING(x) => context.string(x).toJSValue()
             case NUMBER(x) => context.number(x).toJSValue()
         }
@@ -854,50 +818,46 @@ declare class Greeter {
 
 ```cangjie
 public class Greeter {
-
     protected Greeter(let arkts_object: JSObject) {}
     /**
-    * @brief constructor(greeting: string): void
-    */
+     * @brief constructor(greeting: string): void
+     */
     public init(greeting: String) {
-        arkts_object = checkThreadAndCall < JSObject >(getMainContext()) {
+        arkts_object = checkThreadAndCall<JSObject>(getMainContext()) {
             __ctx =>
-            let clazz = __ctx.global["Greeter"].asClass(__ctx)
-            clazz.new(greeting.toJSValue(__ctx)).asObject()
+                let clazz = __ctx.global["Greeter"].asClass(__ctx)
+                clazz.new(greeting.toJSValue(__ctx)).asObject()
         }
     }
 
     public mut prop greeting: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["greeting"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["greeting"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief showGreeting(): void
-    */
+     * @brief showGreeting(): void
+     */
     public func showGreeting(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "showGreeting", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "showGreeting", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Greeter {
+    static func fromJSValue(context: JSContext, input: JSValue): Greeter {
         Greeter(input.asObject())
     }
 }
-
-
 ```
 
 #### 静态成员
@@ -918,36 +878,34 @@ declare class MathUtils {
 
 ```cangjie
 public class MathUtils {
-
     protected MathUtils(let arkts_object: JSObject) {}
 
     // 静态属性
     public mut prop PI: Float64 {
         get() {
-            checkThreadAndCall < Float64 >(getMainContext()) {
+            checkThreadAndCall<Float64>(getMainContext()) {
                 ctx: JSContext => Float64.fromJSValue(ctx, getClassConstructorObj("test", "MathUtils")["PI"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => getClassConstructorObj("test", "MathUtils")["PI"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief square(x: number): number
-    */
+     * @brief square(x: number): number
+     */
     public static func square(x: Float64): Float64 {
-        jsObjApiCall < Float64 >(getClassConstructorObj("test", "MathUtils"),  "square", { ctx =>[x.toJSValue(ctx)] })
+        jsObjApiCall<Float64>(getClassConstructorObj("test", "MathUtils"), "square", {ctx => [x.toJSValue(ctx)]})
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): MathUtils {
+    static func fromJSValue(context: JSContext, input: JSValue): MathUtils {
         MathUtils(input.asObject())
     }
 }
@@ -976,7 +934,7 @@ public class Person {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Person {
+    static func fromJSValue(context: JSContext, input: JSValue): Person {
         Person(input.asObject())
     }
 }
@@ -1000,36 +958,34 @@ declare class AnimalProtect {
 
 ```cangjie
 public class AnimalProtect {
-
     protected AnimalProtect(let arkts_object: JSObject) {}
 
     // 受保护属性
     public mut prop name: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["name"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["name"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief makeSound(): void
-    */
+     * @brief makeSound(): void
+     */
     public func makeSound(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "makeSound", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "makeSound", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): AnimalProtect {
+    static func fromJSValue(context: JSContext, input: JSValue): AnimalProtect {
         AnimalProtect(input.asObject())
     }
 }
@@ -1051,13 +1007,12 @@ declare class Car {
 
 ```cangjie
 public class Car {
-
     protected Car(let arkts_object: JSObject) {}
 
     // 只读属性
     public prop brand: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["brand"])
             }
         }
@@ -1065,24 +1020,22 @@ public class Car {
 
     public mut prop name: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["name"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["name"] = v.toJSValue(ctx)
             }
         }
-
     }
-
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Car {
+    static func fromJSValue(context: JSContext, input: JSValue): Car {
         Car(input.asObject())
     }
 }
@@ -1105,29 +1058,27 @@ declare class Box<T> {
 
 ```cangjie
 public class Box<T> {
-
     protected Box(let arkts_object: JSObject) {}
 
     // 属性
     public mut prop value: T {
         get() {
-            checkThreadAndCall < T >(getMainContext()) {
+            checkThreadAndCall<T>(getMainContext()) {
                 ctx: JSContext => T.fromJSValue(ctx, arkts_object["value"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["value"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief getValue(): T
-    */
+     * @brief getValue(): T
+     */
     public func getValue(): T {
-        jsObjApiCall < T >( arkts_object, "getValue", emptyArg) {
+        jsObjApiCall<T>(arkts_object, "getValue", emptyArg) {
             ctx, info => T.fromJSValue(ctx, info)
         }
     }
@@ -1136,7 +1087,7 @@ public class Box<T> {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue <T>(context: JSContext, input: JSValue): Box<T> {
+    static func fromJSValue<T>(context: JSContext, input: JSValue): Box<T> {
         Box(input.asObject())
     }
 }
@@ -1157,21 +1108,20 @@ declare abstract class Shape {
 
 ```cangjie
 public open class Shape {
-
     protected Shape(let arkts_object: JSObject) {}
 
     /**
-    * @brief getArea(): number
-    */
+     * @brief getArea(): number
+     */
     public func getArea(): Float64 {
-        jsObjApiCall < Float64 >( arkts_object, "getArea", emptyArg)
+        jsObjApiCall<Float64>(arkts_object, "getArea", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Shape {
+    static func fromJSValue(context: JSContext, input: JSValue): Shape {
         Shape(input.asObject())
     }
 }
@@ -1197,54 +1147,51 @@ declare class Car implements Drivable {
 
 ```cangjie
 public class Drivable {
-
     protected Drivable(let arkts_object: JSObject) {}
 
-
     /**
-    * @brief start(): void
-    */
+     * @brief start(): void
+     */
     public func start(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "start", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "start", emptyArg)
     }
     /**
-    * @brief stop(): void
-    */
+     * @brief stop(): void
+     */
     public func stop(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "stop", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "stop", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Drivable {
+    static func fromJSValue(context: JSContext, input: JSValue): Drivable {
         Drivable(input.asObject())
     }
 }
-public class Car1 <: Drivable {
 
+public class Car1 <: Drivable {
     protected Car1(arkts_object: JSObject) {}
 
-
     /**
-    * @brief start(): void
-    */
+     * @brief start(): void
+     */
     public func start(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "start", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "start", emptyArg)
     }
     /**
-    * @brief stop(): void
-    */
+     * @brief stop(): void
+     */
     public func stop(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "stop", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "stop", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Car1 {
+    static func fromJSValue(context: JSContext, input: JSValue): Car1 {
         Car1(input.asObject())
     }
 }
@@ -1272,66 +1219,63 @@ declare class Dog extends Animal {
 
 ```cangjie
 public class Animal1 {
-
     protected Animal1(let arkts_object: JSObject) {}
     /**
-    * @brief constructor(name: string): void
-    */
+     * @brief constructor(name: string): void
+     */
     public init(name: String) {
-        arkts_object = checkThreadAndCall < JSObject >(getMainContext()) {
+        arkts_object = checkThreadAndCall<JSObject>(getMainContext()) {
             __ctx =>
-            let module = getJSModule(__ctx, "test", None)
-            let clazz = module["Animal1"].asClass(__ctx)
-            clazz.new(name.toJSValue(__ctx)).asObject()
+                let module = getJSModule(__ctx, "test", None)
+                let clazz = module["Animal1"].asClass(__ctx)
+                clazz.new(name.toJSValue(__ctx)).asObject()
         }
     }
 
     public mut prop name: String {
         get() {
-            checkThreadAndCall < String >(getMainContext()) {
+            checkThreadAndCall<String>(getMainContext()) {
                 ctx: JSContext => String.fromJSValue(ctx, arkts_object["name"])
             }
         }
         set(v) {
-            checkThreadAndCall < Unit >(getMainContext()) {
+            checkThreadAndCall<Unit>(getMainContext()) {
                 ctx: JSContext => arkts_object["name"] = v.toJSValue(ctx)
             }
         }
-
     }
 
     /**
-    * @brief move(distance: number): void
-    */
+     * @brief move(distance: number): void
+     */
     public func move(distance: Float64): Unit {
-        jsObjApiCall < Unit >( arkts_object, "move", { ctx =>[distance.toJSValue(ctx)] })
+        jsObjApiCall<Unit>(arkts_object, "move", {ctx => [distance.toJSValue(ctx)]})
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Animal1 {
+    static func fromJSValue(context: JSContext, input: JSValue): Animal1 {
         Animal1(input.asObject())
     }
 }
-public class Dog <: Animal1 {
 
+public class Dog <: Animal1 {
     protected Dog(arkts_object: JSObject) {}
 
-
     /**
-    * @brief bark(): void
-    */
+     * @brief bark(): void
+     */
     public func bark(): Unit {
-        jsObjApiCall < Unit >( arkts_object, "bark", emptyArg)
+        jsObjApiCall<Unit>(arkts_object, "bark", emptyArg)
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Dog {
+    static func fromJSValue(context: JSContext, input: JSValue): Dog {
         Dog(input.asObject())
     }
 }
@@ -1356,27 +1300,25 @@ declare class Calculator {
 
 ```cangjie
 public class Calculator {
-
     protected Calculator(let arkts_object: JSObject) {}
 
-
     /**
-    * @brief add(x: number,y: number): number
-    */
+     * @brief add(x: number,y: number): number
+     */
     public func add(x: Float64, y: Float64): Float64 {
-        jsObjApiCall < Float64 >( arkts_object, "add", { ctx =>[x.toJSValue(ctx), y.toJSValue(ctx)] })
+        jsObjApiCall<Float64>(arkts_object, "add", {ctx => [x.toJSValue(ctx), y.toJSValue(ctx)]})
     }
     /**
-    * @brief add(x: string,y: string): String
-    */
+     * @brief add(x: string,y: string): String
+     */
     public func add(x: String, y: String): String {
-        jsObjApiCall < String >( arkts_object, "add", { ctx =>[x.toJSValue(ctx), y.toJSValue(ctx)] })
+        jsObjApiCall<String>(arkts_object, "add", {ctx => [x.toJSValue(ctx), y.toJSValue(ctx)]})
     }
     /**
-    * @brief add(x: any,y: any): any
-    */
+     * @brief add(x: any,y: any): any
+     */
     public func add(x: Any, y: Any): any {
-        jsObjApiCall < any >( arkts_object, "add", { ctx =>[x.toJSValue(ctx), y.toJSValue(ctx)] }) {
+        jsObjApiCall<any>(arkts_object, "add", {ctx => [x.toJSValue(ctx), y.toJSValue(ctx)]}) {
             ctx, info => any.fromJSValue(ctx, info)
         }
     }
@@ -1385,7 +1327,7 @@ public class Calculator {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): Calculator {
+    static func fromJSValue(context: JSContext, input: JSValue): Calculator {
         Calculator(input.asObject())
     }
 }
@@ -1446,13 +1388,13 @@ declare enum Colors {
 生成的仓颉代码：
 
 ```cangjie
-public enum Colors <: ToString & Equatable < Colors > {
+public enum Colors <: ToString & Equatable<Colors> {
     | Red
     | Green
     | Blue
 
     func get(): String {
-        match(this) {
+        match (this) {
             case Red => "RED"
             case Green => "GREEN"
             case Blue => "BLUE"
@@ -1460,7 +1402,7 @@ public enum Colors <: ToString & Equatable < Colors > {
     }
 
     static func parse(val: String): Colors {
-        match(val) {
+        match (val) {
             case "RED" => Red
             case "GREEN" => Green
             case "BLUE" => Blue
@@ -1469,7 +1411,7 @@ public enum Colors <: ToString & Equatable < Colors > {
     }
 
     static func tryParse(val: ?String): ?Colors {
-        match(val) {
+        match (val) {
             case Some(v) => parse(v)
             case None => None
         }
@@ -1480,10 +1422,10 @@ public enum Colors <: ToString & Equatable < Colors > {
     }
 
     public override operator func ==(that: Colors): Bool {
-        match((this, that)) {
-            case(Red, Red) => true
-            case(Green, Green) => true
-            case(Blue, Blue) => true
+        match ((this, that)) {
+            case (Red, Red) => true
+            case (Green, Green) => true
+            case (Blue, Blue) => true
             case _ => false
         }
     }
@@ -1510,37 +1452,37 @@ declare enum Status {
 生成的仓颉代码：
 
 ```cangjie
-public enum Status <: ToString & Equatable < Status > {
+public enum Status <: ToString & Equatable<Status> {
     | Pending
     | Approved
     | Rejected
 
     func get(): Int32 {
-        match(this) {
-            case Pending => 0  //todo: please check the value
-            case Approved => 1  //todo: please check the value
-            case Rejected => 2  //todo: please check the value
+        match (this) {
+            case Pending => 0 //todo: please check the value
+            case Approved => 1 //todo: please check the value
+            case Rejected => 2 //todo: please check the value
         }
     }
 
     static func parse(val: Int32): Status {
-        match(val) {
-            case 0 => Pending  //todo: please check the value
-            case 1 => Approved  //todo: please check the value
-            case 2 => Rejected  //todo: please check the value
+        match (val) {
+            case 0 => Pending //todo: please check the value
+            case 1 => Approved //todo: please check the value
+            case 2 => Rejected //todo: please check the value
             case _ => throw IllegalArgumentException("unknown value ${val}")
         }
     }
 
     static func tryParse(val: ?Int32): ?Status {
-        match(val) {
+        match (val) {
             case Some(v) => parse(v)
             case None => None
         }
     }
 
     public func toString(): String {
-        match(this) {
+        match (this) {
             case Pending => "Pending"
             case Approved => "Approved"
             case Rejected => "Rejected"
@@ -1548,10 +1490,10 @@ public enum Status <: ToString & Equatable < Status > {
     }
 
     public override operator func ==(that: Status): Bool {
-        match((this, that)) {
-            case(Pending, Pending) => true
-            case(Approved, Approved) => true
-            case(Rejected, Rejected) => true
+        match ((this, that)) {
+            case (Pending, Pending) => true
+            case (Approved, Approved) => true
+            case (Rejected, Rejected) => true
             case _ => false
         }
     }
@@ -1578,13 +1520,13 @@ declare const enum Status {
 生成的仓颉代码：
 
 ```cangjie
-public enum Status <: ToString & Equatable < Status > {
+public enum Status <: ToString & Equatable<Status> {
     | Pending
     | Approved
     | Rejected
 
     func get(): Int32 {
-        match(this) {
+        match (this) {
             case Pending => 3
             case Approved => 4
             case Rejected => 5
@@ -1592,7 +1534,7 @@ public enum Status <: ToString & Equatable < Status > {
     }
 
     static func parse(val: Int32): Status {
-        match(val) {
+        match (val) {
             case 3 => Pending
             case 4 => Approved
             case 5 => Rejected
@@ -1601,14 +1543,14 @@ public enum Status <: ToString & Equatable < Status > {
     }
 
     static func tryParse(val: ?Int32): ?Status {
-        match(val) {
+        match (val) {
             case Some(v) => parse(v)
             case None => None
         }
     }
 
     public func toString(): String {
-        match(this) {
+        match (this) {
             case Pending => "Pending"
             case Approved => "Approved"
             case Rejected => "Rejected"
@@ -1616,10 +1558,10 @@ public enum Status <: ToString & Equatable < Status > {
     }
 
     public override operator func ==(that: Status): Bool {
-        match((this, that)) {
-            case(Pending, Pending) => true
-            case(Approved, Approved) => true
-            case(Rejected, Rejected) => true
+        match ((this, that)) {
+            case (Pending, Pending) => true
+            case (Approved, Approved) => true
+            case (Rejected, Rejected) => true
             case _ => false
         }
     }
@@ -1645,19 +1587,19 @@ declare enum Response {
 生成的仓颉代码：
 
 ```cangjie
-public enum Response <: ToString & Equatable < Response > {
+public enum Response <: ToString & Equatable<Response> {
     | No
     | Yes
 
     func get(): String {
-        match(this) {
+        match (this) {
             case No => "0"
             case Yes => "YES"
         }
     }
 
     static func parse(val: String): Response {
-        match(val) {
+        match (val) {
             case "0" => No
             case "YES" => Yes
             case _ => throw IllegalArgumentException("unknown value ${val}")
@@ -1665,7 +1607,7 @@ public enum Response <: ToString & Equatable < Response > {
     }
 
     static func tryParse(val: ?String): ?Response {
-        match(val) {
+        match (val) {
             case Some(v) => parse(v)
             case None => None
         }
@@ -1676,9 +1618,9 @@ public enum Response <: ToString & Equatable < Response > {
     }
 
     public override operator func ==(that: Response): Bool {
-        match((this, that)) {
-            case(No, No) => true
-            case(Yes, Yes) => true
+        match ((this, that)) {
+            case (No, No) => true
+            case (Yes, Yes) => true
             case _ => false
         }
     }
@@ -1758,19 +1700,10 @@ interface BasicTypes {
 
 ```cangjie
 public class BasicTypes {
-
-    protected BasicTypes(public var numberKeyword: Float64,
-    public var stringKeyword: String,
-    public var booleanKeyword: Bool,
-    public var bigintKeyword: BigInt,
-    public var objectKeyword: JSValue/* FIXME: `object` */,
-    public var symbolKeyword: JSValue/* FIXME: `symbol` */,
-    public var voidKeyword: Unit,
-    public var undefinedKeyword: JSValue/* FIXME: `undefined` */,
-    public var anyKeyword: Any,
-    public var unknownKeyword: JSValue/* FIXME: `unknown` */,
-    public var neverKeyword: JSValue/* FIXME: `never` */) {}
-
+    protected BasicTypes(public var numberKeyword: Float64, public var stringKeyword: String,
+        public var booleanKeyword: Bool, public var bigintKeyword: BigInt, public var objectKeyword: JSValue /* FIXME: `object` */ ,
+        public var symbolKeyword: JSValue /* FIXME: `symbol` */ , public var voidKeyword: Unit, public var undefinedKeyword: JSValue /* FIXME: `undefined` */ ,
+        public var anyKeyword: Any, public var unknownKeyword: JSValue /* FIXME: `unknown` */ , public var neverKeyword: JSValue /* FIXME: `never` */ ) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
@@ -1788,23 +1721,22 @@ public class BasicTypes {
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): BasicTypes {
+    public static func fromJSValue(context: JSContext, input: JSValue): BasicTypes {
         let obj = input.asObject()
         BasicTypes(
-        Float64.fromJSValue(context, obj["numberKeyword"]),
-        String.fromJSValue(context, obj["stringKeyword"]),
-        Bool.fromJSValue(context, obj["booleanKeyword"]),
-        obj["bigintKeyword"].asBigInt(context).toBigInt(),
-        JSValue/* FIXME: `object` */.fromJSValue(context, obj["objectKeyword"]),
-        JSValue/* FIXME: `symbol` */.fromJSValue(context, obj["symbolKeyword"]),
-        Unit.fromJSValue(context, obj["voidKeyword"]),
-        JSValue/* FIXME: `undefined` */.fromJSValue(context, obj["undefinedKeyword"]),
-        Any.fromJSValue(context, obj["anyKeyword"]),
-        JSValue/* FIXME: `unknown` */.fromJSValue(context, obj["unknownKeyword"]),
-        JSValue/* FIXME: `never` */.fromJSValue(context, obj["neverKeyword"])
+            Float64.fromJSValue(context, obj["numberKeyword"]),
+            String.fromJSValue(context, obj["stringKeyword"]),
+            Bool.fromJSValue(context, obj["booleanKeyword"]),
+            obj["bigintKeyword"].asBigInt(context).toBigInt(),
+            JSValue /* FIXME: `object` */ .fromJSValue(context, obj["objectKeyword"]),
+            JSValue /* FIXME: `symbol` */ .fromJSValue(context, obj["symbolKeyword"]),
+            Unit.fromJSValue(context, obj["voidKeyword"]),
+            JSValue /* FIXME: `undefined` */ .fromJSValue(context, obj["undefinedKeyword"]),
+            Any.fromJSValue(context, obj["anyKeyword"]),
+            JSValue /* FIXME: `unknown` */ .fromJSValue(context, obj["unknownKeyword"]),
+            JSValue /* FIXME: `never` */ .fromJSValue(context, obj["neverKeyword"])
         )
     }
-
 }
 ```
 
@@ -1836,32 +1768,27 @@ interface arrayInterface {
 
 ```cangjie
 public class arrayInterface {
-
-    protected arrayInterface(public var arrayType1: Array<Float64>,
-    public var arrayType2: Array<UInt8>,
-    public var arrayType3: Array<UInt8>,
-    public var arrayType4: Array<Float32>) {}
-
+    protected arrayInterface(public var arrayType1: Array<Float64>, public var arrayType2: Array<UInt8>,
+        public var arrayType3: Array<UInt8>, public var arrayType4: Array<Float32>) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
         obj["arrayType1"] = toJSArray(context, arrayType1)
-        obj["arrayType2"] = toJSArray(context, arrayType2, { ctx: JSContext, val: UInt8 => val.toJSValue(ctx) })
-        obj["arrayType3"] = toJSArray(context, arrayType3, { ctx: JSContext, val: UInt8 => val.toJSValue(ctx) })
-        obj["arrayType4"] = toJSArray(context, arrayType4, { ctx: JSContext, val: Float32 => val.toJSValue(ctx) })
+        obj["arrayType2"] = toJSArray(context, arrayType2, {ctx: JSContext, val: UInt8 => val.toJSValue(ctx)})
+        obj["arrayType3"] = toJSArray(context, arrayType3, {ctx: JSContext, val: UInt8 => val.toJSValue(ctx)})
+        obj["arrayType4"] = toJSArray(context, arrayType4, {ctx: JSContext, val: Float32 => val.toJSValue(ctx)})
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): arrayInterface {
+    public static func fromJSValue(context: JSContext, input: JSValue): arrayInterface {
         let obj = input.asObject()
         arrayInterface(
-        fromJSArray < Float64 >(context, obj["arrayType1"]),
-        fromJSArray(context, obj["arrayType2"], { ctx: JSContext, val: JSValue => UInt8.fromJSValue(ctx, val) }),
-        fromJSArray(context, obj["arrayType3"], { ctx: JSContext, val: JSValue => UInt8.fromJSValue(ctx, val) }),
-        fromJSArray(context, obj["arrayType4"], { ctx: JSContext, val: JSValue => Float32.fromJSValue(ctx, val) })
+            fromJSArray<Float64>(context, obj["arrayType1"]),
+            fromJSArray(context, obj["arrayType2"], {ctx: JSContext, val: JSValue => UInt8.fromJSValue(ctx, val)}),
+            fromJSArray(context, obj["arrayType3"], {ctx: JSContext, val: JSValue => UInt8.fromJSValue(ctx, val)}),
+            fromJSArray(context, obj["arrayType4"], {ctx: JSContext, val: JSValue => Float32.fromJSValue(ctx, val)})
         )
     }
-
 }
 ```
 
@@ -1890,106 +1817,125 @@ interface TestListener {
 
 ```cangjie
 public class TestListener {
-
     protected TestListener(public var onStart!: Option<() -> Unit> = None,
-    public var onDestroy!: Option<() -> Unit> = None,
-    public var onError!: Option<(code: ErrorCode, msg: String) -> Unit> = None,
-    public var onTouch!: Option<() -> Unit> = None,
-    public var onEvent!: Option<(e: EventType) -> Unit> = None) {}
-
+        public var onDestroy!: Option<() -> Unit> = None,
+        public var onError!: Option<(code: ErrorCode, msg: String) -> Unit> = None,
+        public var onTouch!: Option<() -> Unit> = None, public var onEvent!: Option<(e: EventType) -> Unit> = None) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
-        if(let Some(v) <- onStart) {
-            obj["onStart"] = context.function({ ctx, _ =>
-                v()
-                ctx.undefined().toJSValue()
-            }).toJSValue()
+        if (let Some(v) <- onStart) {
+            obj["onStart"] = context.function(
+                {
+                    ctx, _ =>
+                        v()
+                        ctx.undefined().toJSValue()
+                }
+            ).toJSValue()
         }
-        if(let Some(v) <- onDestroy) {
-            obj["onDestroy"] = context.function({ ctx, _ =>
-                v()
-                ctx.undefined().toJSValue()
-            }).toJSValue()
+        if (let Some(v) <- onDestroy) {
+            obj["onDestroy"] = context.function(
+                {
+                    ctx, _ =>
+                        v()
+                        ctx.undefined().toJSValue()
+                }
+            ).toJSValue()
         }
-        if(let Some(v) <- onError) {
-            obj["onError"] = context.function({ ctx, info =>
-                let p0 = ErrorCode.fromJSValue(ctx, info[0])
-                let p1 = String.fromJSValue(ctx, info[1])
-                v(p0, p1)
-                ctx.undefined().toJSValue()
-            }).toJSValue()
+        if (let Some(v) <- onError) {
+            obj["onError"] = context.function(
+                {
+                    ctx, info =>
+                        let p0 = ErrorCode.fromJSValue(ctx, info[0])
+                        let p1 = String.fromJSValue(ctx, info[1])
+                        v(p0, p1)
+                        ctx.undefined().toJSValue()
+                }
+            ).toJSValue()
         }
-        if(let Some(v) <- onTouch) {
-            obj["onTouch"] = context.function({ ctx, _ =>
-                v()
-                ctx.undefined().toJSValue()
-            }).toJSValue()
+        if (let Some(v) <- onTouch) {
+            obj["onTouch"] = context.function(
+                {
+                    ctx, _ =>
+                        v()
+                        ctx.undefined().toJSValue()
+                }
+            ).toJSValue()
         }
-        if(let Some(v) <- onEvent) {
-            obj["onEvent"] = context.function({ ctx, info =>
-                let p0 = EventType.parse(Int32.fromJSValue(ctx, info[0]))
-                v(p0)
-                ctx.undefined().toJSValue()
-            }).toJSValue()
+        if (let Some(v) <- onEvent) {
+            obj["onEvent"] = context.function(
+                {
+                    ctx, info =>
+                        let p0 = EventType.parse(Int32.fromJSValue(ctx, info[0]))
+                        v(p0)
+                        ctx.undefined().toJSValue()
+                }
+            ).toJSValue()
         }
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): TestListener {
+    public static func fromJSValue(context: JSContext, input: JSValue): TestListener {
         let obj = input.asObject()
         TestListener(
-        onStart: if(obj["onStart"].isUndefined()) {
-            None
-        } else {
-            { =>
-                checkThreadAndCall < Unit >(context, { _ =>
-                    obj["onStart"].asFunction().call()
-                })
+            onStart: if (obj["onStart"].isUndefined()) {
+                None
+            } else {
+                {
+                    => checkThreadAndCall<Unit>(context, {
+                        _ => obj["onStart"].asFunction().call()
+                    })
+                }
+            },
+            onDestroy: if (obj["onDestroy"].isUndefined()) {
+                None
+            } else {
+                {
+                    => checkThreadAndCall<Unit>(context, {
+                        _ => obj["onDestroy"].asFunction().call()
+                    })
+                }
+            },
+            onError: if (obj["onError"].isUndefined()) {
+                None
+            } else {
+                {
+                    code: ErrorCode, msg: String => checkThreadAndCall<Unit>(
+                        context,
+                        {
+                            ctx =>
+                                let arg0 = code.toJSValue(ctx)
+                                let arg1 = msg.toJSValue(ctx)
+                                obj["onError"].asFunction().call([arg0, arg1])
+                        }
+                    )
+                }
+            },
+            onTouch: if (obj["onTouch"].isUndefined()) {
+                None
+            } else {
+                {
+                    => checkThreadAndCall<Unit>(context, {
+                        _ => obj["onTouch"].asFunction().call()
+                    })
+                }
+            },
+            onEvent: if (obj["onEvent"].isUndefined()) {
+                None
+            } else {
+                {
+                    e: EventType => checkThreadAndCall<Unit>(
+                        context,
+                        {
+                            ctx =>
+                                let arg0 = e.get().toJSValue(ctx)
+                                obj["onEvent"].asFunction().call([arg0])
+                        }
+                    )
+                }
             }
-        },
-        onDestroy: if(obj["onDestroy"].isUndefined()) {
-            None
-        } else {
-            { =>
-                checkThreadAndCall < Unit >(context, { _ =>
-                    obj["onDestroy"].asFunction().call()
-                })
-            }
-        },
-        onError: if(obj["onError"].isUndefined()) {
-            None
-        } else {
-            { code: ErrorCode, msg: String =>
-                checkThreadAndCall < Unit >(context, { ctx =>
-                    let arg0 = code.toJSValue(ctx)
-                    let arg1 = msg.toJSValue(ctx)
-                    obj["onError"].asFunction().call([arg0, arg1])
-                })
-            }
-        },
-        onTouch: if(obj["onTouch"].isUndefined()) {
-            None
-        } else {
-            { =>
-                checkThreadAndCall < Unit >(context, { _ =>
-                    obj["onTouch"].asFunction().call()
-                })
-            }
-        },
-        onEvent: if(obj["onEvent"].isUndefined()) {
-            None
-        } else {
-            { e: EventType =>
-                checkThreadAndCall < Unit >(context, { ctx =>
-                    let arg0 = e.get().toJSValue(ctx)
-                    obj["onEvent"].asFunction().call([arg0])
-                })
-            }
-        }
         )
     }
-
 }
 ```
 
@@ -2009,34 +1955,34 @@ interface MyListener {
 
 ```cangjie
 public class MyListener {
-    let callbackManager = CallbackManager < String, JSValue >()
+    let callbackManager = CallbackManager<String, JSValue>()
     protected MyListener(let arkts_object: JSObject) {}
 
     /**
-    * @brief on(key: string,param: boolean,cb: (r: Record<string, string>) => void): void
-    */
+     * @brief on(key: string,param: boolean,cb: (r: Record<string, string>) => void): void
+     */
     public func on(key: String, param: Bool, cb: Callback1Argument<Record>): Unit {
         let key = key.toString()
-        if(callbackManager.findCallbackObject(key, cb).isSome()) {
+        if (callbackManager.findCallbackObject(key, cb).isSome()) {
             return
         }
-        let jsCallback = checkThreadAndCall < JSValue >(getMainContext()) {
+        let jsCallback = checkThreadAndCall<JSValue>(getMainContext()) {
             __ctx => __ctx.function {
                 __ctx: JSContext, info: JSCallInfo =>
-                let arg0 = Record<stringstring>.fromJSValue(__ctx, info[0])
-                cb.invoke(arg0)
-                __ctx.undefined().toJSValue()
+                    let arg0 = Record<stringstring>.fromJSValue(__ctx, info[0])
+                    cb.invoke(arg0)
+                    __ctx.undefined().toJSValue()
             }.toJSValue()
         }
-        callbackManager.put(key,(cb, jsCallback))
-        jsObjApiCall < Unit >( arkts_object, "on", { __ctx =>[key.toJSValue(__ctx), param.toJSValue(__ctx), jsCallback] })
+        callbackManager.put(key, (cb, jsCallback))
+        jsObjApiCall<Unit>(arkts_object, "on", {__ctx => [key.toJSValue(__ctx), param.toJSValue(__ctx), jsCallback]})
     }
 
     func toJSValue(context: JSContext): JSValue {
         arkts_object.toJSValue()
     }
 
-    static func fromJSValue (context: JSContext, input: JSValue): MyListener {
+    static func fromJSValue(context: JSContext, input: JSValue): MyListener {
         MyListener(input.asObject())
     }
 }
@@ -2059,43 +2005,47 @@ interface Optionals {
 
 ```cangjie
 public class Optionals {
-
     protected Optionals(public var optionalParam10: (a: Float64, b: ?String) -> Unit,
-    public var optionalField1!: Option<Float64> = None) {}
-
+        public var optionalField1!: Option<Float64> = None) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
-        obj["optionalParam10"] = context.function({ ctx, info =>
-            let p0 = Float64.fromJSValue(ctx, info[0])
-            let p1 = String.fromJSValue(ctx, info[1])
-            optionalParam10(p0, p1)
-            ctx.undefined().toJSValue()
-        }).toJSValue()
-        if(let Some(v) <- optionalField1) {
+        obj["optionalParam10"] = context.function(
+            {
+                ctx, info =>
+                    let p0 = Float64.fromJSValue(ctx, info[0])
+                    let p1 = String.fromJSValue(ctx, info[1])
+                    optionalParam10(p0, p1)
+                    ctx.undefined().toJSValue()
+            }
+        ).toJSValue()
+        if (let Some(v) <- optionalField1) {
             obj["optionalField1"] = v.toJSValue(context)
         }
         obj.toJSValue()
     }
 
-    public static func fromJSValue (context: JSContext, input: JSValue): Optionals {
+    public static func fromJSValue(context: JSContext, input: JSValue): Optionals {
         let obj = input.asObject()
         Optionals(
-        { a: Float64, b:?String =>
-            checkThreadAndCall < Unit >(context, { ctx =>
-                let arg0 = a.toJSValue(ctx)
-                let arg1 = b?.toJSValue(ctx)
-                obj["optionalParam10"].asFunction().call([arg0, arg1])
-            })
-        },
-        optionalField1: if(obj["optionalField1"].isUndefined()) {
-            None
-        } else {
-            Float64.fromJSValue(context, obj["optionalField1"])
-        }
+            {
+                a: Float64, b: ?String => checkThreadAndCall<Unit>(
+                    context,
+                    {
+                        ctx =>
+                            let arg0 = a.toJSValue(ctx)
+                            let arg1 = b?.toJSValue(ctx)
+                            obj["optionalParam10"].asFunction().call([arg0, arg1])
+                    }
+                )
+            },
+            optionalField1: if (obj["optionalField1"].isUndefined()) {
+                None
+            } else {
+                Float64.fromJSValue(context, obj["optionalField1"])
+            }
         )
     }
-
 }
 ```
 
@@ -2119,11 +2069,8 @@ interface ObjectTypes<U, T> {
 
 ```cangjie
 public class ObjectTypes<U, T> {
-
-    protected ObjectTypes(public var typeLiteral10: JSValue/* FIXME: `{ x: number; y: U }` */,
-    public var typeLiteral20: JSValue/* FIXME: `{ [number]: string; [symbol]: T }` */,
-    public var typeLiteral30: JSValue/* FIXME: `{ () => void; (number: any) => string }` */) {}
-
+    protected ObjectTypes(public var typeLiteral10: JSValue /* FIXME: `{ x: number; y: U }` */ , public var typeLiteral20: JSValue /* FIXME: `{ [number]: string; [symbol]: T }` */ ,
+        public var typeLiteral30: JSValue /* FIXME: `{ () => void; (number: any) => string }` */ ) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
@@ -2133,15 +2080,14 @@ public class ObjectTypes<U, T> {
         obj.toJSValue()
     }
 
-    public static func fromJSValue <U, T>(context: JSContext, input: JSValue): ObjectTypes<U, T> {
+    public static func fromJSValue<U, T>(context: JSContext, input: JSValue): ObjectTypes<U, T> {
         let obj = input.asObject()
         ObjectTypes(
-        JSValue/* FIXME: `{ x: number; y: U }` */.fromJSValue(context, obj["typeLiteral10"]),
-        JSValue/* FIXME: `{ [number]: string; [symbol]: T }` */.fromJSValue(context, obj["typeLiteral20"]),
-        JSValue/* FIXME: `{ () => void; (number: any) => string }` */.fromJSValue(context, obj["typeLiteral30"])
+            JSValue /* FIXME: `{ x: number; y: U }` */ .fromJSValue(context, obj["typeLiteral10"]),
+            JSValue /* FIXME: `{ [number]: string; [symbol]: T }` */ .fromJSValue(context, obj["typeLiteral20"]),
+            JSValue /* FIXME: `{ () => void; (number: any) => string }` */ .fromJSValue(context, obj["typeLiteral30"])
         )
     }
-
 }
 ```
 
@@ -2186,14 +2132,15 @@ public enum ARK1 {
     | BIGINT(BigInt)
 
     public func toJSValue(context: JSContext): JSValue {
-        match(this) {
+        match (this) {
             case NULL => context.null().toJSValue()
             case NUMBER(x) => context.number(x).toJSValue()
             case STRING(x) => context.string(x).toJSValue()
             case BOOLEAN(x) => context.boolean(x).toJSValue()
             case BYTEARRAY(x) => context.global["Uint8Array"].asClass().new(x.toJSValue(context))
-            case FLOAT32ARRAY(x) => let buffer = context.arrayBuffer(acquireArrayRawData(x), x.size, { pt => releaseArrayRawData(pt)})
-context.global["Float32Array"].asClass().new(buffer.toJSValue())
+            case FLOAT32ARRAY(x) =>
+                let buffer = context.arrayBuffer(acquireArrayRawData(x), x.size, {pt => releaseArrayRawData(pt)})
+                context.global["Float32Array"].asClass().new(buffer.toJSValue())
             case BIGINT(x) => context.bigint(x).toJSValue()
         }
     }
@@ -2204,7 +2151,7 @@ public enum ARK2 {
     | VOID(Unit)
 
     public func toJSValue(context: JSContext): JSValue {
-        match(this) {
+        match (this) {
             case ARK1(x) => x.toJSValue(context)
         }
     }
@@ -2241,9 +2188,7 @@ interface IntersectionTypes<U, T> {
 
 ```cangjie
 public class IntersectionTypes<U, T> {
-
-    protected IntersectionTypes(public var intersectionType: JSValue/* FIXME: `object & HashMap<U, T>` */) {}
-
+    protected IntersectionTypes(public var intersectionType: JSValue /* FIXME: `object & HashMap<U, T>` */ ) {}
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
@@ -2251,13 +2196,10 @@ public class IntersectionTypes<U, T> {
         obj.toJSValue()
     }
 
-    public static func fromJSValue <U, T>(context: JSContext, input: JSValue): IntersectionTypes<U, T> {
+    public static func fromJSValue<U, T>(context: JSContext, input: JSValue): IntersectionTypes<U, T> {
         let obj = input.asObject()
-        IntersectionTypes(
-        JSValue/* FIXME: `object & HashMap<U, T>` */.fromJSValue(context, obj["intersectionType"])
-        )
+        IntersectionTypes(JSValue /* FIXME: `object & HashMap<U, T>` */ .fromJSValue(context, obj["intersectionType"]))
     }
-
 }
 ```
 
@@ -2309,52 +2251,44 @@ declare module './exportAlias' {
 /*FIXME: Import details need to be verified and rewritten by user.*/
 /*import { ExportedInterface } from './exportAlias';*/
 
-
 /*
 
 public const value1 = 0/* FIXME: Initialization is required */
-*/
+ */
 /*
 
 public const value2 = 0/* FIXME: Initialization is required */
-*/
+ */
 
 /***********METHOD***********/
 /**
-  * @brief createSub(): Inheritances.SubClass
-  */
-public func createSub(): JSValue/* FIXME: `Inheritances.SubClass` */ {
-    hmsGlobalApiCall < JSValue/* FIXME: `Inheritances.SubClass` */ >( "my_module_imports", "createSub", emptyArg) {
+ * @brief createSub(): Inheritances.SubClass
+ */
+public func createSub(): JSValue /* FIXME: `Inheritances.SubClass` */ {
+    hmsGlobalApiCall<JSValue /* FIXME: `Inheritances.SubClass` */ >("my_module_imports", "createSub", emptyArg) {
         ctx, info => info
     }
 }
 
-
 /***********OBJECT***********/
 
-/*interface ExportedInterface {
+/* interface ExportedInterface {
     myOption?: String;
     }*/
-
 public open class ExportedInterface {
-    
     protected ExportedInterface(public var myOption!: Option<String> = None) {}
-    
-    
+
     public open func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
-        if(let Some(v) <- myOption) {
+        if (let Some(v) <- myOption) {
             obj["myOption"] = v.toJSValue(context)
         }
         obj.toJSValue()
     }
-    
+
     public static func fromJSValue(context: JSContext, input: JSValue): ExportedInterface {
         let obj = input.asObject()
-        ExportedInterface(
-        myOption: Option < String >.fromJSValue(context, obj["myOption"])
-        )
+        ExportedInterface(myOption: Option<String>.fromJSValue(context, obj["myOption"]))
     }
-    
 }
 ```

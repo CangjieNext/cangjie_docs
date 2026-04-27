@@ -9,8 +9,10 @@ The following example demonstrates printing both the value and the expression it
 ```cangjie
 let x = 3
 let y = 2
-@dprint(x)        // Prints "x = 3"
-@dprint(x + y)    // Prints "x + y = 5"
+
+@dprint(x) // Prints "x = 3"
+
+@dprint(x + y) // Prints "x + y = 5"
 ```
 
 Clearly, `dprint` cannot be implemented as a regular function because functions only receive the value of the input expression, not the expression itself. However, `dprint` can be implemented as a macro to access the code fragment of the input expression. A basic implementation is shown below:

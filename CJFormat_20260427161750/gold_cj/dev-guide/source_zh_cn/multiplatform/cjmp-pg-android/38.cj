@@ -1,1 +1,0 @@
-public func hashCode(): Int64

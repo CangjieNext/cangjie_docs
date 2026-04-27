@@ -1,1 +1,0 @@
-public init(cjString: String)

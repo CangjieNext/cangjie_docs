@@ -29,7 +29,9 @@ type B = LongNameClassB // Error, type 'LongNameClassB' is not defined
 
 ```cangjie
 type A = (Int64, A) // Error, 'A' refered itself
+
 type B = (Int64, C) // Error, 'B' and 'C' are circularly refered
+
 type C = (B, Int64)
 ```
 
@@ -41,7 +43,9 @@ type C = (B, Int64)
 
     ```cangjie
     type A = B
+
     class B {}
+
     var a: A = B() // Use typealias A as type B
     ```
 
@@ -51,8 +55,12 @@ type C = (B, Int64)
 
     ```cangjie
     type A = B
+
     class B {}
-    func foo() { A() }  // Use type alias A as constructor of B
+
+    func foo() {
+        A()
+    } // Use type alias A as constructor of B
     ```
 
 3. 当类型别名实际指向的类型为 class、interface、struct 时，可以作为访问内部静态成员变量或函数的类型名：
@@ -61,10 +69,12 @@ type C = (B, Int64)
 
     ```cangjie
     type A = B
+
     class B {
-        static var b : Int32 = 0
+        static var b: Int32 = 0
         static func foo() {}
     }
+
     func foo() {
         A.foo() // Use A to access static method in class B
         A.b
@@ -79,9 +89,11 @@ type C = (B, Int64)
     enum TimeUnit {
         Day | Month | Year
     }
+
     type Time = TimeUnit
-    var a = Time.Day  
-    var b = Time.Month   // Use type alias Time to access constructors in TimeUnit
+
+    var a = Time.Day
+    var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
 需要注意的是，当前用户自定义的类型别名暂不支持在类型转换表达式中使用，参考如下示例：

@@ -806,6 +806,7 @@ Use the `cjthread` command to view Cangjie call stacks.
 
     ```cangjie
     foreign func cfoo(): Int32
+
     unsafe main() {
         cfoo()
     }

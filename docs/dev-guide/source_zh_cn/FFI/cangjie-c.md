@@ -23,6 +23,7 @@ int printf(const char *fmt, ...);
 ```cangjie
 // declare the function by `foreign` keyword, and omit `@C`
 foreign func rand(): Int32
+
 foreign func printf(fmt: CString, ...): Int32
 
 main() {
@@ -84,8 +85,8 @@ func callableInC(ptr: CPointer<Int8>) {
 }
 
 // Case 3
-let f1: CFunc<(CPointer<Int8>) -> Unit> = { ptr =>
-    print("This function is defined with CFunc lambda.")
+let f1: CFunc<(CPointer<Int8>) -> Unit> = {
+    ptr => print("This function is defined with CFunc lambda.")
 }
 ```
 
@@ -143,9 +144,10 @@ func foo2(ptr: CPointer<Int32>): Unit {
     println("*ptr = ${n}")
 }
 
-let foo3: CFunc<(CPointer<Int32>) -> Unit> = { ptr =>
-    let n = unsafe { ptr.read() }
-    println("*ptr = ${n}")
+let foo3: CFunc<(CPointer<Int32>) -> Unit> = {
+    ptr =>
+        let n = unsafe { ptr.read() }
+        println("*ptr = ${n}")
 }
 
 struct Data {
@@ -159,14 +161,14 @@ class A {
 main() {
     var n: Int32 = 0
     unsafe {
-        foo1(inout n)  // OK
-        foo2(inout n)  // OK
-        foo3(inout n)  // OK
+        foo1(inout n) // OK
+        foo2(inout n) // OK
+        foo3(inout n) // OK
     }
     var data = Data()
     var a = A()
     unsafe {
-        foo1(inout data.n)   // OK
+        foo1(inout data.n) // OK
         foo1(inout a.data.n) // Error, n is derived indirectly from instance member variables of class A
     }
 }
@@ -200,15 +202,15 @@ func foo(): Unit {
     println("foo")
 }
 
-var foo1: CFunc<() -> Unit> = { =>
-    println("foo1")
+var foo1: CFunc<() -> Unit> = {
+    => println("foo1")
 }
 
 main(): Int64 {
     unsafe {
-        rand()           // Call foreign func.
-        foo()            // Call @C func.
-        foo1()           // Call CFunc var.
+        rand() // Call foreign func.
+        foo() // Call @C func.
+        foo1() // Call CFunc var.
     }
     0
 }
@@ -219,15 +221,17 @@ main(): Int64 {
 <!-- run -->
 
 ```cangjie
-unsafe func A(){}
-unsafe func B(){
-    var f = { =>
-        unsafe { A() } // Avoid calling A() directly without unsafe in a normal lambda.
+unsafe func A() {}
+
+unsafe func B() {
+    var f = {
+        => unsafe { A() } // Avoid calling A() directly without unsafe in a normal lambda.
     }
     return f
 }
+
 main() {
-    var f = unsafe{ B() }
+    var f = unsafe { B() }
     f()
     println("Hello World")
 }
@@ -242,7 +246,7 @@ main() {
 <!-- run -->
 
 ```cangjie
-@CallingConv[CDECL]   // Can be omitted in default.
+@CallingConv[CDECL] // Can be omitted in default.
 foreign func rand(): Int32
 
 main() {
@@ -407,6 +411,7 @@ foreign func malloc(size: UIntNative): CPointer<Unit>
 
 ```cangjie
 foreign func malloc(size: UIntNative): CPointer<Unit>
+
 foreign func free(ptr: CPointer<Unit>): Unit
 
 @C
@@ -424,13 +429,13 @@ struct Point3D {
 
 main() {
     let p1 = CPointer<Point3D>() // create a CPointer with null value
-    if (p1.isNull()) {  // check if the pointer is null
+    if (p1.isNull()) { // check if the pointer is null
         print("p1 is a null pointer")
     }
 
     let sizeofPoint3D: UIntNative = 24
-    var p2 = unsafe { malloc(sizeofPoint3D) }    // malloc a Point3D in heap
-    var p3 = unsafe { CPointer<Point3D>(p2) }    // pointer type cast
+    var p2 = unsafe { malloc(sizeofPoint3D) } // malloc a Point3D in heap
+    var p3 = unsafe { CPointer<Point3D>(p2) } // pointer type cast
 
     unsafe { p3.write(Point3D(1, 2, 3)) } // write data through pointer
 
@@ -459,6 +464,7 @@ main() {
 
 ```cangjie
 foreign func rand(): Int32
+
 main() {
     var ptr = CPointer<Int8>(rand)
 }
@@ -482,6 +488,7 @@ main() {
 
 ```cangjie
 foreign func cfoo1(a: CPointer<Int32>): Unit
+
 foreign func cfoo2(a: VArray<Int32, $3>): Unit
 ```
 
@@ -643,7 +650,7 @@ func foo<T>(x: T): Unit where T <: CType {
 main() {
     var i32: Int32 = 1
     var ptr = CPointer<Int8>()
-    var f: CFunc<() -> Unit> = { => println("Hello") }
+    var f: CFunc<() -> Unit> = {=> println("Hello")}
     var f64 = 1.0
     foo(i32)
     foo(ptr)
@@ -703,7 +710,7 @@ main() {
     unsafe { set_callback(myCallback) }
 
     // the argument is a lambda with `CFunc` type
-    let f: CFunc<(Int32) -> Unit> = { i => println("handle ${i} in callback") }
+    let f: CFunc<(Int32) -> Unit> = {i => println("handle ${i} in callback")}
     unsafe { set_callback(f) }
 }
 ```
@@ -798,7 +805,7 @@ main() {
     var cube = Cube(1.1, 2.2, 3.3)
     unsafe {
         pCube.write(cube)
-        drawPicture(pPoint, pCube)   // in which x, y will be changed
+        drawPicture(pPoint, pCube) // in which x, y will be changed
 
         println(pPoint.read().x)
         println(pPoint.read().y)

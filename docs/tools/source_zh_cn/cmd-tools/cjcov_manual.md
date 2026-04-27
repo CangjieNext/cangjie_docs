@@ -422,7 +422,7 @@ src
     <!-- compile -->
 
     ```cangjie
-    let HIGH_1_UInt8: UInt8 = 0b10000000;
+    let HIGH_1_UInt8: UInt8 = 0b10000000
     ```
 
 - 成员变量仅声明未初始化赋值，示例如下：

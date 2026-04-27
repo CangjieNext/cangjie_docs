@@ -1763,7 +1763,6 @@ import std.process.*
  * 0: success.
  * other: cjpm will finish running command. Check target-dir/build-script-cache/module-name/script-log for error outputs defind by user in functions.
  */
-
 main(): Int64 {
     match (Process.current.arguments[0]) {
         // Add operation here with format: "pre-"/"post-" + optionName
@@ -1966,7 +1965,7 @@ import std.unittest.* // testfame
 import std.unittest.testmacro.* // macro_Defintion
 
 @Test
-public class TestM{
+public class TestM {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatM("1", "2"), "12")
@@ -1994,7 +1993,7 @@ import std.unittest.* // testfame
 import std.unittest.testmacro.* // macro_Defintion
 
 @Test
-public class TestK{
+public class TestK {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatk("1", "2"), "12")
@@ -2027,7 +2026,7 @@ import std.unittest.* // test framework
 import std.unittest.testmacro.* // macro definition
 
 @Test
-public class TestZ{
+public class TestZ {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatZ("1", "2"), "12")

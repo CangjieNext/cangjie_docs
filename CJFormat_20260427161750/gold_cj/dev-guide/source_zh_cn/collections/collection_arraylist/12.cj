@@ -1,2 +1,0 @@
-let list = ArrayList<String>(["a", "b", "c", "d"]) // list contains the elements "a", "b", "c", "d"
-list.remove(at: 1) // Delete the element at subscript 1, now the list contains elements "a", "c", "d"
