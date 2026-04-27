@@ -6,6 +6,7 @@ In the Cangjie programming language, you can import a top-level declaration or d
 
 ```cangjie
 package a
+
 import std.math.*
 import package1.foo
 import {package1.foo, package2.bar}
@@ -125,6 +126,7 @@ Different packages have separate namespaces, so top-level declarations with the 
     ```cangjie
     // a.cj
     package p1
+
     public func f1() {}
     ```
 
@@ -134,6 +136,7 @@ Different packages have separate namespaces, so top-level declarations with the 
     ```cangjie
     // d.cj
     package p2
+
     public func f3() {}
     ```
 
@@ -143,6 +146,7 @@ Different packages have separate namespaces, so top-level declarations with the 
     ```cangjie
     // b.cj
     package p1
+
     public func f2() {}
     ```
 
@@ -152,6 +156,7 @@ Different packages have separate namespaces, so top-level declarations with the 
     ```cangjie
     // c.cj
     package pkgc
+
     public func f1() {}
     ```
 
@@ -162,19 +167,19 @@ Different packages have separate namespaces, so top-level declarations with the 
     // main.cj
     import p1 as A
     import p1 as B
-    import p2.f3 as f  // OK
+    import p2.f3 as f // OK
     import pkgc.f1 as a
     import pkgc.f1 as b // OK
 
     func f(a: Int32) {}
 
     main() {
-        A.f1()  // OK, package name conflict is resolved by renaming package name.
-        B.f2()  // OK, package name conflict is resolved by renaming package name.
+        A.f1() // OK, package name conflict is resolved by renaming package name.
+        B.f2() // OK, package name conflict is resolved by renaming package name.
         p1.f1() // Error, the original package name cannot be used.
-        a()     // OK.
-        b()     // OK.
-        pkgc.f1()    // Error, the original name cannot be used.
+        a() // OK.
+        b() // OK.
+        pkgc.f1() // Error, the original name cannot be used.
     }
     ```
 
@@ -234,6 +239,7 @@ In the following example, `b` is a subpackage of `a`, and `a` re-exports the fun
 
 ```cangjie
 package a
+
 public import a.b.f
 
 public let x = 0
@@ -242,11 +248,14 @@ public let x = 0
 ```cangjie
 internal package a.b
 
-public func f() { 0 }
+public func f() {
+    0
+}
 ```
 
 ```cangjie
-import a.f  // OK
+import a.f // OK
+
 let _ = f() // OK
 ```
 

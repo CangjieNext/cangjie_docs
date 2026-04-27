@@ -83,6 +83,7 @@ However, not all patterns can be used in variable definitions and `for in` expre
     enum RedColor {
         Red(Int64)
     }
+
     main() {
         let Red(red) = Red(0)
         println("red = ${red}")

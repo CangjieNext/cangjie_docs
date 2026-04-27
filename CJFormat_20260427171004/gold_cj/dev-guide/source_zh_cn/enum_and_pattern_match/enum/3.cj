@@ -1,0 +1,3 @@
+enum T {
+    | Red | Green | Blue | ...
+}

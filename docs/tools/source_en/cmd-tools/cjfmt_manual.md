@@ -149,7 +149,7 @@ cjfmt -f a.cj -o b.cj -l 10:25 // Formats only lines 10-25
 package com.myproduct.mymodule
 
 // Part 3: Imports
-import std.collection.HashMap   // Standard library
+import std.collection.HashMap // Standard library
 
 // Part 4: Public elements
 public class ListItem <: Component {
@@ -207,8 +207,8 @@ func fn(a: Int64): Unit { // Correct: Opening brace on same line
 // Lambda functions
 let add = {
     base: Int64, bonus: Int64 => // Correct: Lambda follows K&R style
-    print("Correct news")
-    base + bonus
+        print("Correct news")
+        base + bonus
 }
 ```
 
@@ -254,13 +254,12 @@ class MyApp <: App {
     // Blank line
     // Blank line
     // Blank line
-    init() {           // Incorrect: Consecutive blank lines in type
+    init() { // Incorrect: Consecutive blank lines in type
         this.page = Router("album", album)
     }
 
     override func onCreate(): Unit {
-
-        println( "album Init." )  // Incorrect: Blank lines inside braces
+        println("album Init.") // Incorrect: Blank lines inside braces
 
     }
 }
@@ -271,13 +270,13 @@ class MyApp <: App {
 【Before Formatting】
 
 ```cangjie
-package demo.analyzer.filter.impl; // Redundant semicolon
+package demo.analyzer.filter.impl // Redundant semicolon
 
-internal import demo.analyzer.filter.StmtFilter; // Redundant semicolon
-internal import demo.analyzer.CJStatment; // Redundant semicolon
+internal import demo.analyzer.filter.StmtFilter // Redundant semicolon
+internal import demo.analyzer.CJStatment // Redundant semicolon
 
 func fn(a: Int64): Unit {
-    println( "album Init." );
+    println("album Init.");
 }
 ```
 

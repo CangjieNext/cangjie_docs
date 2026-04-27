@@ -987,7 +987,7 @@ cjpm install org::boo-2.0.0         # 从中心仓安装 org 组织下名为 boo
 
 ```cangjie
 // xoo.cj
-package org::demo.xoo      // 带有组织名的包声明
+package org::demo.xoo // 带有组织名的包声明
 
 public let x: Int64 = 0
 ```
@@ -996,7 +996,7 @@ public let x: Int64 = 0
 
 ```cangjie
 // yoo.cj
-package org::demo.yoo      // 带有组织名的包声明
+package org::demo.yoo // 带有组织名的包声明
 
 public let y: Int64 = 0
 ```
@@ -1005,10 +1005,10 @@ public let y: Int64 = 0
 
 ```cangjie
 // demo.cj
-package org::demo          // 带有组织名的包声明
+package org::demo // 带有组织名的包声明
 
-import org::demo.xoo.*      // 带有组织名的包导入
-import org::demo.yoo.*      // 带有组织名的包导入
+import org::demo.xoo.* // 带有组织名的包导入
+import org::demo.yoo.* // 带有组织名的包导入
 
 main(): Int64 {
     println(x)
@@ -2173,7 +2173,6 @@ import std.process.*
  * 0: success.
  * other: cjpm will finish running command. Check target-dir/build-script-cache/module-name/script-log for error outputs defind by user in functions.
  */
-
 main(): Int64 {
     match (Process.current.arguments[0]) {
         // Add operation here with format: "pre-"/"post-" + optionName
@@ -2384,7 +2383,7 @@ import std.unittest.* // testfame
 import std.unittest.testmacro.* // macro_Defintion
 
 @Test
-public class TestM{
+public class TestM {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatM("1", "2"), "12")
@@ -2416,7 +2415,7 @@ import std.unittest.* // testfame
 import std.unittest.testmacro.* // macro_Defintion
 
 @Test
-public class TestK{
+public class TestK {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatk("1", "2"), "12")
@@ -2455,7 +2454,7 @@ import std.unittest.* // testfame
 import std.unittest.testmacro.* // macro_Defintion
 
 @Test
-public class TestZ{
+public class TestZ {
     @TestCase
     func sayhi(): Unit {
         @Assert(concatZ("1", "2"), "12")

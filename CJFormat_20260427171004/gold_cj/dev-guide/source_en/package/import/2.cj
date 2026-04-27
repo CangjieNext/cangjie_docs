@@ -1,0 +1,1 @@
+import package1.{foo, bar, fuzz}

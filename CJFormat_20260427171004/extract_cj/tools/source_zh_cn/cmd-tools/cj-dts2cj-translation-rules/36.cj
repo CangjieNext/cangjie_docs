@@ -1,0 +1,1 @@
+public var tupleType: Tuple<Float64, Float64, String>

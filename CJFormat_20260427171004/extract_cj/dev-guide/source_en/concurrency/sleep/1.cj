@@ -1,0 +1,1 @@
+func sleep(dur: Duration): Unit // Sleep for at least `dur`.

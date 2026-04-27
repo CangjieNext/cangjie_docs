@@ -201,7 +201,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 
 ```cangjie
 func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02!G.FUN.01*/
-    return a + b + c                               // ERROR: 规则间没用空格隔开，屏蔽告警失败
+    return a + b + c // ERROR: 规则间没用空格隔开，屏蔽告警失败
 }
 ```
 
@@ -211,7 +211,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02!G.F
 
 ```cangjie
 func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02description*/
-    return a + b + c                               // ERROR: 规则与描述信息没用空格隔开，屏蔽告警失败
+    return a + b + c // ERROR: 规则与描述信息没用空格隔开，屏蔽告警失败
 }
 ```
 

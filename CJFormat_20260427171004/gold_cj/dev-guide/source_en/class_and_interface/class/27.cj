@@ -1,0 +1,1 @@
+class A <: A {}  // Error, 'A' inherits itself

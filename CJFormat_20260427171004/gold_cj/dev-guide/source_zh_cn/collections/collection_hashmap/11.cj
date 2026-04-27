@@ -1,0 +1,5 @@
+let map = HashMap<String, Int64>()
+map.add("a", 0) // map contains the element ("a", 0)
+map.add("b", 1) // map contains the elements ("a", 0), ("b", 1)
+let map2 = HashMap<String, Int64>([("c", 2), ("d", 3)])
+map.add(all: map2) // map contains the elements ("a", 0), ("b", 1), ("c", 2), ("d", 3)

@@ -189,7 +189,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 
 ```cangjie
 func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02!G.FUN.01*/
-    return a + b + c                               // ERROR: Missing space between rules
+    return a + b + c // ERROR: Missing space between rules
 }
 ```
 
@@ -197,7 +197,7 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02!G.F
 
 ```cangjie
 func foo(a: Int64, b: Int64, c: Int64, d: Int64) { /*cjlint-ignore !G.FUN.02description*/
-    return a + b + c                               // ERROR: Missing space before description
+    return a + b + c // ERROR: Missing space before description
 }
 ```
 
