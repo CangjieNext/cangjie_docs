@@ -40,6 +40,7 @@
 - [issue-154](https://gitcode.com/Cangjie/cangjie_compiler/issues/154) 修复调试时可能会跳到 0 行的问题。
 - [issue-639](https://gitcode.com/Cangjie/cangjie_compiler/issues/639) 修复编译器添加的 `vardecl` 不存在包名时，导致编译器 mangle crash 问题。
 - [issue-697](https://gitcode.com/Cangjie/cangjie_compiler/issues/697) 修复运行时读取堆上数据有低概率崩溃的问题。
+- 条件编译 `os` 可用项中去除 `HarmonyOS`
 
 ## 运行时
 
