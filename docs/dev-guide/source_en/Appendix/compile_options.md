@@ -46,8 +46,8 @@ For example, the following commands implement step-by-step compilation and linki
 <!--compile-->
 ```cangjie
 // main.cj
-main(){
-  println("hello cangjie")
+main() {
+    println("hello cangjie")
 }
 ```
 
@@ -163,10 +163,10 @@ The Cangjie file `main.cj`:
 foreign func printHello(): Unit
 
 main(): Int64 {
-  unsafe {
-    printHello()
-  }
-  return 0
+    unsafe {
+        printHello()
+    }
+    return 0
 }
 ```
 
@@ -288,6 +288,7 @@ The `--scan-dependency` command outputs direct dependencies and other informatio
 ```cangjie
 // this file is placed under directory pkgA
 macro package pkgA
+
 import pkgB.*
 import std.io.*
 import pkgB.subB.*

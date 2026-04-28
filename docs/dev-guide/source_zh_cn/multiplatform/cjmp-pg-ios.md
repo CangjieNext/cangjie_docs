@@ -66,7 +66,7 @@ cjc 在编译过程中会将所有仓颉源码中用到的 Objective-C 镜像类
 @ObjCMirror
 public open class Node <: NSObject {
     @ForeignName["initWith:"]
-    public init(x: Int32)
+    public init(x: Int32) 
     public open func getX(): Int32
 }
 ```
@@ -80,8 +80,12 @@ public open class Node <: NSObject {
 ```cangjie
 public class Node {
     private let _x: Int
-    public func x(): Int { _x }
-    public init(x: Int) { this._x = x }
+    public func x(): Int {
+        _x
+    }
+    public init(x: Int) {
+        this._x = x
+    }
 }
 ```
 
@@ -214,8 +218,16 @@ public struct Vector {
     private let _x: Int32
     private let _y: Int32
 
-    public prop x: Int32 { get() { _x } }
-    public prop y: Int32 { get() { _y } }
+    public prop x: Int32 {
+        get() {
+            _x
+        }
+    }
+    public prop y: Int32 {
+        get() {
+            _y
+        }
+    }
 
     public init(x: Int32, y: Int32) {
         _x = x
@@ -566,12 +578,18 @@ public interface Valuable {
 
 public open class Singleton <: Valuable {
     private let _v: Int
-    public init (v: Int) { _v = v }
-    public func value(): Int { _v }
+    public init(v: Int) {
+        _v = v
+    }
+    public func value(): Int {
+        _v
+    }
 }
 
 public class Zero <: Singleton {
-    public init() { super(0) }
+    public init() {
+        super(0)
+    }
 }
 ```
 
@@ -814,8 +832,12 @@ Objective-C 和仓颉的泛型存在本质性的差异，使得仓颉泛型无�
 ```cangjie
 public class G<T> {
     private let _t: T
-    public init(t: T) { _t = t }
-    public func get(): T { _t }
+    public init(t: T) {
+        _t = t
+    }
+    public func get(): T {
+        _t
+    }
 }
 ```
 
@@ -843,7 +865,7 @@ public class Node {
     public init() {
         next = None
     }
-    public init(next: Node) {      /* Pure Cangjie */
+    public init(next: Node) { /* Pure Cangjie */
         this.next = Some(next)
     }
 }
@@ -1357,9 +1379,9 @@ arguments-append = [
 继续上述的例子，开发者可能会如下实现互操作类`A`：
 
 ```cangjie
-package cjworld           // Same package name
+package cjworld // Same package name
 
-import interoplib.objc.*  // Always required
+import interoplib.objc.* // Always required
 
 @ObjCImpl
 public class A <: M {
@@ -1371,7 +1393,6 @@ public class A <: M {
     public override func foo(): Unit {
         println("Hello from overridden A.foo()")
     }
-
 }
 ```
 
@@ -1662,9 +1683,15 @@ Objective-C 方法的完整名称，即选择器，中可能包含有`:`，而�
 @ObjCMirror
 public open class A {
     public open func foo(): Unit
-    @ForeignName["foo:"] public open func foo(i: Int32): Unit
-    @ForeignName["foo:bar:"] public open func fooBar(i: Int32, j: Int32): Unit
-    @ForeignName["foo:bar:baz:"] public open func fooBarBaz(i: Int32, j: Int32, k: Int32): Unit
+
+    @ForeignName["foo:"]
+    public open func foo(i: Int32): Unit
+
+    @ForeignName["foo:bar:"]
+    public open func fooBar(i: Int32, j: Int32): Unit
+
+    @ForeignName["foo:bar:baz:"]
+    public open func fooBarBaz(i: Int32, j: Int32, k: Int32): Unit
 }
 ```
 
@@ -1750,8 +1777,9 @@ Objective-C 块指针类型将被镜像为`ObjCBlock<F>`（该类型名为暂定
 
 ```cangjie
 @ObjCMirror
-public open class G/*<T>*/ <: NSObject {
-    @ForeignName["f:"] public open func f(t: ?ObjCId /*T*/): Unit
+public open class G /*<T>*/ <: NSObject {
+    @ForeignName["f:"]
+    public open func f(t: ?ObjCId /*T*/ ): Unit
 }
 ```
 
@@ -1903,7 +1931,7 @@ open class C <: NSObject {
 
 @ObjCMirror
 open class D <: C {
-    open func get(): Bar       // Return type covariance in action
+    open func get(): Bar // Return type covariance in action
 }
 ```
 
@@ -1926,7 +1954,7 @@ open class C <: NSObject {
 @ObjCMirror
 open class D <: C {
     // open func get(): Option<Bar>  // Error, `Option<T>` is not covariant by T
-    open func get(): Option<Foo>     // OK, but the return type is lowered
+    open func get(): Option<Foo> // OK, but the return type is lowered
 }
 ```
 
