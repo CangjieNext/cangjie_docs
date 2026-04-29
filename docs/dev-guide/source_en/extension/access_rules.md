@@ -186,23 +186,26 @@ Example: Suppose there are two extensions, extension `1` and extension `2`, for 
 
 ```cangjie
 open class A {}
+
 class B <: A {}
+
 class E<X> {}
 
 interface I1 {
     func f1(): Unit
 }
+
 interface I2 {
     func f2(): Unit
 }
 
-extend<X> E<X> <: I1 where X <: B {  // extension 1
+extend<X> E<X> <: I1 where X <: B { // extension 1
     public func f1(): Unit {
         f2() // OK
     }
 }
 
-extend<X> E<X> <: I2 where X <: A   { // extension 2
+extend<X> E<X> <: I2 where X <: A { // extension 2
     public func f2(): Unit {
         f1() // Error
     }
@@ -298,11 +301,15 @@ When extending the `Foo` type in another package, whether the extension is expor
 ```cangjie
 // package b
 package b
+
 import a.Foo
 
 private interface I1 {}
+
 internal interface I2 {}
+
 protected interface I3 {}
+
 public interface I4 {}
 
 // The extension will not be exported because I1 is not visible outside the file.
@@ -393,7 +400,9 @@ For interface extensions, it is necessary to import both the extended type and t
 ```cangjie
 // package a
 package a
+
 public class Foo {}
+
 extend Foo {
     public func f() {}
 }
@@ -402,11 +411,13 @@ extend Foo {
 ```cangjie
 // package b
 package b
+
 import a.Foo
 
 public interface I {
     func g(): Unit
 }
+
 extend Foo <: I {
     public func g() {
         this.f() // OK
@@ -417,6 +428,7 @@ extend Foo <: I {
 ```cangjie
 // package c
 package c
+
 import a.Foo
 import b.I
 

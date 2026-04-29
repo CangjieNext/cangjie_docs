@@ -25,10 +25,21 @@
 ```cangjie
 package a
 
-private func f1() { 1 }   // f1 仅在当前文件内可见
-func f2() { 2 }           // f2 仅当前包及子包内可见
-protected func f3() { 3 } // f3 仅当前模块内可见
-public func f4() { 4 }    // f4 当前模块内外均可见
+private func f1() {
+    1
+} // f1 仅在当前文件内可见
+
+func f2() {
+    2
+} // f2 仅当前包及子包内可见
+
+protected func f3() {
+    3
+} // f3 仅当前模块内可见
+
+public func f4() {
+    4
+} // f4 当前模块内外均可见
 ```
 
 仓颉的访问级别排序为 `public > protected > internal > private`。一个声明的访问修饰符不得高于该声明中用到的类型的访问修饰符的级别，参考如下示例：
@@ -40,16 +51,20 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     ```cangjie
     // a.cj
     package a
+
     class C {}
+
     public func f1(a1: C) // Error, public declaration f1 cannot use internal type C.
     {
         return 0
     }
+
     public func f2(a1: Int8): C // Error, public declaration f2 cannot use internal type C.
     {
         return C()
     }
-    public func f3 (a1: Int8) // Error, public declaration f3 cannot use internal type C.
+
+    public func f3(a1: Int8) // Error, public declaration f3 cannot use internal type C.
     {
         return C()
     }
@@ -62,7 +77,9 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     ```cangjie
     // a.cj
     package a
+
     class C {}
+
     public let v1: C = C() // Error, public declaration v1 cannot use internal type C.
     public let v2 = C() // Error, public declaration v2 cannot use internal type C.
     ```
@@ -74,8 +91,11 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     ```cangjie
     // a.cj
     package a
+
     public class C1<T> {}
+
     class C2 {}
+
     public let v1 = C1<C2>() // Error, public declaration v1 cannot use internal type C2.
     ```
 
@@ -86,8 +106,10 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     ```cangjie
     // a.cj
     package a
+
     interface I {}
-    public class B<T> where T <: I {}  // Error, public declaration B cannot use internal type I.
+
+    public class B<T> where T <: I {} // Error, public declaration B cannot use internal type I.
     ```
 
 值得注意的是：
@@ -99,20 +121,24 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     ```cangjie
     // a.cj
     package a
+
     class C1 {}
-    func f1(a1: C1)
-    {
-      return 0
+
+    func f1(a1: C1) {
+        return 0
     }
+
     public func f2(a1: Int8) // OK.
     {
-      var v1 = C1()
-      return 0
+        var v1 = C1()
+        return 0
     }
+
     public let v1 = f1(C1()) // OK.
+
     public class C2 // OK.
     {
-      var v2 = C1()
+        var v2 = C1()
     }
     ```
 
@@ -121,13 +147,15 @@ public func f4() { 4 }    // f4 当前模块内外均可见
     <!-- compile -toplevel-->
 
     ```cangjie
-    public var t1: () -> Unit = { => } // OK.
+    public var t1: () -> Unit = {=>} // OK.
+
     func f1(): Unit {}
+
     public let t2 = f1 // OK.
 
     public func f2() // OK.
     {
-      return f1
+        return f1
     }
     ```
 

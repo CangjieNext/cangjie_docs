@@ -18,10 +18,11 @@ struct Rectangle {
         width * height
     }
 }
+
 let r = Rectangle(10, 20)
-let width = r.width   // width = 10
+let width = r.width // width = 10
 let height = r.height // height = 20
-let a = r.area()      // a = 200
+let a = r.area() // a = 200
 ```
 
 If you want to modify the values of member variables through a `struct` instance, you need to define the `struct` variable as mutable, and the member variable being modified must also be mutable (defined with `var`). Here's an example:
@@ -45,9 +46,9 @@ struct Rectangle {
 
 main() {
     var r = Rectangle(10, 20) // r.width = 10, r.height = 20
-    r.width = 8               // r.width = 8
-    r.height = 24             // r.height = 24
-    let a = r.area()          // a = 192
+    r.width = 8 // r.width = 8
+    r.height = 24 // r.height = 24
+    let a = r.area() // a = 192
 }
 ```
 
@@ -72,10 +73,10 @@ struct Rectangle {
 
 main() {
     var r1 = Rectangle(10, 20) // r1.width = 10, r1.height = 20
-    var r2 = r1                // r2.width = 10, r2.height = 20
-    r1.width = 8               // r1.width = 8
-    r1.height = 24             // r1.height = 24
-    let a1 = r1.area()         // a1 = 192
-    let a2 = r2.area()         // a2 = 200
+    var r2 = r1 // r2.width = 10, r2.height = 20
+    r1.width = 8 // r1.width = 8
+    r1.height = 24 // r1.height = 24
+    let a1 = r1.area() // a1 = 192
+    let a2 = r2.area() // a2 = 200
 }
 ```

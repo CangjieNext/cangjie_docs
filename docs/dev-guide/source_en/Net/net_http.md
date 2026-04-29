@@ -21,15 +21,12 @@ import std.sync.*
 import stdx.log.*
 
 // 1. Build a Server instance
-let server = ServerBuilder()
-    .addr("127.0.0.1")
-    .port(0)
-    .build()
+let server = ServerBuilder().addr("127.0.0.1").port(0).build()
 
 func startServer(): Unit {
     // 2. Register request handling logic
-    server.distributor.register("/hello", {httpContext =>
-        httpContext.responseBuilder.body("Hello Cangjie!")
+    server.distributor.register("/hello", {
+        httpContext => httpContext.responseBuilder.body("Hello Cangjie!")
     })
     server.logger.level = LogLevel.OFF
     // 3. Start the service
@@ -49,7 +46,7 @@ func startClient(): Unit {
     client.close()
 }
 
-main () {
+main() {
     spawn {
         startServer()
     }
