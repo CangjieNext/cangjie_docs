@@ -8,7 +8,7 @@ HLE 自动生成 C 语言到仓颉的胶水代码，支持函数、结构体、�
 
 | C Type             | cangjie Type     |
 | -------------------- | ------------------ |
-| void               | unit             |
+| void               | Unit             |
 | NULL               | CPointer   |
 | bool               | Bool             |
 | char               | UInt8            |
@@ -23,7 +23,7 @@ HLE 自动生成 C 语言到仓颉的胶水代码，支持函数、结构体、�
 | unsigned long long | UInt64           |
 | float              | Float32          |
 | double             | Float64          |
-| int arr[10]        | Varry |
+| int arr[10]        | VArray |
 
 ### 复杂类型
 

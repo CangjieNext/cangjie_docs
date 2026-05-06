@@ -1431,7 +1431,7 @@ declare namespace Shapes {
 
 ### 枚举
 
-- 支持字符串枚举、数字枚举、常量枚举、异构枚举。其中，在仓颉胶水代码里，异构枚举中所有类型的枚举值都会被转换成字符串类型。因此，开发者调用胶水代码时，需要将非字符串类型（例如number类型)的异构枚举成员手动转换为ArkTS中定义的原类型。
+- 支持字符串枚举、数字枚举、常量枚举、异构枚举。其中，在仓颉胶水代码里，异构枚举中所有类型的枚举值都会被转换成字符串类型。因此，开发者调用胶水代码时，需要将非字符串类型（例如number类型）的异构枚举成员手动转换为ArkTS中定义的原类型。
 - 不支持计算值枚举。
 
 #### 字符串枚举
@@ -1728,13 +1728,13 @@ ArkTS的.d.ts接口转换到互操作的仓颉代码，支持的类型转换有�
 | --------- | -------- |
 | string    | String   |
 | number    | Float64  |
-| boolean   | bool     |
+| boolean   | Bool     |
 | bigint    | BigInt   |
 | object    | JSValue  |
 | symbol    | JSValue  |
 | void      | Unit     |
 | undefined | JSValue  |
-| any       | Any      |
+| any       | JSValue  |
 | unknown   | JSValue  |
 | never     | JSValue  |
 
@@ -1771,10 +1771,9 @@ public class BasicTypes {
     public var symbolKeyword: JSValue/* FIXME: `symbol` */,
     public var voidKeyword: Unit,
     public var undefinedKeyword: JSValue/* FIXME: `undefined` */,
-    public var anyKeyword: Any,
+    public var anyKeyword: JSValue/* FIXME: `any` */,
     public var unknownKeyword: JSValue/* FIXME: `unknown` */,
     public var neverKeyword: JSValue/* FIXME: `never` */) {}
-
 
     public func toJSValue(context: JSContext): JSValue {
         let obj = context.object()
@@ -1786,7 +1785,7 @@ public class BasicTypes {
         obj["symbolKeyword"] = symbolKeyword
         obj["voidKeyword"] = voidKeyword.toJSValue(context)
         obj["undefinedKeyword"] = undefinedKeyword
-        obj["anyKeyword"] = anyKeyword.toJSValue(context)
+        obj["anyKeyword"] = anyKeyword
         obj["unknownKeyword"] = unknownKeyword
         obj["neverKeyword"] = neverKeyword
         obj.toJSValue()
@@ -1803,7 +1802,7 @@ public class BasicTypes {
         JSValue/* FIXME: `symbol` */.fromJSValue(context, obj["symbolKeyword"]),
         Unit.fromJSValue(context, obj["voidKeyword"]),
         JSValue/* FIXME: `undefined` */.fromJSValue(context, obj["undefinedKeyword"]),
-        Any.fromJSValue(context, obj["anyKeyword"]),
+        JSValue/* FIXME: `any` */.fromJSValue(context, obj["anyKeyword"]),
         JSValue/* FIXME: `unknown` */.fromJSValue(context, obj["unknownKeyword"]),
         JSValue/* FIXME: `never` */.fromJSValue(context, obj["neverKeyword"])
         )
