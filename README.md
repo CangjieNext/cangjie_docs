@@ -26,6 +26,31 @@ The directory structure of this repository is as follows:
     └── dev-guide    # This directory stores the Cangjie programming language development guide
 ```
 
+## Document Versions and Branch Descriptions
+
+This section explains the purpose of each branch in the cangjie_docs repository.
+
+> **Note:**
+>
+> Branches may be added or removed depending on version releases. Please refer to actual query results.
+
+### Main Branch
+
+[main](https://gitcode.com/Cangjie/cangjie_docs/tree/main): The default main branch, integrating stable feature documentation.
+
+### Development Branch
+
+[dev](https://gitcode.com/Cangjie/cangjie_docs/tree/dev): The development branch for ongoing mainline development and pre-integration.
+
+### Release and Supporting Branches
+
+- [release/1.1](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.1): Cangjie 1.1.0 STS release branch. Click [here](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md) for version details.
+- [release/1.0](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.0): Cangjie 1.0.x LTS release branch. Click [here](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md) for version details.
+
+### OpenHarmony Supporting Branch
+
+[release/OpenHarmony-release-6.0.2](https://gitcode.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2): Cangjie documentation supporting OpenHarmony 6.0.2.
+
 ## License
 
 Please refer to the [License](./LICENSE) for the Cangjie developer documentation license.
