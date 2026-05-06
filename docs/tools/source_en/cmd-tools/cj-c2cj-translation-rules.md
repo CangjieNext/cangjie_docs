@@ -8,7 +8,7 @@ The tool supports the following basic types:
 
 | C Type             | Cangjie Type     |
 | -------------------- | ------------------ |
-| void               | unit             |
+| void               | Unit             |
 | NULL               | CPointer         |
 | bool               | Bool             |
 | char               | UInt8            |
@@ -23,7 +23,7 @@ The tool supports the following basic types:
 | unsigned long long | UInt64           |
 | float              | Float32          |
 | double             | Float64          |
-| int arr[10]        | Varry            |
+| int arr[10]        | VArray            |
 
 ## Complex Types
 
