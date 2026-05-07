@@ -143,15 +143,21 @@ For example, if interface `I1` has a child interface `I2`, and `I1` contains a d
 
 ```cangjie
 interface I1 {
-    func foo(): Unit { println("I1 foo") }
+    func foo(): Unit {
+        println("I1 foo")
+    }
 }
+
 interface I2 <: I1 {
-    func foo(): Unit { println("I2 foo") }
+    func foo(): Unit {
+        println("I2 foo")
+    }
 }
 
 class A {}
 
 extend A <: I1 {} // first check
+
 extend A <: I2 {} // second check
 
 main() {
@@ -173,12 +179,17 @@ If two interface extensions of the same type implement interfaces with conflicti
 
 ```cangjie
 interface I1 {}
+
 interface I2 <: I1 {}
+
 interface I3 {}
+
 interface I4 <: I3 {}
 
 class A {}
+
 extend A <: I1 & I4 {} // error: unable to decide which extension happens first
+
 extend A <: I2 & I3 {} // error: unable to decide which extension happens first
 ```
 
@@ -190,12 +201,15 @@ If two interface extensions of the same type implement interfaces without inheri
 interface I1 {
     func foo() {}
 }
+
 interface I2 {
     func foo() {}
 }
 
 class A {}
+
 extend A <: I1 {} // Error, multiple default implementations, need to re-implement 'foo' in 'A'
+
 extend A <: I2 {} // Error, multiple default implementations, need to re-implement 'foo' in 'A'
 ```
 
@@ -207,14 +221,16 @@ extend A <: I2 {} // Error, multiple default implementations, need to re-impleme
 
 ```cangjie
 interface I<N> {
-    func foo(n: N): N {n}
+    func foo(n: N): N {
+        n
+    }
 }
 
 open class B<T> {}
 
 extend<T> B<T> <: I<T> {}
 
-class A <: B<Int64>{}
+class A <: B<Int64> {}
 
 main() {
     A().foo(0) // this call triggers unexpected behaviour

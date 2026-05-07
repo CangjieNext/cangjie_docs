@@ -59,7 +59,7 @@ public class Node {
 @JavaMirror
 public open class Node {
     public static let A: Int32
-    public init(id: Int32)
+    public init(id: Int32) 
     public open func id(): Int32
 }
 ```
@@ -76,9 +76,13 @@ public open class Node {
 public class Node {
     private let _id: Int
     public prop id: Int {
-        get() { _id }
+        get() {
+            _id
+        }
     }
-    public init(id: Int) { this._id = id }
+    public init(id: Int) {
+        this._id = id
+    }
 }
 ```
 
@@ -161,8 +165,8 @@ public class BooleanNode extends Node {
 ```cangjie
 @JavaImpl
 class NamedNode <: Node {
-    public var jName: JString  /* 该实例成员变量保存在互操作类的共轭 Java 包装类实例中 */
-    public var cjName: String  /* 该实例成员变量保存在互操作类实例中 */
+    public var jName: JString /* 该实例成员变量保存在互操作类的共轭 Java 包装类实例中 */
+    public var cjName: String /* 该实例成员变量保存在互操作类实例中 */
     init(name: JString) {
         jName = name
         cjName = name.toCangjieString()
@@ -495,8 +499,12 @@ import interoplib.interop
 
 public class IntFuncBox {
     private let _f: (Int) -> Int
-    public init(f: (Int) -> Int) { _f = f }
-    public func unbox(): (Int) -> Int { _f }
+    public init(f: (Int) -> Int) {
+        _f = f
+    }
+    public func unbox(): (Int) -> Int {
+        _f
+    }
 }
 ```
 
@@ -602,9 +610,9 @@ public struct Vector {
     }
 
     public func add(v: Vector): Vector {
-       let res = Vector(x + v.x, y + v.y)
-       print("cj: (${x}, ${y}) + (${v.x}, ${v.y}) = (${res.x}, ${res.y})\n", flush: true)
-       return res
+        let res = Vector(x + v.x, y + v.y)
+        print("cj: (${x}, ${y}) + (${v.x}, ${v.y}) = (${res.x}, ${res.y})\n", flush: true)
+        return res
     }
 
     public static func dump(v: Vector): Unit {
@@ -679,12 +687,18 @@ public interface Valuable {
 
 public open class Singleton <: Valuable {
     private let _v: Int
-    public init (v: Int) { _v = v }
-    public func value(): Int { _v }
+    public init(v: Int) {
+        _v = v
+    }
+    public func value(): Int {
+        _v
+    }
 }
 
 public class Zero <: Singleton {
-    public init() { super(0) }
+    public init() {
+        super(0)
+    }
 }
 ```
 
@@ -870,8 +884,12 @@ public enum Peano {
 ```cangjie
 public class G<T> {
     private let t: T
-    public init(t: T) { this.t = t }
-    public func get(): T { t }
+    public init(t: T) {
+        this.t = t
+    }
+    public func get(): T {
+        t
+    }
 }
 ```
 
@@ -899,7 +917,7 @@ public class Node {
     public init() {
         next = None
     }
-    public init(next: Node) {      /* Pure Cangjie */
+    public init(next: Node) { /* Pure Cangjie */
         this.next = Some(next)
     }
 }
@@ -1115,7 +1133,9 @@ generic_object_configuration  = [
 
     ```cangjie
     public class G<T> { /* ... */ }
+
     public func f<T>(): Unit { /* ... */ }
+
     public struct S<T, U> { /* ... */ }
     ```
 
@@ -1147,7 +1167,7 @@ generic_object_configuration  = [
 
     public class Composer<T, U, V> {
         public static func compose(f: (T) -> U, g: (U) -> V): (T) -> V {
-            { t: T => g(f(t)) }
+            {t: T => g(f(t))}
         }
     }
     ```
@@ -1385,7 +1405,7 @@ import javaworld.*
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         /* 此处可以实现各种逻辑 */
-        B()    // 假设com.example.b.B拥有一个`public`无参构造方法
+        B() // 假设com.example.b.B拥有一个`public`无参构造方法
     }
 }
 ```
@@ -1585,7 +1605,7 @@ public class Interop {
             case Some(aa) => C.g(aa, i) ?? JString("")
             case None => JString("")
         }
-        B(s1)  // 假设B存在一个签名为`B(String)`的构造方法
+        B(s1) // 假设B存在一个签名为`B(String)`的构造方法
     }
 }
 ```
@@ -1665,14 +1685,14 @@ public class Interop {
     ```cangjie
     @JavaMirror["Outer"]
     public open class Outer {
-        public init()
+        public init() 
 
         public open func getInner(): ?Outer_Inner
     }
 
     @JavaMirror["Outer$Inner"]
     public open class Outer_Inner {
-        public init(p0: ?Outer)
+        public init(p0: ?Outer) 
     }
     ```
 
@@ -1760,7 +1780,7 @@ public class Node {
 @JavaMirror["Node"]
 public open class Node {
     public static let A: Int32
-    public init(id: Int32)
+    public init(id: Int32) 
     public func id(): Int32
 }
 ```
@@ -1782,8 +1802,8 @@ public open class Node {
 ```
 
 ```cangjie
-    @ForeignName["priceInUS$Per"]
-    public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
+@ForeignName["priceInUS$Per"]
+public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
 ```
 
 > **注意：**
@@ -1821,19 +1841,19 @@ public class Outer {
 ```cangjie
 @JavaMirror["Outer"]
 public open class Outer {
-    public init()
+    public init() 
 
     public open func getInner(): ?Outer_Inner
 }
 
-@JavaMirror["Outer$Static"]       // Original binary name is retained
-public open class Outer_Static {  // '$' is replaced with '_'
-    public init()
+@JavaMirror["Outer$Static"] // Original binary name is retained
+public open class Outer_Static { // '$' is replaced with '_'
+    public init() 
 }
 
-@JavaMirror["Outer$Inner"]       // Original binary name is retained
-public open class Outer_Inner {  // '$' is replaced with '_'
-    public init(p0: ?Outer)      // Extra parameter for enclosing instance
+@JavaMirror["Outer$Inner"] // Original binary name is retained
+public open class Outer_Inner { // '$' is replaced with '_'
+    public init(p0: ?Outer) // Extra parameter for enclosing instance
 }
 ```
 
@@ -1851,7 +1871,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     ```cangjie
     @JavaMirror["A"]
     public abstract class A {
-        public init()
+        public init() 
 
         public open func c(): Unit
 
@@ -1960,8 +1980,8 @@ interface Concatenator {
 同理，当开发者在互操作类中定义具有外部类型`T`的局部变量时，也应该使用`Option<T>`而不是直接`T`，除非开发者能百分之百确定该局部变量不会被赋`null`值。
 
 ```cangjie
-    // 假设M是 Java 镜像类型
-    let m: M = M() // 如果M()能够成功返回，开发者能够保证一定返回 M 实例而不是空引用
+// 假设M是 Java 镜像类型
+let m: M = M() // 如果M()能够成功返回，开发者能够保证一定返回 M 实例而不是空引用
 ```
 
 上述`Option<T>`封装保证了即便 Java 侧往仓颉侧传入空引用也不会导致程序崩溃，但这也同时引入了性能和内存占用代价，以及使得[型变被丢失](#型变丢失)。
@@ -2011,7 +2031,7 @@ public interface C {
 
 @JavaMirror
 public interface D <: C {
-    public override open func get(): Bar // 此处存在返回类型协变
+    public open override func get(): Bar // 此处存在返回类型协变
 }
 ```
 
@@ -2034,7 +2054,7 @@ public open interface C {
 @JavaMirror
 public open interface D <: C {
     // public open func get(): ?Bar    // 错误，Option<T> 对于 T 不协变，?Bar 不是 ?Foo 的子类型
-    public open func get(): ?Foo       // 正确，但返回类型被降级了
+    public open func get(): ?Foo // 正确，但返回类型被降级了
 }
 ```
 
@@ -2068,8 +2088,7 @@ package java.world
 import java.lang.*
 
 @JavaMirror["java.lang.Cloneable"]
-public interface Cloneable {
-}
+public interface Cloneable {}
 ```
 
 #### Java 镜像类型名称冲突
@@ -2206,10 +2225,12 @@ open class JObject {
     public open func equals(obj: ?JObject): Bool
 
     public func hashCode(): Int64
+
     @ForeignName["hashCode"]
     public open func hashCode32(): Int32
 
     public func toString(): String
+
     @ForeignName["toString"]
     public open func toJString(): JString
 

@@ -31,11 +31,11 @@ However, this implementation requires analyzing the value of `e` each time, with
 ```cangjie
 func power_10(n: Int64) {
     var vn = n
-    vn *= vn         // vn = n ^ 2
-    var result = vn  // result = n ^ 2
-    vn *= vn         // vn = n ^ 4
-    vn *= vn         // vn = n ^ 8
-    result *= vn     // result = n ^ 10
+    vn *= vn // vn = n ^ 2
+    var result = vn // result = n ^ 2
+    vn *= vn // vn = n ^ 4
+    vn *= vn // vn = n ^ 8
+    result *= vn // result = n ^ 10
     result
 }
 ```
@@ -57,14 +57,14 @@ The macro-expanded code is (from the `.macrocall` file):
 ```cangjie
 public func power_10(n: Int64) {
     /* ===== Emitted by MacroCall @power in main.cj:20:5 ===== */
-    /* 20.1 */var _power_vn = n
-    /* 20.2 */_power_vn *= _power_vn
-    /* 20.3 */var _power_result = _power_vn
-    /* 20.4 */_power_vn *= _power_vn
-    /* 20.5 */_power_vn *= _power_vn
-    /* 20.6 */_power_result *= _power_vn
-    /* 20.7 */_power_result
-/* ===== End of the Emit ===== */
+    /* 20.1 */ var _power_vn = n
+    /* 20.2 */ _power_vn *= _power_vn
+    /* 20.3 */ var _power_result = _power_vn
+    /* 20.4 */ _power_vn *= _power_vn
+    /* 20.5 */ _power_vn *= _power_vn
+    /* 20.6 */ _power_result *= _power_vn
+    /* 20.7 */ _power_result
+    /* ===== End of the Emit ===== */
 }
 ```
 
@@ -84,9 +84,7 @@ public macro power(attrib: Tokens, input: Tokens) {
     if (let Some(litExpr) <- (attribExpr as LitConstExpr)) {
         let lit = litExpr.literal
         if (lit.kind != TokenKind.INTEGER_LITERAL) {
-            diagReport(DiagReportLevel.ERROR, attrib,
-                       "Attribute must be integer literal",
-                       "Expected integer literal")
+            diagReport(DiagReportLevel.ERROR, attrib, "Attribute must be integer literal", "Expected integer literal")
         }
         var n = Int64.parse(lit.value)
         var result = quote(var _power_vn = $(input)
@@ -112,9 +110,7 @@ public macro power(attrib: Tokens, input: Tokens) {
         result += quote(_power_result)
         return result
     } else {
-        diagReport(DiagReportLevel.ERROR, attrib,
-                   "Attribute must be integer literal",
-                   "Expected integer literal")
+        diagReport(DiagReportLevel.ERROR, attrib, "Attribute must be integer literal", "Expected integer literal")
     }
     return input
 }
@@ -206,15 +202,18 @@ var memoizeFibMap = HashMap<Int64, Int64>()
 
 func fib(n: Int64): Int64 {
     if (memoizeFibMap.contains(n)) {
-        return memoizeFibMap.get(n).getOrThrow()
+        return memoizeFibMap
+            .get(n)
+            .getOrThrow()
     }
 
-    let memoizeEvalResult = { =>
-        if (n == 0 || n == 1) {
-            return n
-        }
+    let memoizeEvalResult = {
+        =>
+            if (n == 0 || n == 1) {
+                return n
+            }
 
-        return fib(n - 1) + fib(n - 2)
+            return fib(n - 1) + fib(n - 2)
     }()
     memoizeFibMap.add(n, memoizeEvalResult)
     return memoizeEvalResult
@@ -239,9 +238,8 @@ import std.ast.*
 
 public macro Memoize(attrib: Tokens, input: Tokens) {
     if (attrib.size != 1 || attrib[0].kind != TokenKind.BOOL_LITERAL) {
-        diagReport(DiagReportLevel.ERROR, attrib,
-                   "Attribute must be a boolean literal (true or false)",
-                   "Expected boolean literal (true or false) here")
+        diagReport(DiagReportLevel.ERROR, attrib, "Attribute must be a boolean literal (true or false)",
+            "Expected boolean literal (true or false) here")
     }
 
     let memoized = (attrib[0].value == "true")
@@ -250,13 +248,18 @@ public macro Memoize(attrib: Tokens, input: Tokens) {
     }
 
     let fd = FuncDecl(input)
-    if (fd.funcParams.size != 1) {
-        diagReport(DiagReportLevel.ERROR, fd.lParen + fd.funcParams.toTokens() + fd.rParen,
-                   "Input function to memoize should take exactly one argument",
-                   "Expect only one argument here")
+    if (fd
+        .funcParams
+        .size != 1) {
+        diagReport(DiagReportLevel.ERROR, fd.lParen + fd
+            .funcParams
+            .toTokens() + fd.rParen, "Input function to memoize should take exactly one argument",
+            "Expect only one argument here")
     }
 
-    let memoMap = Token(TokenKind.IDENTIFIER, "_memoize_" + fd.identifier.value + "_map")
+    let memoMap = Token(TokenKind.IDENTIFIER, "_memoize_" + fd
+        .identifier
+        .value + "_map")
     let arg1 = fd.funcParams[0]
 
     return quote(
@@ -301,15 +304,15 @@ public macro dprint2(input: Tokens) {
             break
         }
         if (input[nextIndex].kind != TokenKind.COMMA) {
-            diagReport(DiagReportLevel.ERROR, input[nextIndex..nextIndex+1],
-                       "Input must be a comma-separated list of expressions",
-                       "Expected comma")
+            diagReport(DiagReportLevel.ERROR, input[nextIndex..nextIndex + 1],
+                "Input must be a comma-separated list of expressions", "Expected comma")
         }
-        index = nextIndex + 1  // Skip comma
+        index = nextIndex + 1 // Skip comma
     }
     let result = quote()
     for (expr in exprs) {
-        result.append(quote(
+        result.append(
+            quote(
             print($(expr.toTokens().toString()) + " = ")
             println($(expr))
         ))
@@ -370,31 +373,27 @@ import std.ast.*
 public macro linq(input: Tokens) {
     let syntaxMsg = "Syntax is \"from <attrib> in <table> where <cond> select <expr>\""
     if (input.size == 0 || input[0].value != "from") {
-        diagReport(DiagReportLevel.ERROR, input[0..1], syntaxMsg,
-                   "Expected keyword \"from\" here.")
+        diagReport(DiagReportLevel.ERROR, input[0..1], syntaxMsg, "Expected keyword \"from\" here.")
     }
     if (input.size <= 1 || input[1].kind != TokenKind.IDENTIFIER) {
-        diagReport(DiagReportLevel.ERROR, input[1..2], syntaxMsg,
-                   "Expected identifier here.")
+        diagReport(DiagReportLevel.ERROR, input[1..2], syntaxMsg, "Expected identifier here.")
     }
     let attribute = input[1]
     if (input.size <= 2 || input[2].value != "in") {
-        diagReport(DiagReportLevel.ERROR, input[2..3], syntaxMsg,
-                   "Expected keyword \"in\" here.")
+        diagReport(DiagReportLevel.ERROR, input[2..3], syntaxMsg, "Expected keyword \"in\" here.")
     }
     var index: Int64 = 3
     let (table, nextIndex) = parseExprFragment(input, startFrom: index)
     if (nextIndex == input.size || input[nextIndex].value != "where") {
-        diagReport(DiagReportLevel.ERROR, input[nextIndex..nextIndex+1], syntaxMsg,
-                   "Expected keyword \"where\" here.")
+        diagReport(DiagReportLevel.ERROR, input[nextIndex..nextIndex + 1], syntaxMsg, "Expected keyword \"where\" here.")
     }
-    index = nextIndex + 1  // Skip 'where'
+    index = nextIndex + 1 // Skip 'where'
     let (cond, nextIndex2) = parseExprFragment(input, startFrom: index)
     if (nextIndex2 == input.size || input[nextIndex2].value != "select") {
-        diagReport(DiagReportLevel.ERROR, input[nextIndex2..nextIndex2+1], syntaxMsg,
-                   "Expected keyword \"select\" here.")
+        diagReport(DiagReportLevel.ERROR, input[nextIndex2..nextIndex2 + 1], syntaxMsg,
+            "Expected keyword \"select\" here.")
     }
-    index = nextIndex2 + 1  // Skip 'select'
+    index = nextIndex2 + 1 // Skip 'select'
     let (expr, nextIndex3) = parseExprFragment(input, startFrom: index)
 
     return quote(

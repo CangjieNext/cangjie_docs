@@ -14,7 +14,7 @@ public interface Iterator<E> <: Iterable<E> {
 }
 
 public interface Collection<T> <: Iterable<T> {
-     prop size: Int64
-     func isEmpty(): Bool
+    prop size: Int64
+    func isEmpty(): Bool
 }
 ```

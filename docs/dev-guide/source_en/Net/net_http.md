@@ -28,10 +28,16 @@ let server = ServerBuilder()
 
 func startServer(): Unit {
     // 2. Register request handling logic
-    server.distributor.register("/hello", {httpContext =>
-        httpContext.responseBuilder.body("Hello Cangjie!")
-    })
-    server.logger.level = LogLevel.OFF
+    server
+        .distributor
+        .register("/hello", {
+            httpContext => httpContext
+                .responseBuilder
+                .body("Hello Cangjie!")
+        })
+    server
+        .logger
+        .level = LogLevel.OFF
     // 3. Start the service
     server.serve()
 }
@@ -43,13 +49,15 @@ func startClient(): Unit {
     let response = client.get("http://127.0.0.1:${server.port}/hello")
     // 3. Read the response body
     let buffer = Array<Byte>(32, repeat: 0)
-    let length = response.body.read(buffer)
+    let length = response
+        .body
+        .read(buffer)
     println(String.fromUtf8(buffer[..length]))
     // 4. Close the connection
     client.close()
 }
 
-main () {
+main() {
     spawn {
         startServer()
     }

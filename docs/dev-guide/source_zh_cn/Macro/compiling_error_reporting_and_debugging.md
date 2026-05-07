@@ -27,6 +27,7 @@ root_path
 // macros/m.cj
 // In this file, we define the macro Inner, Outer.
 macro package define
+
 import std.ast.*
 
 public macro Inner(input: Tokens) {
@@ -36,7 +37,6 @@ public macro Inner(input: Tokens) {
 public macro Outer(input: Tokens) {
     return input
 }
-
 ```
 
 宏调用放在 _src_ 子目录下：
@@ -46,10 +46,13 @@ public macro Outer(input: Tokens) {
 ```cangjie
 // src/demo.cj
 import define.*
+
 @Outer
 class Demo {
-    @Inner var state = 1
-    @Inner var cnt = 42
+    @Inner
+    var state = 1
+    @Inner
+    var cnt = 42
 }
 
 main() {
@@ -103,6 +106,7 @@ cjc src/demo.cj -o demo.exe --import-path ./target --output-dir ./target
 
 ```cangjie
 macro package define
+
 import std.ast.*
 import std.collection.HashMap
 
@@ -110,7 +114,9 @@ var Counts = HashMap<String, Int64>()
 
 public macro Inner(input: Tokens) {
     for (t in input) {
-        if (t.value.size == 0) {
+        if (t
+            .value
+            .size == 0) {
             continue
         }
         // 统计所有有效token value的出现次数
@@ -168,9 +174,8 @@ import std.ast.*
 public macro testDef(input: Tokens): Tokens {
     for (i in 0..input.size) {
         if (input[i].kind == IDENTIFIER) {
-            diagReport(DiagReportLevel.ERROR, input[i..(i + 1)],
-                       "This expression is not allowed to contain identifier",
-                       "Here is the illegal identifier")
+            diagReport(DiagReportLevel.ERROR, input[i..(i + 1)], "This expression is not allowed to contain identifier",
+                "Here is the illegal identifier")
         }
     }
     return input
@@ -247,15 +252,19 @@ public macro Outer(input: Tokens): Tokens {
     let funcDecl = parseDecl(getTotalFunc)
 
     let decl = (parseDecl(input) as ClassDecl).getOrThrow()
-    decl.body.decls.add(funcDecl)
+    decl
+        .body
+        .decls
+        .add(funcDecl)
     return decl.toTokens()
-
 }
 
 public macro Inner(input: Tokens): Tokens {
     assertParentContext("Outer")
     let decl = parseDecl(input)
-    setItem("identifierName", decl.identifier.value)
+    setItem("identifierName", decl
+        .identifier
+        .value)
     return input
 }
 ```
@@ -270,8 +279,10 @@ import define.*
 
 @Outer
 class Demo {
-    @Inner var state = 1
-    @Inner var cnt = 42
+    @Inner
+    var state = 1
+    @Inner
+    var cnt = 42
 }
 
 main(): Int64 {
@@ -279,7 +290,6 @@ main(): Int64 {
     println("${d.getCnt()}")
     return 0
 }
-
 ```
 
 在编译使用宏的文件时，在选项中，增加 `--debug-macro`，即使用仓颉宏的 _debug_ 模式。
@@ -303,13 +313,13 @@ cjc --debug-macro demo.cj --import-path ./target
 ```cangjie
 // demo.cj.macrocall
 /* ===== Emitted by MacroCall @Outer in demo.cj:3:1 ===== */
-/* 3.1 */class Demo {
-/* 3.2 */    var state = 1
-/* 3.3 */    var cnt = 42
-/* 3.4 */    public func getCnt() {
-/* 3.5 */        state + cnt + 0
-/* 3.6 */    }
-/* 3.7 */}
+/* 3.1 */ class Demo {
+    /* 3.2 */ var state = 1
+    /* 3.3 */ var cnt = 42
+    /* 3.4 */ public func getCnt() {
+        /* 3.5 */ state + cnt + 0
+        /* 3.6 */ }
+    /* 3.7 */ }
 /* 3.8 */
 /* ===== End of the Emit ===== */
 ```

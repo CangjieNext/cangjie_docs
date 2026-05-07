@@ -5,7 +5,7 @@
 <!-- compile -->
 
 ```cangjie
-package pkg1      // root 包 pkg1
+package pkg1 // root 包 pkg1
 ```
 
 <!-- compile -->
@@ -106,6 +106,7 @@ main(): Int64 {
 ```cangjie
 // a.cj
 package a
+
 public class B { // Error, 'B' is conflicted with sub-package 'a.B'
     public static func f() {}
 }
@@ -128,6 +129,8 @@ public func f {}
 import a.B // ambiguous use of 'a.B'
 
 main() {
-    a.B.f()
+    a
+        .B
+        .f()
 }
 ```
