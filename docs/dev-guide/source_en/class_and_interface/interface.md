@@ -66,14 +66,21 @@ An `interface` can also be modified with `sealed` to indicate that it can only b
 
 ```cangjie
 package A
+
 public interface I1 {}
-sealed interface I2 {}         // OK
-public sealed interface I3 {}  // Warning, redundant modifier, 'sealed' implies 'public'
-sealed open interface I4 {}    // Warning, redundant modifier, 'sealed' implies 'open'
+
+sealed interface I2 {} // OK
+
+public sealed interface I3 {} // Warning, redundant modifier, 'sealed' implies 'public'
+
+sealed open interface I4 {} // Warning, redundant modifier, 'sealed' implies 'open'
 
 class C1 <: I1 {}
+
 public open class C2 <: I1 {}
+
 sealed abstract class C3 <: I2 {}
+
 extend Int64 <: I2 {}
 ```
 
@@ -81,10 +88,12 @@ extend Int64 <: I2 {}
 
 ```cangjie
 package B
+
 import A.*
 
-class S1 <: I1 {}  // OK
-class S2 <: I2 {}  // Error, I2 is sealed interface, cannot be inherited here.
+class S1 <: I1 {} // OK
+
+class S2 <: I2 {} // Error, I2 is sealed interface, cannot be inherited here.
 ```
 
 Through this constraint mechanism, interfaces can define common functionalities for a series of types, achieving the purpose of functional abstraction.
@@ -166,8 +175,8 @@ class B <: NamedType {
 }
 
 main() {
-    println("the type is ${ A.typename() }")
-    println("the type is ${ B.typename() }")
+    println("the type is ${A.typename()}")
+    println("the type is ${B.typename()}")
 }
 ```
 
@@ -188,6 +197,7 @@ When no default implementation exists, the member cannot be accessed via the int
 interface NamedType {
     static func typename(): String
 }
+
 main() {
     NamedType.typename() // Error
 }
@@ -250,7 +260,7 @@ class B <: NamedType {
 }
 
 func printTypeName<T>() where T <: NamedType {
-    println("the type is ${ T.typename() }")
+    println("the type is ${T.typename()}")
 }
 
 main() {
@@ -266,10 +276,12 @@ Interfaces can define generic instance member functions or generic static member
 
 ```cangjie
 import std.collection.ArrayList
+
 interface M {
     func foo<T>(a: T): T
     static func toString<T>(b: ArrayList<T>): String where T <: ToString
 }
+
 class C <: M {
     public func foo<S>(a: S): S { // implements M::foo, names of generic parameters do not matter
         a
@@ -386,23 +398,23 @@ For interface inheritance, if a child interface inherits a function or property 
 
 ```cangjie
 interface I1 {
-   func f(a: Int64) {
+    func f(a: Int64) {
         a
-   }
-   static func g(a: Int64) {
+    }
+    static func g(a: Int64) {
         a
-   }
-   func f1(a: Int64): Unit
-   static func g1(a: Int64): Unit
+    }
+    func f1(a: Int64): Unit
+    static func g1(a: Int64): Unit
 }
 
 interface I2 <: I1 {
     /*'override' is optional*/ func f(a: Int64) {
-       a + 1
+        a + 1
     }
     override func f(a: Int32) {} // Error, override function 'f' does not have an overridden function from its supertypes
     static /*'redef' is optional*/ func g(a: Int64) {
-       a + 1
+        a + 1
     }
     /*'override' is optional*/ func f1(a: Int64): Unit {}
     static /*'redef' is optional*/ func g1(a: Int64): Unit {}
@@ -434,6 +446,7 @@ For example, in the following code, the return type of `f` in `I` is the class t
 
 ```cangjie
 open class Base {}
+
 class Sub <: Base {}
 
 interface I {
@@ -503,12 +516,15 @@ interface I {
         return 0
     }
 }
-enum E <: I{
+
+enum E <: I {
     elem
+
     public override func foo(): Int64 {
         return 1
     }
 }
+
 struct S <: I {
     public override func foo(): Int64 {
         return 1

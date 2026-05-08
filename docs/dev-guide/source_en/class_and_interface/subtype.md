@@ -16,6 +16,7 @@ After inheriting from a class, the subclass becomes a subtype of the parent clas
 
 ```cangjie
 open class Super {}
+
 class Sub <: Super {}
 ```
 
@@ -27,6 +28,7 @@ After implementing an interface (including extension implementations), the type 
 
 ```cangjie
 interface I1 {}
+
 interface I2 {}
 
 interface I3 <: I1 & I2 {}
@@ -44,9 +46,11 @@ Tuple types in the Cangjie language also have subtype relationships. Intuitively
 
 ```cangjie
 open class C1 {}
+
 class C2 <: C1 {}
 
 open class C3 {}
+
 class C4 <: C3 {}
 
 let t1: (C1, C3) = (C2(), C4()) // OK
@@ -61,14 +65,20 @@ In the Cangjie language, functions are first-class citizens, and function types 
 
 ```cangjie
 open class U1 {}
+
 class U2 <: U1 {}
 
 open class S1 {}
+
 class S2 <: S1 {}
 
+func f(a: U1): S2 {
+    S2()
+}
 
-func f(a: U1): S2 { S2() }
-func g(a: U2): S1 { S1() }
+func g(a: U2): S1 {
+    S1()
+}
 
 func call1() {
     g(U2()) // OK
@@ -106,6 +116,7 @@ Subtype relationships are transitive. In the following code, although only `I2 <
 
 ```cangjie
 interface I1 {}
+
 interface I2 <: I1 {}
 
 class C <: I2 {}

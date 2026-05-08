@@ -215,7 +215,7 @@ Taking Cangjie calling ObjC as an example, the overall development process is de
 
     @ObjCImpl
     public open class Interop <: Base {
-        override public func f(): Unit {
+        public override func f(): Unit {
             println("Hello from overridden Cangjie Interop.f()")
             super.f()
         }
@@ -236,7 +236,7 @@ Taking Cangjie calling ObjC as an example, the overall development process is de
 
     @ObjCImpl
     public class A <: M {
-        override public func goo(): Unit {
+        public override func goo(): Unit {
             println("Hello from overridden A goo()")
             super.goo()
         }
@@ -328,7 +328,7 @@ open class M {
     public init()
     // Constructors with more than one parameter must be decorated with @ForeignName.
     @ForeignName["initWithArg0:andArg1:"]
-    public init(arg0: IntNative, arg1: Float32)
+    public init(arg0: IntNative, arg1: Float32) 
 }
 ```
 
@@ -550,7 +550,8 @@ import objc.lang.*
 @ObjCMirror
 open class M1 {
     @ForeignName["init"]
-    public init()
+    public init() 
+
     @ForeignName["goo"]
     public func goo(): Int64
 }
@@ -567,7 +568,8 @@ import objc.lang.*
 @ObjCMirror
 open class M <: M1 {
     @ForeignName["init"]
-    public init()
+    public init() 
+
     @ForeignName["goo"]
     public override func goo(): Int64
 }
@@ -658,7 +660,7 @@ public interface Foo {
 // M.cj
 @ObjCMirror
 public open class M {
-    public init()
+    public init() 
     public open func acceptFoo(foo: ?Foo): Unit
 }
 ```
@@ -763,14 +765,15 @@ class M1 {
     public prop answer: Float64
 
     @ForeignName["initWithAnswer:"]
-    public init(answer: Float64)
+    public init(answer: Float64) 
 }
 
 @ObjCMirror
 open class M {
     public mut prop bar: M1
+
     @ForeignName["init"]
-    public init()
+    public init() 
 }
 
 @ObjCImpl
@@ -826,7 +829,7 @@ import objc.lang.*
 @ObjCMirror
 open class M {
     @ForeignName["init"]
-    public init()
+    public init() 
 }
 ```
 
@@ -857,7 +860,7 @@ import objc.lang.*
 
 @ObjCImpl
 public class A <: M {
-    public let m1 : M1
+    public let m1: M1
     public var num: Int64
 
     public init() {

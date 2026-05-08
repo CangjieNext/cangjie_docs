@@ -133,7 +133,7 @@ might look like this:
 @ObjCMirror
 public open class Node <: NSObject {
     @ForeignName["initWith:"]
-    public init(x: Int32)
+    public init(x: Int32) 
     public open func getX(): Int32
 }
 ```
@@ -155,8 +155,12 @@ in Cangjie as follows:
 ```cangjie
 public class Node {
     private let _x: Int
-    public func x(): Int { _x }
-    public init(x: Int) { this._x = x }
+    public func x(): Int {
+        _x
+    }
+    public init(x: Int) {
+        this._x = x
+    }
 }
 ```
 
@@ -336,8 +340,16 @@ public struct Vector {
     private let _x: Int32
     private let _y: Int32
 
-    public prop x: Int32 { get() { _x } }
-    public prop y: Int32 { get() { _y } }
+    public prop x: Int32 {
+        get() {
+            _x
+        }
+    }
+    public prop y: Int32 {
+        get() {
+            _y
+        }
+    }
 
     public init(x: Int32, y: Int32) {
         _x = x
@@ -778,12 +790,18 @@ public interface Valuable {
 
 public open class Singleton <: Valuable {
     private let _v: Int
-    public init (v: Int) { _v = v }
-    public func value(): Int { _v }
+    public init(v: Int) {
+        _v = v
+    }
+    public func value(): Int {
+        _v
+    }
 }
 
 public class Zero <: Singleton {
-    public init() { super(0) }
+    public init() {
+        super(0)
+    }
 }
 ```
 
@@ -1071,7 +1089,7 @@ public enum Peano {
 
     public func toInt(): Int {
         match (this) {
-                    case Z => 0
+            case Z => 0
             case S(x) => 1 + x.toInt()
         }
     }
@@ -1105,8 +1123,12 @@ When compiling the following Cangjie class definition:
 ```cangjie
 public class G<T> {
     private let _t: T
-    public init(t: T) { _t = t }
-    public func get(): T { _t }
+    public init(t: T) {
+        _t = t
+    }
+    public func get(): T {
+        _t
+    }
 }
 ```
 
@@ -1142,7 +1164,7 @@ public class Node {
     public init() {
         next = None
     }
-    public init(next: Node) {      /* Pure Cangjie */
+    public init(next: Node) { /* Pure Cangjie */
         this.next = Some(next)
     }
 }
@@ -1407,10 +1429,10 @@ instructs the `cjc` compiler to generate the following generics
 instantiations and mirrors for them:
 
 ```cangjie
-    G<Int32>
-    f<Float32>
-    f<Float64>
-    S<Int, Bool>
+G<Int32>
+f<Float32>
+f<Float64>
+S<Int, Bool>
 ```
 
 naming the mirrors `GInt32`, `fFloat32`, `fFloat64`, and `SIntBool`
@@ -1847,22 +1869,20 @@ To continue the above example, the interop class `A` would look
 like this:
 
 ```cangjie
-package cjworld           // Same package name
+package cjworld // Same package name
 
-import interoplib.objc.*  // Always required
+import interoplib.objc.* // Always required
 
 @ObjCImpl
 public class A <: M {
-
     public init() {
         super()
     }
 
     @ForeignName["foo"]
-    override public open func foo(): Unit {
+    public open override func foo(): Unit {
         println("Hello from overridden A.foo()")
     }
-
 }
 ```
 
@@ -2604,7 +2624,7 @@ open class C <: NSObject {
 
 @ObjCMirror
 open class D <: C {
-    open func get(): Bar       // Return type covariance in action
+    open func get(): Bar // Return type covariance in action
 }
 ```
 
@@ -2628,7 +2648,7 @@ open class C <: NSObject {
 @ObjCMirror
 open class D <: C {
     // open func get(): Option<Bar>  // Error, `Option<T>` is not covariant by T
-    open func get(): Option<Foo>     // OK, but the return type is lowered
+    open func get(): Option<Foo> // OK, but the return type is lowered
 }
 ```
 

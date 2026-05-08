@@ -28,10 +28,16 @@ let server = ServerBuilder()
 
 func startServer(): Unit {
     // 2. 注册请求处理逻辑
-    server.distributor.register("/hello", {httpContext =>
-        httpContext.responseBuilder.body("Hello Cangjie!")
-    })
-    server.logger.level = LogLevel.OFF
+    server
+        .distributor
+        .register("/hello", {
+            httpContext => httpContext
+                .responseBuilder
+                .body("Hello Cangjie!")
+        })
+    server
+        .logger
+        .level = LogLevel.OFF
     // 3. 启动服务
     server.serve()
 }
@@ -43,13 +49,15 @@ func startClient(): Unit {
     let response = client.get("http://127.0.0.1:${server.port}/hello")
     // 3. 读取response body
     let buffer = Array<Byte>(32, repeat: 0)
-    let length = response.body.read(buffer)
+    let length = response
+        .body
+        .read(buffer)
     println(String.fromUtf8(buffer[..length]))
     // 4. 关闭连接
     client.close()
 }
 
-main () {
+main() {
     spawn {
         startServer()
     }
