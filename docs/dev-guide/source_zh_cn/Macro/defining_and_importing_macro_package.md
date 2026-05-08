@@ -32,6 +32,7 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
 
   ```cangjie
   macro package A
+
   import std.ast.*
 
   public macro M1(input: Tokens): Tokens {
@@ -72,6 +73,7 @@ public macro M(input: Tokens): Tokens { // macro M 外部可见
 
   ```cangjie
   macro package C
+
   public import A.* // correct: macro package is allowed to re-export in a macro package.
   public import B.* // correct: non-macro package is also allowed to re-export in a macro package.
   import std.ast.*

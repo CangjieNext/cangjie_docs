@@ -15,10 +15,16 @@ For example, in the following program, the top-level scope defines the global va
 ```cangjie
 // example.cj
 let a = 2023
+
 func b() {}
+
 struct C {}
+
 class D {}
-enum E { F | G }
+
+enum E {
+    F | G
+}
 
 main() {
     println(a)
@@ -183,14 +189,15 @@ Note that when the compiler cannot determine whether certain scenarios will defi
 <!-- compile.error -->
 
 ```cangjie
-func calc(a: Int32){
+func calc(a: Int32) {
     println(a)
     return a * a
 }
+
 main() {
     let a: String
-    if(calc(32) == 0){
-      a = "1"
+    if (calc(32) == 0) {
+        a = "1"
     }
     a = "2" // Error, cannot assign to immutable value
 }
@@ -232,7 +239,7 @@ struct Planet {
     const Planet(let mass: Float64, let radius: Float64) {}
 
     const func gravity(m: Float64, r: Float64) {
-        G * mass * m / r**2
+        G * mass * m / r ** 2
     }
 }
 
@@ -355,6 +362,7 @@ For example, in the following Cangjie source file named `test.cj`, the name `ele
 ```cangjie
 // test.cj
 let element = "Cangjie"
+
 main() {
     println(element)
     let element = 9
