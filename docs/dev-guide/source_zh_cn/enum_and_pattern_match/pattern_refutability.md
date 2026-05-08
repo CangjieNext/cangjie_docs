@@ -62,7 +62,9 @@ func tuplePat(x: (Int64, Int64)) {
 
 ```cangjie
 interface I {}
+
 open class Base <: I {}
+
 class Derived <: Base {}
 
 func typePat(x: I) {

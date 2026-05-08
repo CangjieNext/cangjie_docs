@@ -44,7 +44,7 @@ func times2plus10(a: Int64) {
 }
 
 main() {
-  println(times2plus10(9))
+    println(times2plus10(9))
 }
 ```
 
@@ -64,9 +64,13 @@ Local functions can also be generic. For example, the generic function `id` can 
 
 ```cangjie
 func foo(a: Int64) {
-    func id<T>(a: T): T { a }
+    func id<T>(a: T): T {
+        a
+    }
 
-    func double(a: Int64): Int64 { a + a }
+    func double(a: Int64): Int64 {
+        a + a
+    }
 
     return (id<Int64> ~> double)(a) == (double ~> id<Int64>)(a)
 }
@@ -112,15 +116,18 @@ enum C {
 interface I {
     func doo<T>(a: T): Unit where T <: ToString
 }
+
 class D <: I {
     public func doo<T>(a: T): Unit where T <: ToString {
         println("${a}")
     }
 }
+
 abstract class E {
     public func eoo1<T>(a: T): Unit where T <: ToString
     public open func eoo2<T>(a: T): Unit where T <: ToString
 }
+
 class F <: E {
     public func eoo1<T>(a: T): Unit where T <: ToString {
         println("${a}")
@@ -129,6 +136,7 @@ class F <: E {
         println("${a}")
     }
 }
+
 main() {
     var a = A()
     var b = B()
@@ -197,7 +205,7 @@ class ToPair {
 }
 
 main() {
-    var res: ArrayList<Int64> = ArrayList([1,2,3,4])
+    var res: ArrayList<Int64> = ArrayList([1, 2, 3, 4])
     var a: (Int64, Int64) = ToPair.fromArray<Int64>(res)
 }
 ```

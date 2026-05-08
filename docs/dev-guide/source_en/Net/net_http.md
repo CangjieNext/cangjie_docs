@@ -28,10 +28,15 @@ let server = ServerBuilder()
 
 func startServer(): Unit {
     // 2. Register request handling logic
-    server.distributor.register("/hello", {httpContext =>
-        httpContext.responseBuilder.body("Hello Cangjie!")
-    })
-    server.logger.level = LogLevel.OFF
+    server
+        .distributor
+        .register("/hello", {
+            httpContext => 
+	    	httpContext.responseBuilder.body("Hello Cangjie!")
+        })
+    server
+        .logger
+        .level = LogLevel.OFF
     // 3. Start the service
     server.serve()
 }
@@ -49,7 +54,7 @@ func startClient(): Unit {
     client.close()
 }
 
-main () {
+main() {
     spawn {
         startServer()
     }
