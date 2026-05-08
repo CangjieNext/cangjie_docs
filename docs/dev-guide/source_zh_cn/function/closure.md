@@ -62,11 +62,11 @@ func f() {
     func f1() {
         println(x)
     }
-    let f2 = { =>
-        println(y)  // Error, cannot capture 'y' which is not defined yet
+    let f2 = {
+        => println(y) // Error, cannot capture 'y' which is not defined yet
     }
     let y = 88
-    f1()            // Print 99
+    f1() // Print 99
     f2()
 }
 ```
@@ -121,14 +121,14 @@ func f() {
     let y = 2
 
     func g() {
-        println(x)  // OK, captured a mutable variable
+        println(x) // OK, captured a mutable variable
     }
-    let b = g       // Error, g cannot be assigned to a variable
+    let b = g // Error, g cannot be assigned to a variable
 
-    g               // Error, g cannot be used as an expression
-    g()             // OK, g can be invoked
+    g // Error, g cannot be used as an expression
+    g() // OK, g can be invoked
 
-    g               // Error, g cannot be used as a return value
+    g // Error, g cannot be used as a return value
 }
 ```
 
@@ -139,15 +139,17 @@ func f() {
 <!-- compile.error -->
 
 ```cangjie
-func h(){
+func h() {
     var x = 1
 
-    func g() { x }  // captured a mutable variable
+    func g() {
+        x
+    } // captured a mutable variable
 
     func f() {
-        g()         // invoked g
+        g() // invoked g
     }
-    return f        // Error
+    return f // Error
 }
 ```
 
@@ -156,10 +158,12 @@ func h(){
 <!-- compile -->
 
 ```cangjie
-func h(){
+func h() {
     func f() {
         var x = 1
-        func g() { x } // captured a mutable variable
+        func g() {
+            x
+        } // captured a mutable variable
 
         g()
     }
@@ -173,8 +177,8 @@ func h(){
 
 ```cangjie
 class C {
-    static public var a: Int32 = 0
-    static public func foo() {
+    public static var a: Int32 = 0
+    public static func foo() {
         a++ // OK
         return a
     }
@@ -188,7 +192,7 @@ func countGlobalV1() {
     let g = C.foo // OK
 }
 
-func g(){
+func g() {
     let f = countGlobalV1 // OK
     f()
 }

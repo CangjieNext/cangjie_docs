@@ -6,6 +6,7 @@ In the Cangjie programming language, you can import a top-level declaration or d
 
 ```cangjie
 package a
+
 import std.math.*
 import package1.foo
 import {package1.foo, package2.bar}
@@ -140,6 +141,7 @@ Since namespaces are separated between different packages, there may be top-leve
     ```cangjie
     // a.cj
     package p1
+
     public func f1() {}
     ```
 
@@ -149,6 +151,7 @@ Since namespaces are separated between different packages, there may be top-leve
     ```cangjie
     // d.cj
     package p2
+
     public func f3() {}
     ```
 
@@ -158,6 +161,7 @@ Since namespaces are separated between different packages, there may be top-leve
     ```cangjie
     // b.cj
     package p1
+
     public func f2() {}
     ```
 
@@ -167,6 +171,7 @@ Since namespaces are separated between different packages, there may be top-leve
     ```cangjie
     // c.cj
     package pkgc
+
     public func f1() {}
     ```
 
@@ -177,7 +182,7 @@ Since namespaces are separated between different packages, there may be top-leve
     // main.cj
     import p1 as A
     import p1 as B
-    import p2.f3 as f  // Correct
+    import p2.f3 as f // Correct
     import pkgc.f1 as a
     import pkgc.f1 as b // Correct
     import org::pkgc as org_pkgc
@@ -185,12 +190,12 @@ Since namespaces are separated between different packages, there may be top-leve
     func f(a: Int32) {}
 
     main() {
-        A.f1()  // Correct
-        B.f2()  // Correct
+        A.f1() // Correct
+        B.f2() // Correct
         p1.f1() // Error: p1 was imported with an alias; the original package name cannot be used
-        a()     // Correct
-        b()     // Correct
-        pkgc.f1()    // Error: pkgc.f1 was imported with an alias; the original name cannot be used
+        a() // Correct
+        b() // Correct
+        pkgc.f1() // Error: pkgc.f1 was imported with an alias; the original name cannot be used
         org_pkgc.f1() // Correct
     }
     ```
@@ -251,6 +256,7 @@ In the following example, `b` is a subpackage of `a`. In `a`, the function `f` d
 
 ```cangjie
 package a
+
 public import a.b.f
 
 public let x = 0
@@ -259,11 +265,14 @@ public let x = 0
 ```cangjie
 internal package a.b
 
-public func f() { 0 }
+public func f() {
+    0
+}
 ```
 
 ```cangjie
-import a.f  // OK
+import a.f // OK
+
 let _ = f() // OK
 ```
 

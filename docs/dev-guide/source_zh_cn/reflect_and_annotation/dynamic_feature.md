@@ -98,7 +98,7 @@ public class Foo {
     public var param2 = 10
 }
 
-main(): Unit{
+main(): Unit {
     let obj = Foo()
     let info = TypeInfo.of(obj)
     let staticVarInfo = info.getStaticVariable("param1")
@@ -140,19 +140,27 @@ import std.reflect.*
 public class Foo {
     public let _p1: Int64 = 1
     public prop p1: Int64 {
-        get() { _p1 }
+        get() {
+            _p1
+        }
     }
     public var _p2: Int64 = 2
     public mut prop p2: Int64 {
-        get() { _p2 }
-        set(v) { _p2 = v }
+        get() {
+            _p2
+        }
+        set(v) {
+            _p2 = v
+        }
     }
 }
 
-main(): Unit{
+main(): Unit {
     let obj = Foo()
     let info = TypeInfo.of(obj)
-    let instanceProps = info.instanceProperties.toArray()
+    let instanceProps = info
+        .instanceProperties
+        .toArray()
     println("obj的实例成员属性包含${instanceProps}")
     let PropInfo1 = info.getInstanceProperty("p1")
     let PropInfo2 = info.getInstanceProperty("p2")
@@ -197,7 +205,9 @@ public class Foo {
 main(): Unit {
     var num = 0
     let intInfo = TypeInfo.of<Int64>()
-    let funcInfo = TypeInfo.of<Foo>().getStaticFunction("f1", intInfo, intInfo)
+    let funcInfo = TypeInfo
+        .of<Foo>()
+        .getStaticFunction("f1", intInfo, intInfo)
     num = (funcInfo.apply(TypeInfo.of<Foo>(), [1, 1]) as Int64).getOrThrow()
     println(num)
 }

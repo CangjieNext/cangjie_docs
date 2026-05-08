@@ -15,10 +15,16 @@
 ```cangjie
 // example.cj
 let a = 2023
+
 func b() {}
+
 struct C {}
+
 class D {}
-enum E { F | G }
+
+enum E {
+    F | G
+}
 
 main() {
     println(a)
@@ -183,14 +189,15 @@ class Player {
 <!-- compile.error -->
 
 ```cangjie
-func calc(a: Int32){
+func calc(a: Int32) {
     println(a)
     return a * a
 }
+
 main() {
     let a: String
-    if(calc(32) == 0){
-      a = "1"
+    if (calc(32) == 0) {
+        a = "1"
     }
     a = "2" // Error, cannot assign to immutable value
 }
@@ -201,7 +208,7 @@ main() {
 <!-- compile.error -->
 
 ```cangjie
-func foo(a: () -> Unit){
+func foo(a: () -> Unit) {
     // 业务逻辑处理
 }
 
@@ -253,7 +260,7 @@ struct Planet {
     const Planet(let mass: Float64, let radius: Float64) {}
 
     const func gravity(m: Float64, r: Float64) {
-        G * mass * m / r**2
+        G * mass * m / r ** 2
     }
 }
 
@@ -376,6 +383,7 @@ main() {
 ```cangjie
 // test.cj
 let element = "仓颉"
+
 main() {
     println(element)
     let element = 9

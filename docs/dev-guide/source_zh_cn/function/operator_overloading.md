@@ -37,7 +37,7 @@
     open class Point {
         var x: Int64 = 0
         var y: Int64 = 0
-        public init (a: Int64, b: Int64) {
+        public init(a: Int64, b: Int64) {
             x = a
             y = b
         }
@@ -58,8 +58,8 @@
     ```cangjie
     main() {
         let p1 = Point(8, 24)
-        let p2 = -p1      // p2 = Point(-8, -24)
-        let p3 = p1 + p2  // p3 = Point(0, 0)
+        let p2 = -p1 // p2 = Point(-8, -24)
+        let p3 = p1 + p2 // p3 = Point(0, 0)
     }
     ```
 
@@ -117,7 +117,7 @@
 
     func test1() {
         let a = A() // OK, A() is call the constructor of A
-        a()         // OK, a() is to call the operator () overloading function
+        a() // OK, a() is to call the operator () overloading function
     }
     ```
 
@@ -135,7 +135,7 @@
         public operator func ()(): Unit {}
 
         public func foo() {
-            this()  // Error, this() calls the constructor of A
+            this() // Error, this() calls the constructor of A
             super() // Error
         }
     }
@@ -164,11 +164,11 @@
     }
 
     main() {
-        let e = X(1)    // OK, X(1) is to call the constructor X(Int64)
-        X(1.0)          // OK, X(1.0) is to call the operator () overloading function
+        let e = X(1) // OK, X(1) is to call the constructor X(Int64)
+        X(1.0) // OK, X(1.0) is to call the operator () overloading function
         let e1 = X
-        e1(1)           // OK, e1(1) is to call the operator () overloading function
-        Y(1)            // OK, Y(1) is to call the operator () overloading function
+        e1(1) // OK, e1(1) is to call the operator () overloading function
+        Y(1) // OK, Y(1) is to call the operator () overloading function
     }
     ```
 
@@ -209,7 +209,7 @@
 ```cangjie
 open class MyClass {
     var x: Int64 = 0
-    public init (a: Int64) {
+    public init(a: Int64) {
         x = a
     }
 
@@ -221,7 +221,7 @@ open class MyClass {
 main() {
     var a = MyClass(5)
     var b = MyClass(3)
-    a += b; // Error, type incompatible in this compound assignment expression
+    a += b // Error, type incompatible in this compound assignment expression
 }
 ```
 
