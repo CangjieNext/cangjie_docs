@@ -53,10 +53,14 @@ A typical property syntax structure is as follows:
 ```cangjie
 class Foo {
     public prop a: Int64 {
-        get() { 0 }
+        get() {
+            0
+        }
     }
     public mut prop b: Int64 {
-        get() { 0 }
+        get() {
+            0
+        }
         set(v) {}
     }
 }
@@ -130,26 +134,35 @@ open class A {
     private static var valueY = 0
 
     public open prop x: Int64 {
-        get() { valueX }
+        get() {
+            valueX
+        }
     }
 
     public static mut prop y: Int64 {
-        get() { valueY }
+        get() {
+            valueY
+        }
         set(v) {
             valueY = v
         }
     }
 }
+
 class B <: A {
     private var valueX2 = 0
     private static var valueY2 = 0
 
     public override prop x: Int64 {
-        get() { valueX2 }
+        get() {
+            valueX2
+        }
     }
 
-    public redef static mut prop y: Int64 {
-        get() { valueY2 }
+    public static redef mut prop y: Int64 {
+        get() {
+            valueY2
+        }
         set(v) {
             valueY2 = v
         }
@@ -184,15 +197,20 @@ interface I {
     prop a: Int64
     mut prop b: Int64
 }
+
 class C <: I {
     private var value = 0
 
     public prop a: Int64 {
-        get() { value }
+        get() {
+            value
+        }
     }
 
     public mut prop b: Int64 {
-        get() { value }
+        get() {
+            value
+        }
         set(v) {
             value = v
         }

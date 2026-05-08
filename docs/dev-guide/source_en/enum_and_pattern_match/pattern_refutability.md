@@ -62,7 +62,9 @@ Type patterns are `refutable` patterns. For example, in the following example (a
 
 ```cangjie
 interface I {}
+
 open class Base <: I {}
+
 class Derived <: Base {}
 
 func typePat(x: I) {
