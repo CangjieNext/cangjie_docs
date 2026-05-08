@@ -110,9 +110,9 @@ main() {
 
         ```cangjie
         var a = 10
-        var b: Int64 = if(a == 10) { // Error, mismatched types
+        var b: Int64 = if (a == 10) { // Error, mismatched types
             "this is 10"
-        }else {
+        } else {
             "this is not 10"
         }
         ```
@@ -123,9 +123,9 @@ main() {
 
         ```cangjie
         var a = 10
-        var b = if(a == 10) { // Error, types Struct-String and Int64 of the two branches of this 'if' expression mismatch
+        var b = if (a == 10) { // Error, types Struct-String and Int64 of the two branches of this 'if' expression mismatch
             "this is 10"
-        }else {
+        } else {
             20
         }
         ```
@@ -170,10 +170,10 @@ main() {
 main() {
     let a = Some(3)
     let c = if (let Some(b) <- a) {
-            1 // 模式匹配成功，c = 1
-        } else {
-            2
-        }
+        1 // 模式匹配成功，c = 1
+    } else {
+        2
+    }
     let d = Some(1)
 
     if (let Some(e) <- a && let Some(f) <- d) { // 两种模式都匹配，条件的值为真

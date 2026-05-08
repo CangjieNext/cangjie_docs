@@ -11,11 +11,11 @@ Here, the part before `=>` is the parameter list, where multiple parameters are 
 <!-- compile -->
 
 ```cangjie
-let f1 = { a: Int64, b: Int64 => a + b }
-
-var display = { =>   // Parameterless lambda expression.
-    println("Hello")
-    println("World")
+let f1 = {a: Int64, b: Int64 => a + b}
+var display = {
+    => // Parameterless lambda expression.
+        println("Hello")
+        println("World")
 }
 ```
 
@@ -24,10 +24,11 @@ Lambda expressions, whether they have parameters or not, cannot omit `=>`, unles
 <!-- compile -->
 
 ```cangjie
-var display = { => println("Hello") }
+var display = {=> println("Hello")}
 
 func f2(lam: () -> Unit) {}
-let f2Res = f2 { println("World") } // OK to omit the =>
+
+let f2Res = f2 {println("World")} // OK to omit the =>
 ```
 
 Type annotations for parameters in lambda expressions can be omitted. In the following cases, if parameter types are omitted, the compiler will attempt type inference. If the compiler cannot infer the type, a compilation error will occur:
@@ -39,9 +40,8 @@ Type annotations for parameters in lambda expressions can be omitted. In the fol
 
 ```cangjie
 // The parameter types are inferred from the type of the variable sum1
-var sum1: (Int64, Int64) -> Int64 = { a, b => a + b }
-
-var sum2: (Int64, Int64) -> Int64 = { a: Int64, b => a + b }
+var sum1: (Int64, Int64) -> Int64 = {a, b => a + b}
+var sum2: (Int64, Int64) -> Int64 = {a: Int64, b => a + b}
 
 func f(a1: (Int64) -> Int64): Int64 {
     a1(1)
@@ -49,7 +49,7 @@ func f(a1: (Int64) -> Int64): Int64 {
 
 main(): Int64 {
     // The parameter type of lambda is inferred from the type of function f
-    f({ a2 => a2 + 10 })
+    f({a2 => a2 + 10})
 }
 ```
 
@@ -62,7 +62,7 @@ Lambda expressions do not support explicit return type declarations. Their retur
       <!-- compile -->
 
       ```cangjie
-      let f: () -> Unit = { => println(10) }
+      let f: () -> Unit = {=> println(10)}
       ```
 
     - When a lambda expression is used as an argument, its return type is inferred from the parameter type of the function call:
@@ -71,11 +71,11 @@ Lambda expressions do not support explicit return type declarations. Their retur
 
       ```cangjie
       func f(a1: (Int64) -> Int64): Int64 {
-        a1(1)
+          a1(1)
       }
 
       main(): Int64 {
-        f({ a2: Int64 => a2 + 10 })
+          f({a2: Int64 => a2 + 10})
       }
       ```
 
@@ -85,7 +85,7 @@ Lambda expressions do not support explicit return type declarations. Their retur
 
       ```cangjie
       func f(): (Int64) -> Int64 {
-        { a: Int64 => a }
+          {a: Int64 => a}
       }
       ```
 
@@ -96,7 +96,7 @@ Lambda expressions do not support explicit return type declarations. Their retur
       <!-- compile -->
 
       ```cangjie
-      let sum1 = { a: Int64, b: Int64 => a + b }
+      let sum1 = {a: Int64, b: Int64 => a + b}
       ```
 
     - If the right side of `=>` is empty, the return type is `Unit`:
@@ -104,7 +104,7 @@ Lambda expressions do not support explicit return type declarations. Their retur
       <!-- compile -->
 
       ```cangjie
-      let f = { => }
+      let f = {=>}
       ```
 
 ## Lambda Expression Invocation
@@ -114,8 +114,8 @@ Lambda expressions support immediate invocation. For example:
 <!-- compile -->
 
 ```cangjie
-let r1 = { a: Int64, b: Int64 => a + b }(1, 2) // r1 = 3
-let r2 = { => 123 }()                          // r2 = 123
+let r1 = {a: Int64, b: Int64 => a + b}(1, 2) // r1 = 3
+let r2 = {=> 123}() // r2 = 123
 ```
 
 Lambda expressions can also be assigned to a variable and invoked using the variable name. For example:
@@ -124,7 +124,7 @@ Lambda expressions can also be assigned to a variable and invoked using the vari
 
 ```cangjie
 func f() {
-    var g = { x: Int64 => println("x = ${x}") }
+    var g = {x: Int64 => println("x = ${x}")}
     g(2)
 }
 ```
