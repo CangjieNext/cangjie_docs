@@ -550,20 +550,20 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--lto-keep-pkg-visibility=<value>`
 
-指定 LTO 模式下保持符号可见性的包名。未指定的包符号将被隐藏，LLVM 可据此执行更激进的无用代码删除。
+指定在 LTO 过程中保持符号可见性的包名。未指定包的符号将被标记为隐藏，LLVM 可据此执行更激进的无用代码删除。
 
 **参数说明：**
 
 - `<value>` 为包名列表，多个包名用逗号分隔
 - `--lto-keep-pkg-visibility` 可以被多次使用，效果累加
-- `<value>` 可以为空字符串`""`， 表示隐藏所有包的符号
+- `<value>` 可以为空字符串 `""`，表示隐藏 LTO 过程中所有包的符号
 
 **注意：**
 
-- 仅在开启 `--lto` 时有效，否则将报错
-- 不能与 `--compile-as-exe` 同时使用，否则将报错
-- 仅在编译动态库（`--output-type=dylib`）时有效，否则会告警
-- Windows 和 macOS 平台不支持 LTO 功能，因此该选项在这些平台无效
+- 仅在 LTO 模式下生效：`--lto=full` 可达到理想效果，`--lto=thin` 下功能保障不完全
+- 若指定包可见的同时也指定了 `--compile-as-exe`，会因语义冲突而报错
+- 仅在编译动态库（`--output-type=dylib`）时生效
+- Windows 和 macOS 平台暂不支持 LTO 功能，因此该选项在这些平台无效
 
 **使用示例：**
 
