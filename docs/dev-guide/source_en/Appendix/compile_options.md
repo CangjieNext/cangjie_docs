@@ -560,20 +560,20 @@ This option is deprecated and will be removed in a future version. Please use `-
 
 ### `--lto-keep-pkg-visibility=<value>`
 
-Specifies package names whose symbol visibility is preserved in LTO mode. Symbols from unspecified packages will be hidden, enabling LLVM to perform more aggressive dead code elimination.
+Specifies package names whose symbol visibility is preserved during LTO. Symbols from unspecified packages will be marked as hidden, enabling LLVM to perform more aggressive dead code elimination.
 
 **Parameter Description:**
 
 - `<value>` is a list of package names, separated by commas
 - `--lto-keep-pkg-visibility` can be used multiple times, with cumulative effect
-- `<value>` can be an empty string `""`, which means hiding symbols from all packages
+- `<value>` can be an empty string `""`, which hides symbols from all packages during LTO
 
 **Note:**
 
-- Only effective when --lto is enabled, otherwise an error will be reported
-- Cannot be used together with --compile-as-exe, otherwise an error will be reported
-- Only effective when compiling dynamic libraries (--output-type=dylib), otherwise a warning will be issued
-- Windows and macOS platforms do not support LTO, so this option is ineffective on these platforms
+- Only effective in LTO mode: `--lto=full` provides ideal results, while `--lto=thin` does not fully guarantee functionality
+- Cannot be combined with `--compile-as-exe`, otherwise a semantic conflict error will be reported
+- Only effective when compiling dynamic libraries (`--output-type=dylib`)
+- Windows and macOS platforms do not support LTO, so this option has no effect on these platforms
 
 **Usage Example:**
 
