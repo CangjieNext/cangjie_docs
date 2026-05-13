@@ -53,8 +53,8 @@ $ cjc tool.cj --output-type=dylib
 
 ```cangjie
 // main.cj
-main(){
-  println("hello cangjie")
+main() {
+    println("hello cangjie")
 }
 ```
 
@@ -180,10 +180,10 @@ void printHello() {
 foreign func printHello(): Unit
 
 main(): Int64 {
-  unsafe {
-    printHello()
-  }
-  return 0
+    unsafe {
+        printHello()
+    }
+    return 0
 }
 ```
 
@@ -324,6 +324,7 @@ main() {
 ```cangjie
 // this file is placed under directory pkgA
 macro package pkgA
+
 import pkgB.*
 import std.io.*
 import pkgB.subB.*
@@ -1202,7 +1203,7 @@ package my_pkg
 foreign func strlen(str: CPointer<UInt8>): Int32
 
 func strlenWrapper(cp: CPointer<UInt8>) {
-  unsafe{ strlen(cp) }
+    unsafe { strlen(cp) }
 }
 ```
 
@@ -1217,7 +1218,7 @@ class TestFoo {
     @TestCase
     func testInvertSlashes() {
         @Assert("\\Users\\Adimn\\Documents".invertSlashes(), "/Users/Adimn/Documents")
-   }
+    }
 }
 ```
 
@@ -1232,7 +1233,7 @@ class TestBar {
     @TestCase
     func testInvertSlashes() {
         @Assert( unsafe{ strlen(LibC.mallocCString("abcde").getChars()) }, 5)
-   }
+    }
 }
 ```
 
@@ -1265,7 +1266,9 @@ cjc -p my_pkg --test-only -L output -lmain --import-path output
 <!-- compile -->
 ```cangjie
 interface I {
-  static func f<T> (v:T) { v }
+    static func f<T>(v: T) {
+        v
+    }
 }
 ```
 
@@ -1575,6 +1578,7 @@ obf_func2 name2
 
 ```cangjie
 package packA
+
 class MyClassA {
     func funcA(a: String, b: Int64): String {
         return a

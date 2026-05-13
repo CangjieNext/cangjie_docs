@@ -202,7 +202,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
     @ObjCMirror
     public open class Base {
-        public init()
+        public init() 
         public open func f(): Unit
     }
     ```
@@ -218,7 +218,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
     @ObjCImpl
     public class Interop <: Base {
-        override public func f(): Unit {
+        public override func f(): Unit {
             println("Hello from overridden Cangjie Interop.f()")
             Base().f()
         }
@@ -240,7 +240,7 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
 
     @ObjCImpl
     public class A <: M {
-        override public func goo(): Unit {
+        public override func goo(): Unit {
             println("Hello from overridden A goo()")
         }
     }
@@ -331,7 +331,7 @@ open class M {
     public init()
     // 带参数的构造函数，必须使用 @ForeignName 修饰。
     @ForeignName["initWithArg0:andArg1:"]
-    public init(arg0: IntNative, arg1: Float32)
+    public init(arg0: IntNative, arg1: Float32) 
 }
 ```
 
@@ -393,7 +393,8 @@ import objc.lang.*
 
 @ObjCMirror
 open class M {
-    public init()
+    public init() 
+
     @ForeignName["booWithArg0:andArg1:"]
     public static func boo(arg0: Int32, arg1: Bool): Int64
 
@@ -452,7 +453,7 @@ import objc.lang.*
 
 @ObjCMirror
 open class M {
-    public init()
+    public init() 
     protected open mut prop f: IntNative
 }
 ```
@@ -468,7 +469,7 @@ import objc.lang.*
 @ObjCImpl
 class A <: M {
     @ForeignName["gooWithArg0:"]
-    public func goo(arg0: IntNative): IntNative{
+    public func goo(arg0: IntNative): IntNative {
         M().f + arg0
     }
 }
@@ -505,7 +506,7 @@ import objc.lang.*
 
 @ObjCMirror
 open class M {
-    public init()
+    public init() 
     public var m: Float64
 }
 ```
@@ -525,6 +526,7 @@ class A <: M {
         M()
         this.m = m
     }
+
     @ForeignName["gooWithArg0:"]
     public func goo(arg0: Float64): Float64 {
         this.m + arg0
@@ -554,7 +556,8 @@ import objc.lang.*
 @ObjCMirror
 open class M1 {
     @ForeignName["init"]
-    public init()
+    public init() 
+
     @ForeignName["goo"]
     public open func goo(): Int64
 }
@@ -571,7 +574,8 @@ import objc.lang.*
 @ObjCMirror
 open class M <: M1 {
     @ForeignName["init"]
-    public init()
+    public init() 
+
     @ForeignName["goo"]
     public override func goo(): Int64
 }
@@ -690,7 +694,7 @@ public interface Foo {
 // M.cj
 @ObjCMirror
 public open class M {
-    public init()
+    public init() 
     public open func acceptFoo(foo: ?Foo): Unit
 }
 ```
@@ -746,6 +750,7 @@ class A <: M {
     public init(m: Float64) {
         this.m = m
     }
+
     @ForeignName["gooWithArg0:"]
     public func goo(arg0: Float64): Float64 {
         this.m + arg0
@@ -789,14 +794,15 @@ public class M1 {
     public prop answer: Float64
 
     @ForeignName["initWithAnswer:"]
-    public init(answer: Float64)
+    public init(answer: Float64) 
 }
 
 @ObjCMirror
-open public class M {
+public open class M {
     public mut prop bar: M1
+
     @ForeignName["init"]
-    public init()
+    public init() 
 }
 
 @ObjCImpl
@@ -849,22 +855,23 @@ package cjworld
 import objc.lang.*
 
 @ObjCMirror
-open public class M {
+public open class M {
     @ForeignName["init"]
-    public init()
+    public init() 
 }
 
 @ObjCMirror
-open public class M1 {
+public open class M1 {
     @ForeignName["init"]
-    public init()
+    public init() 
+
     @ForeignName["foo"]
     public func foo(): Float64
 }
 
 @ObjCImpl
 public class A <: M {
-    public let m1 : M1
+    public let m1: M1
     public var num: Int64
 
     public init() {
@@ -1172,11 +1179,12 @@ class Component {
 ```cangjie
 @ObjCImpl
 class ComponentChild <: Component {
-
     @ForeignName["_count"]
     @ForeignSetterName["putCount:"]
     public mut prop count: Int64 {
-        get() { 42 }
+        get() {
+            42
+        }
         set(value) {}
     }
 }
@@ -1205,7 +1213,8 @@ ObjC 中，参数类型相同但参数名不同的构造函数不属于声明冲
 @ObjCMirror
 class M {
     @ForeignName["initWithA:andB:"]
-    public init(a: Int32, b: Float32)
+    public init(a: Int32, b: Float32) 
+
     @ForeignName["initWithC:andD:"]
     public init(c: Int32, b: Float32) // 编译报错，声明冲突
 }
@@ -1270,10 +1279,10 @@ Cangjie 源码：
 package cjworld
 
 public interface A {
-    public func foo() : Unit
-    public func goo(a: Int32, b:Int32) : Unit
-    public func koo() : Int32
-    public func hoo(a: Int32) : Int32
+    public func foo(): Unit
+    public func goo(a: Int32, b: Int32): Unit
+    public func koo(): Int32
+    public func hoo(a: Int32): Int32
 }
 ```
 
@@ -1690,7 +1699,6 @@ public class Vector {
         println("Hello from static processPrimitive: ${intArg * 2}, ${floatArg + 1.0} + ${!boolArg}")
     }
 }
-
 ```
 
 生成的 ObjC 头文件与源文件：
@@ -1824,13 +1832,12 @@ ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类
     import interoplib.objc.*
 
     public class GenericClass<T> {
-
         private var value: T
 
         public GenericClass(v: T) {
             this.value = v
         }
-        public func getValue() : T {
+        public func getValue(): T {
             return this.value
         }
 
@@ -2363,17 +2370,16 @@ ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[�
     import interoplib.objc.*
 
     public interface GenericInterface<T> {
-
-        func argretGenericFunc(v: T) : T {
+        func argretGenericFunc(v: T): T {
             setValue(v)
             return getValue()
         }
 
-        func setValue(v: T) : Unit
+        func setValue(v: T): Unit
 
-        func getValue() : T
+        func getValue(): T
 
-        func normalFunc(v: Int32) : Int32
+        func normalFunc(v: Int32): Int32
     }
     ```
 
@@ -2481,13 +2487,12 @@ package genericClass
 import interoplib.objc.*
 
 public class GenericClass<T> {
-
-    private var value : T
+    private var value: T
 
     public GenericClass(v: T) {
-        value = v;
+        value = v
     }
-    public func getValue() : T {
+    public func getValue(): T {
         return this.value
     }
     public func setValue(t: T) {

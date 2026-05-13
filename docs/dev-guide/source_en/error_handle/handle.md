@@ -103,10 +103,13 @@ Additionally, when the value of a `try` expression is unused, its type is `Unit`
 <!-- compile -->
 
 ```cangjie
-open class C { }
-open class D <: C { }
-class E <: D { }
-main () {
+open class C {}
+
+open class D <: C {}
+
+class E <: D {}
+
+main() {
     let x = try {
         E()
     } catch (e: Exception) {
@@ -221,8 +224,8 @@ The types in `ResourceSpecification` of a try-with-resources expression must imp
 
 ```cangjie
 interface Resource {
-    func isClosed(): Bool  // Determines whether the `close` function should be called to release resources when exiting the try-with-resources scope.
-    func close(): Unit  // Releases resources when `isClosed` returns false.
+    func isClosed(): Bool // Determines whether the `close` function should be called to release resources when exiting the try-with-resources scope.
+    func close(): Unit // Releases resources when `isClosed` returns false.
 }
 ```
 
@@ -306,6 +309,7 @@ Example demonstrating "the caught exception type is the least common superclass 
 open class Father <: Exception {
     var father: Int32 = 0
 }
+
 class ChildOne <: Father {
     var childOne: Int32 = 1
 }

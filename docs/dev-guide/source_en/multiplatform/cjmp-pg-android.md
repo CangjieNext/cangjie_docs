@@ -127,7 +127,7 @@ might look like this:
 @JavaMirror
 public open class Node {
     public static let A: Int32
-    public init(id: Int32)
+    public init(id: Int32) 
     public open func id(): Int32
 }
 ```
@@ -154,9 +154,13 @@ in Cangjie as follows:
 public class Node {
     private let _id: Int
     public prop id: Int {
-        get() { _id }
+        get() {
+            _id
+        }
     }
-    public init(id: Int) { this._id = id }
+    public init(id: Int) {
+        this._id = id
+    }
 }
 ```
 
@@ -260,8 +264,8 @@ variables that have Java-compatible types may be accessed from both Java and Can
 ```cangjie
 @JavaImpl
 class NamedNode <: Node {
-    public var jName: JString  // resides in the conjugate wrapper class instance
-    public var cjName: String  // resides in the interop class instance
+    public var jName: JString // resides in the conjugate wrapper class instance
+    public var cjName: String // resides in the interop class instance
     init(name: JString) {
         jName = name
         cjName = name.toCangjieString()
@@ -719,8 +723,12 @@ import interoplib.interop
 
 public class IntFuncBox {
     private let _f: (Int) -> Int
-    public init(f: (Int) -> Int) { _f = f }
-    public func unbox(): (Int) -> Int { _f }
+    public init(f: (Int) -> Int) {
+        _f = f
+    }
+    public func unbox(): (Int) -> Int {
+        _f
+    }
 }
 ```
 
@@ -876,9 +884,9 @@ public struct Vector {
     }
 
     public func add(v: Vector): Vector {
-       let res = Vector(x + v.x, y + v.y)
-       print("cj: (${x}, ${y}) + (${v.x}, ${v.y}) = (${res.x}, ${res.y})\n", flush: true)
-       return res
+        let res = Vector(x + v.x, y + v.y)
+        print("cj: (${x}, ${y}) + (${v.x}, ${v.y}) = (${res.x}, ${res.y})\n", flush: true)
+        return res
     }
 
     public static func dump(v: Vector): Unit {
@@ -978,12 +986,18 @@ public interface Valuable {
 
 public open class Singleton <: Valuable {
     private let _v: Int
-    public init (v: Int) { _v = v }
-    public func value(): Int { _v }
+    public init(v: Int) {
+        _v = v
+    }
+    public func value(): Int {
+        _v
+    }
 }
 
 public class Zero <: Singleton {
-    public init() { super(0) }
+    public init() {
+        super(0)
+    }
 }
 ```
 
@@ -1233,8 +1247,12 @@ When compiling the following Cangjie class definition:
 ```cangjie
 public class G<T> {
     private let t: T
-    public init(t: T) { this.t = t }
-    public func get(): T { t }
+    public init(t: T) {
+        this.t = t
+    }
+    public func get(): T {
+        t
+    }
 }
 ```
 
@@ -1271,7 +1289,7 @@ public class Node {
     public init() {
         next = None
     }
-    public init(next: Node) {      /* Pure Cangjie */
+    public init(next: Node) { /* Pure Cangjie */
         this.next = Some(next)
     }
 }
@@ -1574,10 +1592,10 @@ in a `types` array element results in a compile time error.
    instantiations:
 
    ```cangjie
-       G<Int>
-       f<Int>
-       f<Bool>
-       S<Int, Bool>
+   G<Int>
+   f<Int>
+   f<Bool>
+   S<Int, Bool>
    ```
 
    and name them like `GInt`, `fInt`, and so on.
@@ -1590,9 +1608,9 @@ in a `types` array element results in a compile time error.
 
    import interoplib.interop.*
 
-   public class Composer<T,U,V> {
+   public class Composer<T, U, V> {
        public static func compose(f: (T) -> U, g: (U) -> V): (T) -> V {
-           { t: T => g(f(t)) }
+           {t: T => g(f(t))}
        }
    }
    ```
@@ -1900,7 +1918,7 @@ import javaworld.*
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         /* Just a dummy implementation for now */
-        B()    // Assuming that B has an accessible parameterless constructor
+        B() // Assuming that B has an accessible parameterless constructor
     }
 }
 ```
@@ -2165,7 +2183,7 @@ public class Interop {
             case Some(aa) => C.g(aa, i) ?? JString("")
             case None => JString("")
         }
-        B(s1)  // Assuming there is a B(String) constructor
+        B(s1) // Assuming there is a B(String) constructor
     }
 }
 ```
@@ -2287,7 +2305,7 @@ via an annotation.
   ```
 
   ```cangjie
-      public static let `Int32`: Int64
+  public static let `Int32`: Int64
   ```
 
 * Java identifiers may contain characters that are not permitted in
@@ -2305,14 +2323,14 @@ via an annotation.
   ```cangjie
   @JavaMirror["Outer"]
   public open class Outer {
-      public init()
+      public init() 
 
       public open func getInner(): ?Outer_Inner
   }
 
   @JavaMirror["Outer$Inner"]
   public open class Outer_Inner {
-      public init(p0: ?Outer)
+      public init(p0: ?Outer) 
   }
   ```
 
@@ -2459,8 +2477,8 @@ on the mirror member:
 ```
 
 ```cangjie
-    @ForeignName["priceInUS$Per"]
-    public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
+@ForeignName["priceInUS$Per"]
+public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
 ```
 
 > **NOTE:** The meaning of the access modifier `protected` is different
@@ -2537,19 +2555,19 @@ public class Outer {
 ```cangjie
 @JavaMirror["Outer"]
 public open class Outer {
-    public init()
+    public init() 
 
     public open func getInner(): ?Outer_Inner
 }
 
-@JavaMirror["Outer$Static"]       // Original binary name is retained
-public open class Outer_Static {  // '$' is replaced with '_'
-    public init()
+@JavaMirror["Outer$Static"] // Original binary name is retained
+public open class Outer_Static { // '$' is replaced with '_'
+    public init() 
 }
 
-@JavaMirror["Outer$Inner"]       // Original binary name is retained
-public open class Outer_Inner {  // '$' is replaced with '_'
-    public init(p0: ?Outer)      // Extra parameter for enclosing instance
+@JavaMirror["Outer$Inner"] // Original binary name is retained
+public open class Outer_Inner { // '$' is replaced with '_'
+    public init(p0: ?Outer) // Extra parameter for enclosing instance
 }
 ```
 
@@ -2571,7 +2589,7 @@ imposes the following syntax alterations:
   ```cangjie
   @JavaMirror["A"]
   public abstract class A {
-      public init()
+      public init() 
 
       public open func c(): Unit
 
@@ -2724,9 +2742,9 @@ a local variable of a foreign type in the code of an interop class, unless you
 are 100% sure that it won't be assigned `null`.
 
 ```cangjie
-    // Suppose M is a Java mirror type
-    let m: M = M()     // If M() returns successfully, it is guaranteed
-                       // to have returned a new instance of M
+// Suppose M is a Java mirror type
+let m: M = M() // If M() returns successfully, it is guaranteed
+// to have returned a new instance of M
 ```
 
 The `Option<T>` wrapping ensures that the code won't break if a `null` value
@@ -2790,7 +2808,7 @@ public interface C {
 
 @JavaMirror
 public interface D <: C {
-    public override open func get(): Bar       // Return type covariance in action
+    public open override func get(): Bar // Return type covariance in action
 }
 ```
 
@@ -2814,7 +2832,7 @@ public open interface C {
 @JavaMirror
 public open interface D <: C {
     // public open func get(): ?Bar    // Error, `Option<T>` is not covariant by T
-    public open func get(): ?Foo       // OK, but the return type is lowered
+    public open func get(): ?Foo // OK, but the return type is lowered
 }
 ```
 
@@ -2866,8 +2884,7 @@ package java.world
 import java.lang.*
 
 @JavaMirror["java.lang.Cloneable"]
-public interface Cloneable {
-}
+public interface Cloneable {}
 ```
 
 
@@ -3526,10 +3543,12 @@ open class JObject {
     public open func equals(obj: ?JObject): Bool
 
     public func hashCode(): Int64
+
     @ForeignName["hashCode"]
     public open func hashCode32(): Int32
 
     public func toString(): String
+
     @ForeignName["toString"]
     public open func toJString(): JString
 

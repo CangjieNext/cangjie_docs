@@ -27,7 +27,7 @@ func foo() {
         a + b + 3
     }
 
-    println(nestAdd(1, 2))  // 6
+    println(nestAdd(1, 2)) // 6
 
     return nestAdd
 }
