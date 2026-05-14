@@ -27,7 +27,9 @@ Direct or indirect circular references are prohibited in one or more type alias 
 
 ```cangjie
 type A = (Int64, A) // Error, 'A' refered itself
+
 type B = (Int64, C) // Error, 'B' and 'C' are circularly refered
+
 type C = (B, Int64)
 ```
 
@@ -39,7 +41,9 @@ A type alias does not define a new type; it merely provides another name for the
 
     ```cangjie
     type A = B
+
     class B {}
+
     var a: A = B() // Use typealias A as type B
     ```
 
@@ -49,8 +53,12 @@ A type alias does not define a new type; it merely provides another name for the
 
     ```cangjie
     type A = B
+
     class B {}
-    func foo() { A() }  // Use type alias A as constructor of B
+
+    func foo() {
+        A()
+    } // Use type alias A as constructor of B
     ```
 
 3. When the type alias actually refers to a class, interface, or struct, it can be used as the type name to access internal static member variables or functions:
@@ -59,10 +67,12 @@ A type alias does not define a new type; it merely provides another name for the
 
     ```cangjie
     type A = B
+
     class B {
-        static var b : Int32 = 0
+        static var b: Int32 = 0
         static func foo() {}
     }
+
     func foo() {
         A.foo() // Use A to access static method in class B
         A.b
@@ -77,9 +87,11 @@ A type alias does not define a new type; it merely provides another name for the
     enum TimeUnit {
         Day | Month | Year
     }
+
     type Time = TimeUnit
-    var a = Time.Day  
-    var b = Time.Month   // Use type alias Time to access constructors in TimeUnit
+
+    var a = Time.Day
+    var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
 Note that currently, user-defined type aliases are not supported in type conversion expressions. Refer to the following example:

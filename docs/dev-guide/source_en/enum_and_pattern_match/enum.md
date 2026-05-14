@@ -26,8 +26,12 @@ Cangjie supports defining multiple constructors with the same name in the same `
 
 ```cangjie
 enum RGBColor {
-    | Red | Green | Blue
-    | Red(UInt8) | Green(UInt8) | Blue(UInt8)
+    | Red
+    | Green
+    | Blue
+    | Red(UInt8)
+    | Green(UInt8)
+    | Blue(UInt8)
 }
 ```
 
@@ -108,13 +112,13 @@ enum RGBColor {
     | Red | Green(UInt8) | Blue(UInt8)
 }
 
-let r1 = Red                 // Will choose 'let Red'
-let r2 = RGBColor.Red        // OK: constructed by enum type name
+let r1 = Red // Will choose 'let Red'
+let r2 = RGBColor.Red // OK: constructed by enum type name
 
-let g1 = Green(100)          // Will choose 'func Green'
+let g1 = Green(100) // Will choose 'func Green'
 let g2 = RGBColor.Green(100) // OK: constructed by enum type name
 
-let b = Blue(100)            // OK: can be uniquely identified as an enum constructor
+let b = Blue(100) // OK: can be uniquely identified as an enum constructor
 ```
 
 In the following example, only the constructor `Blue` cannot be used directly due to a name conflict and must be prefixed with the type name `RGBColor`.
@@ -128,9 +132,9 @@ enum RGBColor {
     | Red | Green(UInt8) | Blue(UInt8)
 }
 
-let r = Red                 // OK: constructed by enum type name
+let r = Red // OK: constructed by enum type name
 
-let g = Green(100)          // OK: constructed by enum type name
+let g = Green(100) // OK: constructed by enum type name
 
-let b = Blue(100)           // Will choose constructor of 'class Blue' and report an error
+let b = Blue(100) // Will choose constructor of 'class Blue' and report an error
 ```

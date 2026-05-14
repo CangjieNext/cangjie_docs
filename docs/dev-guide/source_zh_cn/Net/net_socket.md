@@ -92,7 +92,9 @@ func runUdpServer() {
 
         let buf = Array<Byte>(3, repeat: 0)
         let (clientAddr, count) = serverSocket.receiveFrom(buf)
-        let sender = (clientAddr as IPSocketAddress)?.address.toString() ?? ""
+        let sender = (clientAddr as IPSocketAddress)?
+            .address
+            .toString() ?? ""
 
         // Server receive 3 bytes: [1, 2, 3] from 127.0.0.1
         println("Server receive ${count} bytes: ${buf} from ${sender}")

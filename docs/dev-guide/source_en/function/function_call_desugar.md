@@ -12,7 +12,7 @@ For example, the following defines a `myIf` function where the first parameter i
 
 ```cangjie
 func myIf(a: Bool, fn: () -> Int64) {
-    if(a) {
+    if (a) {
         fn()
     } else {
         0
@@ -20,9 +20,9 @@ func myIf(a: Bool, fn: () -> Int64) {
 }
 
 func test() {
-    myIf(true, { => 100 }) // General function call
+    myIf(true, {=> 100}) // General function call
 
-    myIf(true) {        // Trailing closure call
+    myIf(true) { // Trailing closure call
         100
     }
 }
@@ -35,10 +35,12 @@ Example:
 <!-- compile -->
 
 ```cangjie
-func f(fn: (Int64) -> Int64) { fn(1) }
+func f(fn: (Int64) -> Int64) {
+    fn(1)
+}
 
 func test() {
-    f { i => i * i }
+    f {i => i * i}
 }
 ```
 
@@ -95,6 +97,7 @@ Example 1:
 func f(x: Int64): Float64 {
     Float64(x)
 }
+
 func g(x: Float64): Float64 {
     x
 }
@@ -119,8 +122,14 @@ Example 3:
 <!-- compile -->
 
 ```cangjie
-func h1<T>(x: T): T { x }
-func h2<T>(x: T): T { x }
+func h1<T>(x: T): T {
+    x
+}
+
+func h2<T>(x: T): T {
+    x
+}
+
 var hh = h1<Int64> ~> h2<Int64> // The same as { x: Int64 => h2<Int64>(h1<Int64>(x)) }
 ```
 
@@ -135,7 +144,7 @@ Additionally, flow operators cannot be directly used with functions that have no
 ```cangjie
 func f(a!: Int64): Unit {}
 
-var a = 1 |> f  // Error
+var a = 1 |> f // Error
 ```
 
 If needed, developers can pass named arguments to the `f` function via a lambda expression:
@@ -145,7 +154,7 @@ If needed, developers can pass named arguments to the `f` function via a lambda 
 ```cangjie
 func f(a!: Int64): Unit {}
 
-var x = 1 |>  { x: Int64 => f(a: x) } // OK
+var x = 1 |> {x: Int64 => f(a: x)} // OK
 ```
 
 For the same reason, when `f` has default parameter values, using it directly with flow operators is also incorrect:
@@ -165,7 +174,7 @@ However, when all named parameters have default values, the function can be call
 ```cangjie
 func f(a: Int64, b!: Int64 = 2): Unit {}
 
-var a = 1 |> f  // OK
+var a = 1 |> f // OK
 ```
 
 Of course, if you want to pass other arguments to parameter `b` when calling `f`, you still need to use a lambda expression:
@@ -175,7 +184,7 @@ Of course, if you want to pass other arguments to parameter `b` when calling `f`
 ```cangjie
 func f(a: Int64, b!: Int64 = 2): Unit {}
 
-var a = 1 |> {x: Int64 => f(x,  b: 3)}  // OK
+var a = 1 |> {x: Int64 => f(x, b: 3)} // OK
 ```
 
 ## Variadic Parameters
@@ -216,7 +225,7 @@ func length(arr!: Array<Int64>) {
 }
 
 main() {
-    println(length())        // Error, expected 1 argument, found 0
+    println(length()) // Error, expected 1 argument, found 0
     println(length(1, 2, 3)) // Error, expected 1 argument, found 3
 }
 ```
@@ -228,8 +237,12 @@ Variadic parameters can appear in global functions, static member functions, ins
 ```cangjie
 class Counter {
     var total = 0
-    init(data: Array<Int64>) { total = data.size }
-    operator func ()(data: Array<Int64>) { total += data.size }
+    init(data: Array<Int64>) {
+        total = data.size
+    }
+    operator func ()(data: Array<Int64>) {
+        total += data.size
+    }
 }
 
 main() {
@@ -280,8 +293,13 @@ When the compiler cannot resolve the ambiguity, it will report an error:
 <!-- compile.error -->
 
 ```cangjie
-func f(arr: Array<Int64>) { arr.size }
-func f(first: Int64, arr: Array<Int64>) { first + arr.size }
+func f(arr: Array<Int64>) {
+    arr.size
+}
+
+func f(first: Int64, arr: Array<Int64>) {
+    first + arr.size
+}
 
 main() {
     println(f(1, 2, 3)) // Error

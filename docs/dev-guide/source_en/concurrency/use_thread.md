@@ -32,10 +32,11 @@ The following example demonstrates how to use `Future<T>` to wait for the newly 
 
 ```cangjie
 main(): Int64 {
-    let fut: Future<Unit> = spawn { =>
-        println("New thread before sleeping")
-        sleep(100 * Duration.millisecond) // sleep for 100ms.
-        println("New thread after sleeping")
+    let fut: Future<Unit> = spawn {
+        =>
+            println("New thread before sleeping")
+            sleep(100 * Duration.millisecond) // sleep for 100ms.
+            println("New thread after sleeping")
     }
 
     println("Main thread")
@@ -61,10 +62,11 @@ If `fut.get()` is moved before the main thread's print statement as shown below:
 
 ```cangjie
 main(): Int64 {
-    let fut: Future<Unit> = spawn { =>
-        println("New thread before sleeping")
-        sleep(100 * Duration.millisecond) // sleep for 100ms.
-        println("New thread after sleeping")
+    let fut: Future<Unit> = spawn {
+        =>
+            println("New thread before sleeping")
+            sleep(100 * Duration.millisecond) // sleep for 100ms.
+            println("New thread after sleeping")
     }
 
     fut.get() // wait for the thread to finish.

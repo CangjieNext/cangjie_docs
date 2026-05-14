@@ -89,6 +89,7 @@ Here are some error examples:
 ```cangjie
 // a.cj
 package a
+
 public class B { // Error, 'B' is conflicted with sub-package 'a.B'
     public static func f() {}
 }
@@ -111,6 +112,8 @@ public func f {}
 import a.B // ambiguous use of 'a.B'
 
 main() {
-    a.B.f()
+    a
+        .B
+        .f()
 }
 ```
