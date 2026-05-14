@@ -85,9 +85,9 @@ class B<T> {
 }
 
 main() {
-    let aInfo: TypeInfo = TypeInfo.get("default.A<Int64>")// Error,`default.A<Int64>` is not instantiated，will throw InfoNotFoundException
+    let aInfo: TypeInfo = TypeInfo.get("default.A<Int64>") // Error,`default.A<Int64>` is not instantiated，will throw InfoNotFoundException
     let b: B<Int64> = B<Int64>(1)
-    let bInfo: TypeInfo = TypeInfo.get("default.B<Int64>")// OK `default.B<Int64>` has been instantiated.
+    let bInfo: TypeInfo = TypeInfo.get("default.B<Int64>") // OK `default.B<Int64>` has been instantiated.
 }
 ```
 
@@ -105,7 +105,7 @@ public class Foo {
     public var param2 = 10
 }
 
-main(): Unit{
+main(): Unit {
     let obj = Foo()
     let info = TypeInfo.of(obj)
     let staticVarInfo = info.getStaticVariable("param1")
@@ -145,16 +145,22 @@ import std.reflect.*
 public class Foo {
     public let _p1: Int64 = 1
     public prop p1: Int64 {
-        get() { _p1 }
+        get() {
+            _p1
+        }
     }
     public var _p2: Int64 = 2
     public mut prop p2: Int64 {
-        get() { _p2 }
-        set(v) { _p2 = v }
+        get() {
+            _p2
+        }
+        set(v) {
+            _p2 = v
+        }
     }
 }
 
-main(): Unit{
+main(): Unit {
     let obj = Foo()
     let info = TypeInfo.of(obj)
     let instanceProps = info.instanceProperties.toArray()
