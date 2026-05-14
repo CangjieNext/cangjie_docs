@@ -20,11 +20,11 @@ Below are some examples of `Token` construction:
 ```cangjie
 import std.ast.*
 
-let tk1 = Token(TokenKind.ADD)   // '+' operator
-let tk2 = Token(TokenKind.FUNC)   // func keyword
-let tk3 = Token(TokenKind.IDENTIFIER, "x")   // x identifier
-let tk4 = Token(TokenKind.INTEGER_LITERAL, "3")  // integer literal
-let tk5 = Token(TokenKind.STRING_LITERAL, "xyz")  // string literal
+let tk1 = Token(TokenKind.ADD) // '+' operator
+let tk2 = Token(TokenKind.FUNC) // func keyword
+let tk3 = Token(TokenKind.IDENTIFIER, "x") // x identifier
+let tk4 = Token(TokenKind.INTEGER_LITERAL, "3") // integer literal
+let tk5 = Token(TokenKind.STRING_LITERAL, "xyz") // string literal
 ```
 
 ## Tokens Type
@@ -55,11 +55,14 @@ In the following example, constructors are used to directly create `Token` and `
 ```cangjie
 import std.ast.*
 
-let tks = Tokens([
-    Token(TokenKind.INTEGER_LITERAL, "1"),
-    Token(TokenKind.ADD),
-    Token(TokenKind.INTEGER_LITERAL, "2")
-])
+let tks = Tokens(
+    [
+        Token(TokenKind.INTEGER_LITERAL, "1"),
+        Token(TokenKind.ADD),
+        Token(TokenKind.INTEGER_LITERAL, "2")
+    ]
+)
+
 main() {
     println(tks)
     tks.dump()

@@ -44,7 +44,7 @@ func times2plus10(a: Int64) {
 }
 
 main() {
-  println(times2plus10(9))
+    println(times2plus10(9))
 }
 ```
 
@@ -64,9 +64,13 @@ main() {
 
 ```cangjie
 func foo(a: Int64) {
-    func id<T>(a: T): T { a }
+    func id<T>(a: T): T {
+        a
+    }
 
-    func double(a: Int64): Int64 { a + a }
+    func double(a: Int64): Int64 {
+        a + a
+    }
 
     return (id<Int64> ~> double)(a) == (double ~> id<Int64>)(a)
 }
@@ -201,7 +205,7 @@ class ToPair {
 }
 
 main() {
-    var res: ArrayList<Int64> = ArrayList([1,2,3,4])
+    var res: ArrayList<Int64> = ArrayList([1, 2, 3, 4])
     var a: (Int64, Int64) = ToPair.fromArray<Int64>(res)
 }
 ```

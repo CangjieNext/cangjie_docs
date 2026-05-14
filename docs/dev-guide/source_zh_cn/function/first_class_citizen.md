@@ -105,7 +105,7 @@ func returnAdd(): (Int64, Int64) -> Int64 {
 
 main() {
     var a = returnAdd()
-    println(a(1,2))
+    println(a(1, 2))
 }
 ```
 
@@ -139,7 +139,7 @@ func add(i: Float64, j: Float64) {
 }
 
 main() {
-    var f = add   // Error, ambiguous function 'add'
-    var plus: (Int64, Int64) -> Int64 = add  // OK
+    var f = add // Error, ambiguous function 'add'
+    var plus: (Int64, Int64) -> Int64 = add // OK
 }
 ```

@@ -54,7 +54,7 @@ func genericPrint<T>(a: T) where T <: ToString {
 }
 
 main() {
-    genericPrint<(Int64) -> Int64>({ i => 0 })
+    genericPrint<(Int64) -> Int64>({i => 0})
 }
 ```
 
@@ -90,7 +90,7 @@ class Zoo<T> where T <: Animal {
     }
 
     public func allAnimalRuns() {
-        for(a in animals) {
+        for (a in animals) {
             println(a.run())
         }
     }

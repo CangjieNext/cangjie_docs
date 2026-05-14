@@ -22,12 +22,13 @@ func getOrThrow(a: ?Int64) {
     <!-- verify -->
 
     ```cangjie
-    func getString(p: ?Int64): String{
+    func getString(p: ?Int64): String {
         match (p) {
             case Some(x) => "${x}"
             case None => "none"
         }
     }
+
     main() {
         let a = Some(1)
         let b: ?Int64 = None
@@ -82,18 +83,20 @@ func getOrThrow(a: ?Int64) {
     let r = R(100)
     let x = Some(r)
     let y = Option<R>.None
-    let r1 = x?.a   // r1 = Option<Int64>.Some(100)
-    let r2 = y?.a   // r2 = Option<Int64>.None
+    let r1 = x?.a // r1 = Option<Int64>.Some(100)
+    let r2 = y?.a // r2 = Option<Int64>.None
 
     class C {
         var item: Int64 = 100
     }
+
     let c = C()
     let c1 = Option<C>.Some(c)
     let c2 = Option<C>.None
+
     func test1() {
-        c1?.item = 200             // c.item = 200
-        c2?.item = 300             // no effect
+        c1?.item = 200 // c.item = 200
+        c2?.item = 300 // no effect
     }
     ```
 
@@ -115,7 +118,7 @@ func getOrThrow(a: ?Int64) {
         public var d: Int64 = 100
     }
 
-    main(){
+    main() {
         var a = Some(A())
         let a1 = a?.b.c?.d  // a1 = Option<Int64>.Some(100)
         let a2 = a?.b.c1?.d // a2 = Option<Int64>.None
