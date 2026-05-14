@@ -52,9 +52,9 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    let num1: Int64 = 8
-    let num2 = -num1 // num2 = -8, 其数据类型为“Int64”。
-    let num3 = -(-num1) // num3 = 8, 其数据类型为“Int64”。
+let num1: Int64 = 8
+let num2 = -num1 // num2 = -8, 其数据类型为“Int64”。
+let num3 = -(-num1) // num3 = 8, 其数据类型为“Int64”。
 ```
 
 对于二元操作符 `*`、`/`、`%`、`+` 和 `-`，要求两个操作数的类型相同。其中 `%` 的操作数只支持整数类型；`*`、`/`、`+` 和 `-` 的操作数可以是任意数值类型。
@@ -68,21 +68,21 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    let a = 2 + 3    // a = 5
-    let b = 3 - 1    // b = 2
-    let c = 3 * 4    // c = 12
-    let d = 7 / 3    // d = 2
-    let e = 7 / -3   // e = -2, 当遇到“-”时，它具有更高的优先级。
-    let f = -7 / 3   // f = -2
-    let g = -7 / -3  // g = 2, 当遇到“-”时，它具有更高的优先级。
-    let h = 4 % 3    // h = 1
-    let i = 4 % -3   // i = 1, 当遇到“-”时，它具有更高的优先级。
-    let j = -4 % 3   // j = -1
-    let k = -4 % -3  // k = -1, 当遇到“-”时，它具有更高的优先级。
+let a = 2 + 3 // a = 5
+let b = 3 - 1 // b = 2
+let c = 3 * 4 // c = 12
+let d = 7 / 3 // d = 2
+let e = 7 / -3 // e = -2, 当遇到“-”时，它具有更高的优先级。
+let f = -7 / 3 // f = -2
+let g = -7 / -3 // g = 2, 当遇到“-”时，它具有更高的优先级。
+let h = 4 % 3 // h = 1
+let i = 4 % -3 // i = 1, 当遇到“-”时，它具有更高的优先级。
+let j = -4 % 3 // j = -1
+let k = -4 % -3 // k = -1, 当遇到“-”时，它具有更高的优先级。
 
-    let s1 = "abc"
-    var s2 = "ABC"
-    let r1 = s1 + s2 // r1 = "abcABC"
+let s1 = "abc"
+var s2 = "ABC"
+let r1 = s1 + s2 // r1 = "abcABC"
 ```
 
 `**` 表示求幂运算（如 `x**y` 表示计算底数 x 的 y 次幂）。`**` 的左操作数只能为 Int64 类型或 Float64 类型。
@@ -95,12 +95,12 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    let p1 = 2 ** 3                  // p1 = 8
-    let p2 = 2 ** UInt64(3 ** 2)     // p2 = 512
-    let p3 = 2.0 ** 3                // p3 = 8.0
-    let p4 = 2.0 ** 3 ** 2           // p4 = 512.0
-    let p5 = 2.0 ** 3.0              // p5 = 8.0
-    let p6 = 2.0 ** 3.0 ** 2.0       // p6 = 512.0
+let p1 = 2 ** 3 // p1 = 8
+let p2 = 2 ** UInt64(3 ** 2) // p2 = 512
+let p3 = 2.0 ** 3 // p3 = 8.0
+let p4 = 2.0 ** 3 ** 2 // p4 = 512.0
+let p5 = 2.0 ** 3.0 // p5 = 8.0
+let p6 = 2.0 ** 3.0 ** 2.0 // p6 = 512.0
 ```
 
 ## 复合赋值操作符
@@ -110,14 +110,14 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    var a: Int64 = 10
-    a += 2   // a = 12
-    a -= 2   // a = 10
-    a **= 2  // a = 100
-    a *= 2   // a = 200
-    a /= 10  // a = 20
-    a %= 6   // a = 2
-    a <<= 2  // a = 8
+var a: Int64 = 10
+a += 2 // a = 12
+a -= 2 // a = 10
+a **= 2 // a = 100
+a *= 2 // a = 200
+a /= 10 // a = 20
+a %= 6 // a = 2
+a <<= 2 // a = 8
 ```
 
 对于复合赋值表达式求值时，总是先计算 `=` 左边的表达式的左值，然后根据这个左值取右值，然后将该右值与 `=` 右边的表达式做计算（若有短路规则会继续遵循短路规则），最后赋值。因为复合赋值表达式也是一个赋值表达式，所以复合赋值操作符也是非结合的。复合赋值表达式同样要求两个操作数的类型相同。
@@ -132,13 +132,13 @@ func foo(p: Point): Point {
 
 open class Point {
     var x: Int64 = 0
-    public init (a: Int64) {
+    public init(a: Int64) {
         x = a
     }
 }
 
 main() {
-    var a = Point(9)    // a.x == 9
+    var a = Point(9) // a.x == 9
     var b = 2
 
     foo(a).x += (b + b) // a.x == 23
@@ -158,10 +158,10 @@ main() {
 
 ```cangjie
 main(): Int64 {
-    3 < 4        // true
-    3 <= 3       // true
-    3 > 4        // false
-    3 >= 3       // true
+    3 < 4 // true
+    3 <= 3 // true
+    3 > 4 // false
+    3 >= 3 // true
     3.14 == 3.15 // false
     3.14 != 3.15 // true
     return 0
@@ -173,9 +173,9 @@ main(): Int64 {
 <!-- compile.error -->
 
 ```cangjie
-    var isTrue: Bool = (1, 3) == (0, 2) // false
-    isTrue = (1, "123") == (1.0, 2)      // 编译错误，两个操作数的类型不一致
-    isTrue = (1, _) == (1.0, _)          // 编译错误，通配符不可作为元组中元素进行匹配
+var isTrue: Bool = (1, 3) == (0, 2) // false
+isTrue = (1, "123") == (1.0, 2) // 编译错误，两个操作数的类型不一致
+isTrue = (1, _) == (1.0, _) // 编译错误，通配符不可作为元组中元素进行匹配
 ```
 
 ## coalescing 操作符
@@ -213,9 +213,9 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    var a: Bool = true     // a = true
-    var b: Bool = !a       // b = false
-    var c: Bool = !false   // c = true
+var a: Bool = true // a = true
+var b: Bool = !a // b = false
+var c: Bool = !false // c = true
 ```
 
 逻辑与（`&&`）和逻辑或（`||`）均是二元操作符。对于表达式 `expr1 && expr2`，只有当 `expr1` 和 `expr2` 的值均等于 `true` 时，它的值才等于 `true`；对于表达式 `expr1 || expr2`，只有当 `expr1` 和 `expr2` 的值均等于 `false` 时，它的值才等于 `false`。
@@ -223,15 +223,15 @@ main(): Int64 {
 <!-- compile -->
 
 ```cangjie
-    var a: Bool = true && true    // a = true
-    var b: Bool = true && false   // b = false
-    var c: Bool = false && false  // c = false
-    var d: Bool = false && true   // d = false
+var a: Bool = true && true // a = true
+var b: Bool = true && false // b = false
+var c: Bool = false && false // c = false
+var d: Bool = false && true // d = false
 
-    a = true || true              // a = true
-    b = true || false             // b = true
-    c = false || false            // c = false
-    d = false || true             // d = true
+a = true || true // a = true
+b = true || false // b = true
+c = false || false // c = false
+d = false || true // d = true
 ```
 
 逻辑与（`&&`）和逻辑或（`||`）采用短路求值策略：计算 `expr1 && expr2` 时，当 `expr1=false` 则无需对 `expr2` 求值，整个表达式的值为 `false`；计算 `expr1 || expr2` 时，当 `expr1=true` 则无需对 `expr2` 求值，整个表达式的值为 `true`。
@@ -240,21 +240,20 @@ main(): Int64 {
 
 ```cangjie
 func isEven(a: Int64): Bool {
-    if((a % 2) == 0) {
-         println("${a} is an even number")
-         true
+    if ((a % 2) == 0) {
+        println("${a} is an even number")
+        true
     } else {
         println("${a} is not an even number")
         false
     }
 }
 
-
 main() {
     var a: Bool = isEven(2) && isEven(20)
     var b: Bool = isEven(3) && isEven(30) // isEven(3)返回值是false, b 值为false，无需对isEven(30)求值
 
-    a = isEven(4) || isEven(40)  // isEven(4)返回值是true, a 值为true，无需对isEven(40)求值
+    a = isEven(4) || isEven(40) // isEven(4)返回值是true, a 值为true，无需对isEven(40)求值
     b = isEven(5) || isEven(50)
 }
 ```
@@ -274,17 +273,17 @@ main() {
 <!-- compile -->
 
 ```cangjie
-    var a = !10                 // -11，符合移位和补齐规则
-    a = !20                     // -21，符合移位和补齐规则
-    a = 10 << 1                 // 20，符合移位和补齐规则
-    // a = 1000 << -1           // 编译报错，移位操作溢出（右操作数都不允许为负数）
-    // a = 1000 << 100000000000 // 编译报错，移位操作溢出（移位越界）
-    a = 10 << 1 << 1            // 40，符合移位和补齐规则
-    a = 10 >> 1                 // 5，符合移位和补齐规则
-    a = 10 & 15                 // 10
-    a = 10 ^ 15                 // 5
-    a = 10 | 15                 // 15
-    a = (1 ^ (8 & 15)) | 24     // 25
+var a = !10 // -11，符合移位和补齐规则
+a = !20 // -21，符合移位和补齐规则
+a = 10 << 1 // 20，符合移位和补齐规则
+// a = 1000 << -1 // 编译报错，移位操作溢出（右操作数都不允许为负数）
+// a = 1000 << 100000000000 // 编译报错，移位操作溢出（移位越界）
+a = 10 << 1 << 1 // 40，符合移位和补齐规则
+a = 10 >> 1 // 5，符合移位和补齐规则
+a = 10 & 15 // 10
+a = 10 ^ 15 // 5
+a = 10 | 15 // 15
+a = (1 ^ (8 & 15)) | 24 // 25
 ```
 
 ## 自增自减操作符
@@ -302,10 +301,10 @@ main() {
 <!-- compile.error -->
 
 ```cangjie
-    var i: Int32 = 5
-    i++              // i = 6
-    i--              // i = 5
-    i--++            // 语法错误
-    var j = 0
-    j = i--          // 语义错误
+var i: Int32 = 5
+i++ // i = 6
+i-- // i = 5
+i--++ // 语法错误
+var j = 0
+j = i-- // 语义错误
 ```

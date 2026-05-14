@@ -27,6 +27,7 @@ Macro definitions are placed in the _macros_ subdirectory:
 // macros/m.cj
 // In this file, we define the macro Inner, Outer.
 macro package define
+
 import std.ast.*
 
 public macro Inner(input: Tokens) {
@@ -36,7 +37,6 @@ public macro Inner(input: Tokens) {
 public macro Outer(input: Tokens) {
     return input
 }
-
 ```
 
 Macro calls are placed in the _src_ subdirectory:
@@ -46,10 +46,13 @@ Macro calls are placed in the _src_ subdirectory:
 ```cangjie
 // src/demo.cj
 import define.*
+
 @Outer
 class Demo {
-    @Inner var state = 1
-    @Inner var cnt = 42
+    @Inner
+    var state = 1
+    @Inner
+    var cnt = 42
 }
 
 main() {
@@ -103,6 +106,7 @@ The `--parallel-macro-expansion` option can be added when compiling macro-callin
 
 ```cangjie
 macro package define
+
 import std.ast.*
 import std.collection.HashMap
 
@@ -168,9 +172,8 @@ import std.ast.*
 public macro testDef(input: Tokens): Tokens {
     for (i in 0..input.size) {
         if (input[i].kind == IDENTIFIER) {
-            diagReport(DiagReportLevel.ERROR, input[i..(i + 1)],
-                       "This expression is not allowed to contain identifier",
-                       "Here is the illegal identifier")
+            diagReport(DiagReportLevel.ERROR, input[i..(i + 1)], "This expression is not allowed to contain identifier",
+                "Here is the illegal identifier")
         }
     }
     return input
@@ -249,7 +252,6 @@ public macro Outer(input: Tokens): Tokens {
     let decl = (parseDecl(input) as ClassDecl).getOrThrow()
     decl.body.decls.add(funcDecl)
     return decl.toTokens()
-
 }
 
 public macro Inner(input: Tokens): Tokens {
@@ -270,8 +272,10 @@ import define.*
 
 @Outer
 class Demo {
-    @Inner var state = 1
-    @Inner var cnt = 42
+    @Inner
+    var state = 1
+    @Inner
+    var cnt = 42
 }
 
 main(): Int64 {
@@ -279,7 +283,6 @@ main(): Int64 {
     println("${d.getCnt()}")
     return 0
 }
-
 ```
 
 When compiling the file that uses macros, add the `--debug-macro` option to enable Cangjie macro's debug mode.

@@ -5,9 +5,9 @@ Instantiated generic types also have subtyping relationships. For example:
 <!-- compile -->
 
 ```cangjie
-interface I<X, Y> { }
+interface I<X, Y> {}
 
-class C<Z> <: I<Z, Z> { }
+class C<Z> <: I<Z, Z> {}
 ```
 
 Based on `class C<Z> <: I<Z, Z> { }`, we know that `C<Bool> <: I<Bool, Bool>` and `C<D> <: I<D, D>` hold, among others. This can be interpreted as "For all types `Z` without type variables, `C<Z> <: I<Z, Z>` holds."
@@ -17,10 +17,11 @@ However, for the following code:
 <!-- compile -->
 
 ```cangjie
-open class C { }
-class D <: C { }
+open class C {}
 
-interface I<X> { }
+class D <: C {}
+
+interface I<X> {}
 ```
 
 `I<D> <: I<C>` does not hold (even though `D <: C` holds). This is because in the Cangjie language, user-defined type constructors are **invariant** at their type parameters.

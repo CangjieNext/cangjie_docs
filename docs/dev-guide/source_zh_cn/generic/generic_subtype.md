@@ -5,9 +5,9 @@
 <!-- compile -->
 
 ```cangjie
-interface I<X, Y> { }
+interface I<X, Y> {}
 
-class C<Z> <: I<Z, Z> { }
+class C<Z> <: I<Z, Z> {}
 ```
 
 根据 `class C<Z> <: I<Z, Z> { }`，便知 `C<Bool> <: I<Bool, Bool>` 以及 `C<D> <: I<D, D>` 等。这可以解读为“对于所有的不含类型变元的 `Z` 类型，都有 `C<Z> <: I<Z, Z>` 成立”。
@@ -17,10 +17,11 @@ class C<Z> <: I<Z, Z> { }
 <!-- compile -->
 
 ```cangjie
-open class C { }
-class D <: C { }
+open class C {}
 
-interface I<X> { }
+class D <: C {}
+
+interface I<X> {}
 ```
 
 `I<D> <: I<C>` 是不成立的（即使 `D <: C` 成立），这是因为在仓颉语言中，用户定义的类型构造器在其类型参数处是**不型变**的。

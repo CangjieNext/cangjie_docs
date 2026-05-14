@@ -52,9 +52,9 @@ The operand of the unary minus (`-`) can only be a numeric-type expression. The 
 <!-- compile -->
 
 ```cangjie
-    let num1: Int64 = 8
-    let num2 = -num1 // num2 = -8, its data type is "Int64".
-    let num3 = -(-num1) // num3 = 8, its data type is "Int64".
+let num1: Int64 = 8
+let num2 = -num1 // num2 = -8, its data type is "Int64".
+let num3 = -(-num1) // num3 = 8, its data type is "Int64".
 ```
 
 For the binary operators `*`, `/`, `%`, `+`, and `-`, the types of the two operands must be the same. The `%` operator only supports integer operands; `*`, `/`, `+`, and `-` can operate on any numeric type.
@@ -68,21 +68,21 @@ For the binary operators `*`, `/`, `%`, `+`, and `-`, the types of the two opera
 <!-- compile -->
 
 ```cangjie
-    let a = 2 + 3    // a = 5
-    let b = 3 - 1    // b = 2
-    let c = 3 * 4    // c = 12
-    let d = 7 / 3    // d = 2
-    let e = 7 / -3   // e = -2, when encountering "-", it has higher precedence.
-    let f = -7 / 3   // f = -2
-    let g = -7 / -3  // g = 2, when encountering "-", it has higher precedence.
-    let h = 4 % 3    // h = 1
-    let i = 4 % -3   // i = 1, when encountering "-", it has higher precedence.
-    let j = -4 % 3   // j = -1
-    let k = -4 % -3  // k = -1, when encountering "-", it has higher precedence.
+let a = 2 + 3 // a = 5
+let b = 3 - 1 // b = 2
+let c = 3 * 4 // c = 12
+let d = 7 / 3 // d = 2
+let e = 7 / -3 // e = -2, when encountering "-", it has higher precedence.
+let f = -7 / 3 // f = -2
+let g = -7 / -3 // g = 2, when encountering "-", it has higher precedence.
+let h = 4 % 3 // h = 1
+let i = 4 % -3 // i = 1, when encountering "-", it has higher precedence.
+let j = -4 % 3 // j = -1
+let k = -4 % -3 // k = -1, when encountering "-", it has higher precedence.
 
-    let s1 = "abc"
-    var s2 = "ABC"
-    let r1 = s1 + s2 // r1 = "abcABC"
+let s1 = "abc"
+var s2 = "ABC"
+let r1 = s1 + s2 // r1 = "abcABC"
 ```
 
 `**` represents exponentiation (e.g., `x**y` calculates the base x raised to the power of y). The left operand of `**` can only be of type Int64 or Float64.
@@ -95,12 +95,12 @@ For the binary operators `*`, `/`, `%`, `+`, and `-`, the types of the two opera
 <!-- compile -->
 
 ```cangjie
-    let p1 = 2 ** 3                  // p1 = 8
-    let p2 = 2 ** UInt64(3 ** 2)     // p2 = 512
-    let p3 = 2.0 ** 3                // p3 = 8.0
-    let p4 = 2.0 ** 3 ** 2           // p4 = 512.0
-    let p5 = 2.0 ** 3.0              // p5 = 8.0
-    let p6 = 2.0 ** 3.0 ** 2.0       // p6 = 512.0
+let p1 = 2 ** 3 // p1 = 8
+let p2 = 2 ** UInt64(3 ** 2) // p2 = 512
+let p3 = 2.0 ** 3 // p3 = 8.0
+let p4 = 2.0 ** 3 ** 2 // p4 = 512.0
+let p5 = 2.0 ** 3.0 // p5 = 8.0
+let p6 = 2.0 ** 3.0 ** 2.0 // p6 = 512.0
 ```
 
 ## Compound Assignment Operators
@@ -110,14 +110,14 @@ The Cangjie programming language also provides compound assignment operators: `*
 <!-- compile -->
 
 ```cangjie
-    var a: Int64 = 10
-    a += 2   // a = 12
-    a -= 2   // a = 10
-    a **= 2  // a = 100
-    a *= 2   // a = 200
-    a /= 10  // a = 20
-    a %= 6   // a = 2
-    a <<= 2  // a = 8
+var a: Int64 = 10
+a += 2 // a = 12
+a -= 2 // a = 10
+a **= 2 // a = 100
+a *= 2 // a = 200
+a /= 10 // a = 20
+a %= 6 // a = 2
+a <<= 2 // a = 8
 ```
 
 When evaluating a compound assignment expression, the lvalue of the left expression is always evaluated first, then the rvalue is taken from this lvalue, and this rvalue is computed with the right expression (short-circuit rules are followed if applicable), and finally, the assignment is performed. Since a compound assignment expression is also an assignment expression, compound assignment operators are non-associative. Compound assignment expressions also require the two operands to be of the same type.
@@ -132,13 +132,13 @@ func foo(p: Point): Point {
 
 open class Point {
     var x: Int64 = 0
-    public init (a: Int64) {
+    public init(a: Int64) {
         x = a
     }
 }
 
 main() {
-    var a = Point(9)    // a.x == 9
+    var a = Point(9) // a.x == 9
     var b = 2
 
     foo(a).x += (b + b) // a.x == 23
@@ -158,10 +158,10 @@ Examples of relational expressions:
 
 ```cangjie
 main(): Int64 {
-    3 < 4        // true
-    3 <= 3       // true
-    3 > 4        // false
-    3 >= 3       // true
+    3 < 4 // true
+    3 <= 3 // true
+    3 > 4 // false
+    3 >= 3 // true
     3.14 == 3.15 // false
     3.14 != 3.15 // true
     return 0
@@ -173,9 +173,9 @@ For tuple types, a tuple type supports equality (`==`) and inequality (`!=`) ope
 <!-- compile.error -->
 
 ```cangjie
-    var isTrue: Bool = (1, 3) == (0, 2) // false
-    isTrue = (1, "123") == (1.0, 2)      // Compilation error: the types of the two operands are inconsistent
-    isTrue = (1, _) == (1.0, _)          // Compilation error: wildcards cannot be used as tuple elements for matching
+var isTrue: Bool = (1, 3) == (0, 2) // false
+isTrue = (1, "123") == (1.0, 2)      // Compilation error: the types of the two operands are inconsistent
+isTrue = (1, _) == (1.0, _)          // Compilation error: wildcards cannot be used as tuple elements for matching
 ```
 
 ## Coalescing Operator
@@ -213,9 +213,9 @@ Logical NOT (`!`) is a unary operator that negates the Boolean value of its oper
 <!-- compile -->
 
 ```cangjie
-    var a: Bool = true     // a = true
-    var b: Bool = !a       // b = false
-    var c: Bool = !false   // c = true
+var a: Bool = true // a = true
+var b: Bool = !a // b = false
+var c: Bool = !false // c = true
 ```
 
 Logical AND (`&&`) and logical OR (`||`) are both binary operators. For the expression `expr1 && expr2`, its value is `true` only if both `expr1` and `expr2` are `true`; for the expression `expr1 || expr2`, its value is `false` only if both `expr1` and `expr2` are `false`.
@@ -223,15 +223,15 @@ Logical AND (`&&`) and logical OR (`||`) are both binary operators. For the expr
 <!-- compile -->
 
 ```cangjie
-    var a: Bool = true && true    // a = true
-    var b: Bool = true && false   // b = false
-    var c: Bool = false && false  // c = false
-    var d: Bool = false && true   // d = false
+var a: Bool = true && true // a = true
+var b: Bool = true && false // b = false
+var c: Bool = false && false // c = false
+var d: Bool = false && true // d = false
 
-    a = true || true              // a = true
-    b = true || false             // b = true
-    c = false || false            // c = false
-    d = false || true             // d = true
+a = true || true // a = true
+b = true || false // b = true
+c = false || false // c = false
+d = false || true // d = true
 ```
 
 Logical AND (`&&`) and logical OR (`||`) use short-circuit evaluation: when evaluating `expr1 && expr2`, if `expr1=false`, `expr2` is not evaluated, and the entire expression's value is `false`; when evaluating `expr1 || expr2`, if `expr1=true`, `expr2` is not evaluated, and the entire expression's value is `true`.
@@ -240,21 +240,20 @@ Logical AND (`&&`) and logical OR (`||`) use short-circuit evaluation: when eval
 
 ```cangjie
 func isEven(a: Int64): Bool {
-    if((a % 2) == 0) {
-         println("${a} is an even number")
-         true
+    if ((a % 2) == 0) {
+        println("${a} is an even number")
+        true
     } else {
         println("${a} is not an even number")
         false
     }
 }
 
-
 main() {
     var a: Bool = isEven(2) && isEven(20)
     var b: Bool = isEven(3) && isEven(30) // isEven(3) returns false, b is false, isEven(30) is not evaluated
 
-    a = isEven(4) || isEven(40)  // isEven(4) returns true, a is true, isEven(40) is not evaluated
+    a = isEven(4) || isEven(40) // isEven(4) returns true, a is true, isEven(40) is not evaluated
     b = isEven(5) || isEven(50)
 }
 ```
@@ -274,17 +273,17 @@ Moreover, if the number of bits to shift (right operand) is equal to or exceeds 
 <!-- compile -->
 
 ```cangjie
-    var a = !10                 // -11, conforms to shift and padding rules
-    a = !20                     // -21, conforms to shift and padding rules
-    a = 10 << 1                 // 20, conforms to shift and padding rules
-    // a = 1000 << -1           // Compilation error: shift operation overflow (right operand cannot be negative)
-    // a = 1000 << 100000000000 // Compilation error: shift operation overflow (shift out of bounds)
-    a = 10 << 1 << 1            // 40, conforms to shift and padding rules
-    a = 10 >> 1                 // 5, conforms to shift and padding rules
-    a = 10 & 15                 // 10
-    a = 10 ^ 15                 // 5
-    a = 10 | 15                 // 15
-    a = (1 ^ (8 & 15)) | 24     // 25
+var a = !10 // -11, conforms to shift and padding rules
+a = !20 // -21, conforms to shift and padding rules
+a = 10 << 1 // 20, conforms to shift and padding rules
+// a = 1000 << -1 // Compilation error: shift operation overflow (right operand cannot be negative)
+// a = 1000 << 100000000000 // Compilation error: shift operation overflow (shift out of bounds)
+a = 10 << 1 << 1 // 40, conforms to shift and padding rules
+a = 10 >> 1 // 5, conforms to shift and padding rules
+a = 10 & 15 // 10
+a = 10 ^ 15 // 5
+a = 10 | 15 // 15
+a = (1 ^ (8 & 15)) | 24 // 25
 ```
 
 ## Increment and Decrement Operators
@@ -302,10 +301,10 @@ Examples of increment and decrement expressions:
 <!-- compile.error -->
 
 ```cangjie
-    var i: Int32 = 5
-    i++              // i = 6
-    i--              // i = 5
-    i--++            // Syntax error
-    var j = 0
-    j = i--          // Semantic error
+var i: Int32 = 5
+i++ // i = 6
+i-- // i = 5
+i--++ // Syntax error
+var j = 0
+j = i-- // Semantic error
 ```

@@ -82,12 +82,16 @@ main() {
 ```cangjie
 interface I {
     const func f(): Int64
-    const static func f2(): Int64
+    static const func f2(): Int64
 }
 
 class A <: I {
-    public const func f() { 0 }
-    public const static func f2() { 1 }
+    public const func f() {
+        0
+    }
+    public static const func f2() {
+        1
+    }
     const init() {}
 }
 
@@ -127,7 +131,7 @@ main() {
     <!-- compile.error -->
 
     ```cangjie
-    open public class Boo {
+    public open class Boo {
         let boo: String
         const init(b: String) {
             this.boo = b
