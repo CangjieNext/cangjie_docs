@@ -16,7 +16,7 @@ These compilation tags can be used within any expression as long as they comply 
 
 ```cangjie
 func test1() {
-    let s: String = @sourceFile()  // The value of `s` is the current source file name
+    let s: String = @sourceFile() // The value of `s` is the current source file name
 }
 
 func test2(n!: Int64 = @sourceLine()) { /* at line 5 */
@@ -64,7 +64,7 @@ foreign func foo(): CPointer<Int32>
 foreign func printf(fmt: CPointer<Int32>, ...): Int32
 
 main(): Int32 {
-    unsafe{
+    unsafe {
         let str = foo()
         printf(str)
     }
@@ -121,8 +121,10 @@ public class testClass {
 Cangjie internally provides the `@Attribute` tag, allowing developers to set attribute values for declarations using the built-in `@Attribute` to mark them. Attribute values can be either `identifier` or `string` types. Below is a simple example where the variable `cnt` is given an `identifier`-type attribute `State`, and the variable `bcnt` is given a `string`-type attribute `"Binding"`.
 
 ```cangjie
-@Attribute[State] var cnt = 0       // identifier
-@Attribute["Binding"] var bcnt = 0  // string
+@Attribute[State]
+var cnt = 0 // identifier
+@Attribute[Binding]
+var bcnt = 0 // string
 ```
 
 Additionally, the standard library `std.ast` package provides the `getAttrs()` method to retrieve a node's attributes and the `hasAttr(attrs: String)` method to check whether a node has a specific attribute. Here is a concrete example.

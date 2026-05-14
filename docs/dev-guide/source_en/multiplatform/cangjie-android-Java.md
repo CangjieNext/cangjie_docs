@@ -100,7 +100,7 @@ import java.lang.*
 
 @JavaMirror["com.example.a.A"]
 open class A {
-    public init(arg0: ?JString)
+    public init(arg0: ?JString) 
     protected func getId(): Int32
     public open func getName(): ?JString
 }
@@ -601,9 +601,9 @@ Supports calling constructors of JavaMirror classes within JavaImpl classes.
 ```cangjie
 @JavaMirror
 public class Mirror {
-    public init()
-    public init(other: Mirror)
-    public init(other: ?Mirror, deepCopy: Bool)
+    public init() 
+    public init(other: Mirror) 
+    public init(other: ?Mirror, deepCopy: Bool) 
 }
 
 // usage:
@@ -720,7 +720,7 @@ package cj.com
 
 @JavaMirror["java.com.AbstractMirror"]
 abstract class AbstractMirror {
-    init()
+    init() 
     public static func staticFunc(): Unit
     protected open abstract func abstractFunc(): Unit
     public open func instanceFunc(): Unit
@@ -728,7 +728,7 @@ abstract class AbstractMirror {
 
 @JavaMirror["java.com.ImplAbstractMirror"]
 open class ImplAbstractMirror <: AbstractMirror {
-    init()
+    init() 
     public func abstractFunc(): Unit
     public func id(x: AbstractMirror): AbstractMirror
     public func idImpl(x: ImplAbstractMirror): AbstractMirror
@@ -875,7 +875,7 @@ import java.lang.JArray
 
 @JavaMirror["com.java.lib.JImpl"]
 open class JImpl <: JObject {
-    public init()
+    public init() 
     public func takeArr(arr: JArray<Int64>): Unit
     public func getArr(): JArray<Int64>
     public func takeArr2(arr: JArray<JImpl>): Unit
@@ -897,7 +897,9 @@ public class Impl <: JImpl {
         arr0[1] = -9.554
         println("cangjie: 5th of F64 array - " + arr0[4].toString())
         println("cangjie: 2nd of F64 array - " + arr0[1].toString())
-        println("cangjie: length of F64 array - " + arr0.length.toString())
+        println("cangjie: length of F64 array - " + arr0
+            .length
+            .toString())
 
         let arr1 = JArray<JImpl>(9)
         arr1[1] = JImpl()
@@ -919,7 +921,9 @@ public class Impl <: JImpl {
         takeArr2(arr3)
 
         let arr4 = this.foo()
-        println("cangjie: length of I64 array - " + arr4.length.toString())
+        println("cangjie: length of I64 array - " + arr4
+            .length
+            .toString())
     }
 }
 ```
@@ -977,7 +981,6 @@ public class Handler {
 @JavaImpl
 public class Presenter <: JObject {
     public init(log: Bool) {
-
     }
 
     public func doLogics() {
@@ -1095,13 +1098,13 @@ func foo(b: B) {
     println((b as A).isSome())
 
     match (b) {
-        case b : A => println("A")
+        case b: A => println("A")
         case _ => ()
     }
 
     let c = Some(b)
     match (c) {
-        case Some(b : A) => println("A")
+        case Some(b: A) => println("A")
         case _ => ()
     }
 }
@@ -1182,15 +1185,15 @@ public struct Vector {
     }
 
     public func dot(v: Vector): Int64 {
-        let res: Int64 = Int64(x * v.x  + y * v.y)
+        let res: Int64 = Int64(x * v.x + y * v.y)
         print("cj: Hello from dot (${x}, ${y}) . (${v.x}, ${v.y}) = ${res}\n", flush: true)
         return res;
     }
 
     public func add(v: Vector): Vector {
-       let res = Vector(x + v.x, y + v.y)
-       print("cj: Hello from add (${x}, ${y}) + (${v.x}, ${v.y}), new Vector = (${res.x}, ${res.y})\n", flush: true)
-       return res
+        let res = Vector(x + v.x, y + v.y)
+        print("cj: Hello from add (${x}, ${y}) + (${v.x}, ${v.y}), new Vector = (${res.x}, ${res.y})\n", flush: true)
+        return res
     }
 
     public static func hello(v: Vector): Unit {

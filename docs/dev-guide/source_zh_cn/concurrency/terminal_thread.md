@@ -21,7 +21,7 @@ main(): Unit {
         }
         println("hello")
     }
-    fut.cancel()    // Send cancellation request
+    fut.cancel() // Send cancellation request
     syncCounter.dec()
     fut.get() // Join thread
 }
