@@ -28,8 +28,11 @@ open class Node<K, V> where K <: Hashable & Equatable<K> {
 
 ```cangjie
 class A<T> {}
+
 class B<T> {
-    static func foo() {1}
+    static func foo() {
+        1
+    }
     static var err1: A<T> = A<T>() // Error, static member cannot depend on generic parameter 'Generics-T'
     static prop err2: A<T> { // Error, static member cannot depend on generic parameter 'Generics-T'
         get() {

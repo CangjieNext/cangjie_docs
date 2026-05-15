@@ -21,7 +21,7 @@ class List<T> {
     var tail: Option<List<T>> = None
 }
 
-func sumInt(a: List<Int64>) {  }
+func sumInt(a: List<Int64>) {}
 ```
 
 Here, `T` in `List<T>` is called a type parameter. The reference to `T` in `elem: Option<T>` is called a type variable, and similarly, `T` in `tail: Option<List<T>>` is also a type variable. In the parameter of the function `sumInt`, `Int64` in `List<Int64>` is called the type argument for `List`. `List` is the type constructor, and `List<Int64>` constructs a list type for `Int64` using the type argument `Int64`.

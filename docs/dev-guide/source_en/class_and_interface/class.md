@@ -75,6 +75,7 @@ class Rectangle {
         height = h
     }
 }
+
 let rec = Rectangle(20)
 let l = rec.height // l = 20
 ```
@@ -284,18 +285,18 @@ There are some restrictions on using finalizers that developers should note:
     import std.runtime.gc
 
     class Test {
-        public static var t0 : Int32 = 0
-        public init () {
+        public static var t0: Int32 = 0
+        public init() {
             t0++
         }
-        ~init () {
+        ~init() {
             t0--
         }
     }
 
     var list: ArrayList<Test> = ArrayList<Test>()
 
-    func foo() : Int32 {
+    func foo(): Int32 {
         let o1 = Test()
         list.add(o1)
         if (Test.t0 != 1) {
@@ -306,15 +307,16 @@ There are some restrictions on using finalizers that developers should note:
     }
 
     main(): Int64 {
-        var i : Int64 = 0
+        var i: Int64 = 0
         while (i < 100) {
             if (foo() != 0) {
                 print("fail: obj is freed before gc!")
                 return 1
             }
             gc(heavy: true) // blocking gc expected
+
             // wait ~init() to be executed
-            while (Test.t0 != 0) {  // error, this is undefined behavior
+            while (Test.t0 != 0) { // error, this is undefined behavior
                 continue
             }
             i++
@@ -395,9 +397,9 @@ public open class Rectangle {
 
 func samePkgFunc() {
     var r = Rectangle(10, 20) // OK: constructor 'Rectangle' can be accessed here
-    r.width = 8               // OK: public 'width' can be accessed here
-    r.height = 24             // OK: protected 'height' can be accessed here
-    r.area = 30               // Error, private 'area' cannot be accessed here
+    r.width = 8 // OK: public 'width' can be accessed here
+    r.height = 24 // OK: protected 'height' can be accessed here
+    r.area = 30 // Error, private 'area' cannot be accessed here
 }
 ```
 
@@ -405,6 +407,7 @@ func samePkgFunc() {
 
 ```cangjie
 package b
+
 import a.*
 
 public class Cuboid <: Rectangle {
@@ -421,9 +424,9 @@ public class Cuboid <: Rectangle {
 main() {
     var r = Rectangle(10, 20, 2) // Error, Rectangle has no `public` constructor with three parameters
     var c = Cuboid(20, 20, 20)
-    c.width = 8               // OK: public 'width' can be accessed here
-    c.height = 24             // Error, protected 'height' cannot be accessed here
-    c.area = 30               // Error, private 'area' cannot be accessed here
+    c.width = 8 // OK: public 'width' can be accessed here
+    c.height = 24 // Error, protected 'height' cannot be accessed here
+    c.area = 30 // Error, private 'area' cannot be accessed here
 }
 ```
 
@@ -437,7 +440,7 @@ If an instance member function does not declare a return type and only contains 
 
 ```cangjie
 open class C1 {
-    func f(): This {  // its type is `() -> C1`
+    func f(): This { // its type is `() -> C1`
         return this
     }
 
@@ -449,6 +452,7 @@ open class C1 {
         return this
     }
 }
+
 class C2 <: C1 {
     // member function f is inherited from C1, and its type is `() -> C2` now
     public override func f3(): This { // OK
@@ -460,8 +464,8 @@ main() {
     var obj1: C2 = C2()
     var obj2: C1 = C2()
 
-    var x = obj1.f()    // During compilation, the type of x is C2
-    var y = obj2.f()    // During compilation, the type of y is C1
+    var x = obj1.f() // During compilation, the type of x is C2
+    var y = obj2.f() // During compilation, the type of y is C1
 }
 ```
 
@@ -488,9 +492,9 @@ class Rectangle {
 
 main() {
     let r = Rectangle(10, 20) // r.width = 10, r.height = 20
-    let width = r.width       // width = 10
-    let height = r.height     // height = 20
-    let a = r.area()          // a = 200
+    let width = r.width // width = 10
+    let height = r.height // height = 20
+    let a = r.area() // a = 200
 }
 ```
 
@@ -500,8 +504,8 @@ If you wish to modify member variable values through objects (not recommended; i
 
 ```cangjie
 class Rectangle {
-   public var width: Int64
-   public var height: Int64
+    public var width: Int64
+    public var height: Int64
 
     public init(width: Int64, height: Int64) {
         this.width = width
@@ -514,9 +518,9 @@ class Rectangle {
 
 main() {
     let r = Rectangle(10, 20) // r.width = 10, r.height = 20
-    r.width = 8               // r.width = 8
-    r.height = 24             // r.height = 24
-    let a = r.area()          // a = 192
+    r.width = 8 // r.width = 8
+    r.height = 24 // r.height = 24
+    let a = r.area() // a = 192
 }
 ```
 
@@ -533,17 +537,18 @@ class Rectangle {
         this.width = width
         this.height = height
     }
-     public func area() {
+    public func area() {
         this.width * this.height
     }
 }
+
 main() {
     var r1 = Rectangle(10, 20) // r1.width = 10, r1.height = 20
-    var r2 = r1                // r2.width = 10, r2.height = 20
-    r1.width = 8               // r1.width = 8
-    r1.height = 24             // r1.height = 24
-    let a1 = r1.area()         // a1 = 192
-    let a2 = r2.area()         // a2 = 192
+    var r2 = r1 // r2.width = 10, r2.height = 20
+    r1.width = 8 // r1.width = 8
+    r1.height = 24 // r1.height = 24
+    let a1 = r1.area() // a1 = 192
+    let a2 = r2.area() // a2 = 192
 }
 ```
 
@@ -599,6 +604,7 @@ Because child classes inherit from parent classes, child class objects can natur
 open class A {
     let a: Int64 = 10
 }
+
 class B <: A {
     let b: Int64 = 20
 }
@@ -635,24 +641,32 @@ Abstract classes can use the `sealed` modifier, indicating that the modified cla
 ```cangjie
 package A
 
-public sealed abstract class C1 {}   // Warning, redundant modifier, 'sealed' implies 'public'
-sealed open abstract class C2 {}     // Warning, redundant modifier, 'sealed' implies 'open'
-sealed abstract class C3 {}          // OK, 'public' is optional when 'sealed' is used
+public sealed abstract class C1 {} // Warning, redundant modifier, 'sealed' implies 'public'
 
-class S1 <: C1 {}  // OK
-public open class S2 <: C1 {}   // OK
-public sealed abstract class S3 <: C1 {}  // OK
-open class S4 <: C1 {}   // OK
+sealed open abstract class C2 {} // Warning, redundant modifier, 'sealed' implies 'open'
+
+sealed abstract class C3 {} // OK, 'public' is optional when 'sealed' is used
+
+class S1 <: C1 {} // OK
+
+public open class S2 <: C1 {} // OK
+
+public sealed abstract class S3 <: C1 {} // OK
+
+open class S4 <: C1 {} // OK
 ```
 
 <!-- compile.error -->
 
 ```cangjie
 package B
+
 import A.*
 
-class SS1 <: S2 {}  // OK
-class SS2 <: S3 {}  // Error, S3 is sealed class, cannot be inherited here
+class SS1 <: S2 {} // OK
+
+class SS2 <: S3 {} // Error, S3 is sealed class, cannot be inherited here
+
 sealed class SS3 {} // Error, 'sealed' cannot be used on non-abstract class
 ```
 
@@ -704,7 +718,7 @@ open class B <: A {
 
 open class C <: B {
     let c: Int64
-    init(c: Int64) {  // Error, there is no non-parameter constructor in super class
+    init(c: Int64) { // Error, there is no non-parameter constructor in super class
         this.c = c
     }
 }
@@ -756,7 +770,7 @@ open class C {
 }
 
 class D <: C {
-    public redef static func foo(): Unit {
+    public static redef func foo(): Unit {
         println("I am class D")
     }
 }
@@ -809,7 +823,9 @@ It is also important to note that when implementing or redefining a generic func
 
 ```cangjie
 open class A {}
+
 open class B <: A {}
+
 open class C <: B {}
 
 open class Base {
@@ -822,21 +838,21 @@ open class Base {
 class D <: Base {
     public override func foo<T>(a: T): Unit where T <: C {} // Error, stricter constraint
     public override func bar<T>(a: T): Unit where T <: C {} // Error, stricter constraint
-    public redef static func f<T>(a: T): Unit where T <: C {} // Error, stricter constraint
-    public redef static func g<T>(): Unit where T <: C {} // Error, stricter constraint
+    public static redef func f<T>(a: T): Unit where T <: C {} // Error, stricter constraint
+    public static redef func g<T>(): Unit where T <: C {} // Error, stricter constraint
 }
 
 class E <: Base {
     public override func foo<T>(a: T): Unit where T <: A {} // OK: looser constraint
     public override func bar<V>(a: V): Unit where V <: A {} // OK: looser constraint, names of generic parameters do not matter
-    public redef static func f<T>(a: T): Unit where T <: A {} // OK: looser constraint
-    public redef static func g<T>(): Unit where T <: A {} // OK: looser constraint
+    public static redef func f<T>(a: T): Unit where T <: A {} // OK: looser constraint
+    public static redef func g<T>(): Unit where T <: A {} // OK: looser constraint
 }
 
 class F <: Base {
     public override func foo<T>(a: T): Unit where T <: B {} // OK: same constraint
     public override func bar<V>(a: V): Unit where V <: B {} // OK: same constraint
-    public redef static func f<T>(a: T): Unit where T <: B {} // OK: same constraint
-    public redef static func g<T>(): Unit where T <: B {} // OK: same constraint
+    public static redef func f<T>(a: T): Unit where T <: B {} // OK: same constraint
+    public static redef func g<T>(): Unit where T <: B {} // OK: same constraint
 }
 ```

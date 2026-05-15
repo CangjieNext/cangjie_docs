@@ -12,15 +12,16 @@ Cangjie offers three built-in compilation markers to control integer overflow ha
 
     ```cangjie
     @OverflowThrowing
-    func add(a: Int8, b: Int8){
+    func add(a: Int8, b: Int8) {
         return a + b
     }
+
     main() {
-        add(100,29)
+        add(100, 29)
         /* Mathematically, 100 + 29 equals 129,
-        * which causes an upper overflow in Int8's range,
-        * resulting in an exception being thrown
-        */
+         * which causes an upper overflow in Int8's range,
+         * resulting in an exception being thrown
+         */
     }
     ```
 
@@ -32,11 +33,12 @@ Cangjie offers three built-in compilation markers to control integer overflow ha
     @OverflowThrowing
     main() {
         let res: Int8 = Int8(100) + Int8(29) // Error, arithmetic operation '+' overflow
+
         // Mathematically, 100 + 29 equals 129, causing an upper overflow in Int8's range; the compiler detects and reports this
         let con: UInt8 = UInt8(-132) // Error, integer type conversion overflow
         /* -132 causes a lower overflow in UInt8's range,
-        * resulting in an exception being thrown
-        */
+         * resulting in an exception being thrown
+         */
     }
     ```
 
@@ -49,18 +51,18 @@ Cangjie offers three built-in compilation markers to control integer overflow ha
     main() {
         let res: Int8 = Int8(105) * Int8(4)
         /* Mathematically, 105 * 4 equals 420,
-        * whose binary representation is 1 1010 0100,
-        * exceeding the 8-bit memory space for the result.
-        * The truncated result is represented as 1010 0100 in binary,
-        * corresponding to the signed integer -92
-        */
+         * whose binary representation is 1 1010 0100,
+         * exceeding the 8-bit memory space for the result.
+         * The truncated result is represented as 1010 0100 in binary,
+         * corresponding to the signed integer -92
+         */
         let temp: Int16 = Int16(-132)
         let con: UInt8 = UInt8(temp)
         /* -132's binary representation is 1111 1111 0111 1100,
-        * exceeding the 8-bit memory space for the result.
-        * The truncated result is represented as 0111 1100 in binary,
-        * corresponding to the signed integer 124
-        */
+         * exceeding the 8-bit memory space for the result.
+         * The truncated result is represented as 0111 1100 in binary,
+         * corresponding to the signed integer 124
+         */
     }
     ```
 
@@ -73,13 +75,13 @@ Cangjie offers three built-in compilation markers to control integer overflow ha
     main() {
         let res: Int8 = Int8(-100) - Int8(45)
         /* Mathematically, -100 - 45 equals -145,
-        * which causes a lower overflow in Int8's range,
-        * so Int8's minimum value -128 is chosen as the result
-        */
+         * which causes a lower overflow in Int8's range,
+         * so Int8's minimum value -128 is chosen as the result
+         */
         let con: Int8 = Int8(1024)
         /* 1024 causes an upper overflow in Int8's range,
-        * so Int8's maximum value 127 is chosen as the result
-        */
+         * so Int8's maximum value 127 is chosen as the result
+         */
     }
     ```
 
@@ -171,11 +173,14 @@ import std.unittest.mock.*
 public class TestA {
     @TestCase
     func case1(): Unit {
-        { =>
-            let matcher0 = Matchers.eq("z")
-            let matcher1 = Matchers.eq("y")
-            let stubCall = @EnsurePreparedToMock { => return(test(matcher0.value(), matcher1.value())) }
-            ConfigureMock.stubFunction(stubCall,[matcher0.withDescription(#"eq("z")"#), matcher1.withDescription(#"eq("y")"#)], Option<String>.None, "test", #"test("z", "y")"#, 15)
+        {
+            =>
+                let matcher0 = Matchers.eq("z")
+                let matcher1 = Matchers.eq("y")
+                let stubCall = @EnsurePreparedToMock {=> return (test(matcher0.value(), matcher1.value()))}
+                ConfigureMock.stubFunction(stubCall,
+                    [matcher0.withDescription(#"eq("z")"#), matcher1.withDescription(#"eq("y")"#)], Option<String>.None,
+                    "test", #"test("z", "y")"#, 15)
         }().returns("mocked value")
         println(test("z", "y")) // prints "mocked value"
     }

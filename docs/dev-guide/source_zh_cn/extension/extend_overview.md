@@ -21,7 +21,7 @@ interface Foo {
 }
 
 class Boo {
-    var boo: Int64 =2
+    var boo: Int64 = 2
 }
 
 extend Boo {

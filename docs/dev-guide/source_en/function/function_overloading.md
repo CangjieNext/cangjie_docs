@@ -12,7 +12,9 @@ In the Cangjie programming language, when multiple function definitions share th
   // Scenario 1
 
   func f(a: Int64): Unit {}
+
   func f(a: Float64): Unit {}
+
   func f(a: Int64, b: Float64): Unit {}
   ```
 
@@ -23,13 +25,16 @@ In the Cangjie programming language, when multiple function definitions share th
   ```cangjie
   // Scenario 2
 
-  interface I1{}
-  interface I2{}
+  interface I1 {}
+
+  interface I2 {}
 
   func f1<X, Y>(a: X, b: Y) {}
+
   func f1<Y, X>(a: X, b: Y) {} // OK: after rename generic type parameter, it will be 'func f1<X, Y>(a: Y, b: X)'
 
   func f2<T>(a: T) where T <: I1 {} // Error, not overloading
+
   func f2<T>(a: T) where T <: I2 {} // Error, not overloading
   ```
 
@@ -155,6 +160,7 @@ When a function is called, all callable functions (those visible in the current 
 
     ```cangjie
     open class Base {}
+
     class Sub <: Base {}
 
     func outer() {
@@ -167,7 +173,7 @@ When a function is called, all callable functions (those visible in the current 
                 print("2")
             }
 
-            g(Sub())   // Output: 2
+            g(Sub()) // Output: 2
         }
     }
     ```
@@ -180,6 +186,7 @@ When a function is called, all callable functions (those visible in the current 
 
     ```cangjie
     open class Base {}
+
     class Sub <: Base {}
 
     func outer() {
@@ -190,7 +197,7 @@ When a function is called, all callable functions (those visible in the current 
             print("2")
         }
 
-        g(Sub())   // Output: 1
+        g(Sub()) // Output: 1
 
     }
     ```
