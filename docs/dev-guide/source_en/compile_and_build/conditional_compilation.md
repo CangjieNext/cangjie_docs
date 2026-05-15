@@ -14,7 +14,7 @@ Taking the built-in `os` compilation condition as an example, its usage is as fo
 
 ```cangjie
 @When[os == "Linux"]
-class mc{}
+class mc {}
 
 main(): Int64 {
     var a = mc()
@@ -41,7 +41,7 @@ Important notes:
 
     ```cangjie
     @Derive[ToString]
-    @When[os == "Linux"]    // Error, unexpected when conditional compilation directive
+    @When[os == "Linux"] // Error, unexpected when conditional compilation directive
     class A {}
     ```
 
@@ -62,18 +62,22 @@ Usage example:
 func foo() {
     print("Linux, ")
 }
+
 @When[os == "Windows"]
 func foo() {
     print("Windows, ")
 }
+
 @When[os != "Windows"]
 func fee() {
     println("NOT Windows")
 }
+
 @When[os != "Linux"]
 func fee() {
     println("NOT Linux")
 }
+
 main() {
     foo()
     fee()
@@ -95,7 +99,6 @@ Usage example:
 ```cangjie
 @When[arch == "aarch64"]
 var arch = "aarch64"
-
 @When[arch == "x86_64"]
 var arch = "x86_64"
 
@@ -119,7 +122,6 @@ Usage example:
 ```cangjie
 @When[env == "ohos"]
 var env = "ohos"
-
 @When[env != "ohos"]
 var env = "other"
 
@@ -145,10 +147,12 @@ Usage example:
 func foo() {
     print("cjnative backend")
 }
+
 @When[backend != "cjnative"]
 func foo() {
     print("not cjnative backend")
 }
+
 main() {
     foo()
 }
@@ -169,26 +173,32 @@ Usage example:
 func foo() {
     println("cjc_version equals 0.18.6")
 }
+
 @When[cjc_version != "0.18.6"]
 func foo() {
     println("cjc_version is NOT equal to 0.18.6")
 }
+
 @When[cjc_version > "0.18.6"]
 func fnn() {
     println("cjc_version is greater than 0.18.6")
 }
+
 @When[cjc_version <= "0.18.6"]
 func fnn() {
     println("cjc_version is less than or equal to 0.18.6")
 }
+
 @When[cjc_version < "0.18.6"]
 func fee() {
     println("cjc_version is less than 0.18.6")
 }
+
 @When[cjc_version >= "0.18.6"]
 func fee() {
     println("cjc_version is greater than or equal to 0.18.6")
 }
+
 main() {
     foo()
     fnn()
@@ -211,10 +221,12 @@ Usage example:
 func foo() {
     println("debug")
 }
+
 @When[!debug]
 func foo() {
     println("NOT debug")
 }
+
 main() {
     foo()
 }
@@ -245,7 +257,7 @@ func foo() {
 }
 
 @When[!test]
-main () {
+main() {
     println(foo())
 }
 ```

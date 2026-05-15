@@ -108,7 +108,7 @@ open class D <: C {}
 
 class E <: D {}
 
-main () {
+main() {
     let x = try {
         E()
     } catch (e: Exception) {
@@ -308,6 +308,7 @@ Example demonstrating "the caught exception type is the least common superclass 
 open class Father <: Exception {
     var father: Int32 = 0
 }
+
 class ChildOne <: Father {
     var childOne: Int32 = 1
 }

@@ -45,7 +45,7 @@ main(): Int64 {
 
     ```cangjie
     @Derive[ToString]
-    @When[os == "Linux"]    // Error, unexpected when conditional compilation directive
+    @When[os == "Linux"] // Error, unexpected when conditional compilation directive
     class A {}
     ```
 
@@ -66,18 +66,22 @@ os 表示目标平台的操作系统。`os` 支持 `==` 和 `!=` 两种操作符
 func foo() {
     print("Linux, ")
 }
+
 @When[os == "Windows"]
 func foo() {
     print("Windows, ")
 }
+
 @When[os != "Windows"]
 func fee() {
     println("NOT Windows")
 }
+
 @When[os != "Linux"]
 func fee() {
     println("NOT Linux")
 }
+
 main() {
     foo()
     fee()
@@ -99,7 +103,6 @@ main() {
 ```cangjie
 @When[arch == "aarch64"]
 var arch = "aarch64"
-
 @When[arch == "x86_64"]
 var arch = "x86_64"
 
@@ -123,7 +126,6 @@ main() {
 ```cangjie
 @When[env == "ohos"]
 var env = "ohos"
-
 @When[env != "ohos"]
 var env = "other"
 
@@ -149,10 +151,12 @@ main() {
 func foo() {
     print("cjnative backend")
 }
+
 @When[backend != "cjnative"]
 func foo() {
     print("not cjnative backend")
 }
+
 main() {
     foo()
 }
@@ -173,26 +177,32 @@ main() {
 func foo() {
     println("cjc_version equals 0.18.6")
 }
+
 @When[cjc_version != "0.18.6"]
 func foo() {
     println("cjc_version is NOT equal to 0.18.6")
 }
+
 @When[cjc_version > "0.18.6"]
 func fnn() {
     println("cjc_version is greater than 0.18.6")
 }
+
 @When[cjc_version <= "0.18.6"]
 func fnn() {
     println("cjc_version is less than or equal to 0.18.6")
 }
+
 @When[cjc_version < "0.18.6"]
 func fee() {
     println("cjc_version is less than 0.18.6")
 }
+
 @When[cjc_version >= "0.18.6"]
 func fee() {
     println("cjc_version is greater than or equal to 0.18.6")
 }
+
 main() {
     foo()
     fnn()
@@ -215,10 +225,12 @@ main() {
 func foo() {
     println("debug")
 }
+
 @When[!debug]
 func foo() {
     println("NOT debug")
 }
+
 main() {
     foo()
 }
@@ -248,7 +260,7 @@ func foo() {
 }
 
 @When[!test]
-main () {
+main() {
     println(foo())
 }
 ```
@@ -327,6 +339,7 @@ main () {
 func fee() {
     println("feature lion")
 }
+
 main() {
     fee()
 }

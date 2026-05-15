@@ -16,7 +16,7 @@
 
 ```cangjie
 func test1() {
-    let s: String = @sourceFile()  // The value of `s` is the current source file name
+    let s: String = @sourceFile() // The value of `s` is the current source file name
 }
 
 func test2(n!: Int64 = @sourceLine()) { /* at line 5 */
@@ -64,7 +64,7 @@ foreign func foo(): CPointer<Int32>
 foreign func printf(fmt: CPointer<Int32>, ...): Int32
 
 main(): Int32 {
-    unsafe{
+    unsafe {
         let str = foo()
         printf(str)
     }
@@ -123,8 +123,10 @@ public class testClass {
 <!-- compile -->
 
 ```cangjie
-@Attribute[State] var cnt = 0       // identifier
-@Attribute["Binding"] var bcnt = 0  // string
+@Attribute[State]
+var cnt = 0 // identifier
+@Attribute[Binding]
+var bcnt = 0 // string
 ```
 
 同时，标准库 `std.ast` 包提供了 `getAttrs()` 方法用于获取节点的属性，以及 `hasAttr(attrs: String)` 方法用于判断当前节点是否具有某个属性，下面是一个具体的例子。

@@ -139,7 +139,7 @@ class A {}
 
 main() {
     var obj = AtomicBool(true)
-    var x1 : Bool = obj.load() // x1: true
+    var x1: Bool = obj.load() // x1: true
     println(x1)
     var t1 = A()
     var obj2 = AtomicReference(t1)
@@ -244,7 +244,6 @@ count = 1000
 ```cangjie
 import std.sync.Mutex
 
-
 main(): Int64 {
     let mtx: Mutex = Mutex()
     var future: Future<Unit> = spawn {
@@ -288,13 +287,15 @@ var sum: Int64 = 0
 let mutex = Mutex()
 
 main() {
-    let foo = spawn { =>
-        mutex.lock()
-        sum = sum + 1
+    let foo = spawn {
+        =>
+            mutex.lock()
+            sum = sum + 1
     }
-    let bar = spawn { =>
-        mutex.lock()
-        sum = sum + 1
+    let bar = spawn {
+        =>
+            mutex.lock()
+            sum = sum + 1
     }
     foo.get()
     println("${sum}")
@@ -314,9 +315,10 @@ var sum: Int64 = 0
 let mutex = Mutex()
 
 main() {
-    let foo = spawn { =>
-        sum = sum + 1
-        mutex.unlock() // Error, Unlock without obtaining the lock and throw an exception: IllegalSynchronizationStateException.
+    let foo = spawn {
+        =>
+            sum = sum + 1
+            mutex.unlock() // Error, Unlock without obtaining the lock and throw an exception: IllegalSynchronizationStateException.
     }
     foo.get()
 }
@@ -335,10 +337,11 @@ let mutex = Mutex()
 
 main() {
     for (i in 0..100) {
-        spawn { =>
-            mutex.tryLock() // Error, `tryLock()` just trying to acquire a lock, there is no guarantee that the lock will be acquired, and this can lead to abnormal behavior.
-            sum = sum + 1
-            mutex.unlock()
+        spawn {
+            =>
+                mutex.tryLock() // Error, `tryLock()` just trying to acquire a lock, there is no guarantee that the lock will be acquired, and this can lead to abnormal behavior.
+                sum = sum + 1
+                mutex.unlock()
         }
     }
 }
@@ -414,8 +417,8 @@ public interface Condition {
     func wait(timeout!: Duration): Bool
 
     // Wait for a signal and predicate, blocking the current thread.
-    func waitUntil(predicate: ()->Bool): Unit
-    func waitUntil(predicate: ()->Bool, timeout!: Duration): Bool
+    func waitUntil(predicate: () -> Bool): Unit
+    func waitUntil(predicate: () -> Bool, timeout!: Duration): Bool
 
     // Wake up one thread of those waiting on the monitor, if any.
     func notify(): Unit
@@ -551,8 +554,8 @@ class BoundedQueue {
     var notEmpty: Condition
 
     var count: Int64 // Object count in buffer.
-    var head: Int64  // Write index.
-    var tail: Int64  // Read index.
+    var head: Int64 // Write index.
+    var tail: Int64 // Read index.
 
     // Queue's length is 100.
     let items: Array<Object> = Array<Object>(100, {i => Object()})
@@ -563,8 +566,8 @@ class BoundedQueue {
         tail = 0
 
         synchronized(m) {
-          notFull  = m.condition()
-          notEmpty = m.condition()
+            notFull = m.condition()
+            notEmpty = m.condition()
         }
     }
 
@@ -572,21 +575,21 @@ class BoundedQueue {
     public func put(x: Object) {
         // Acquire the mutex.
         synchronized(m) {
-          while (count == 100) {
-            // If the queue is full, wait for the "queue notFull" event.
-            notFull.wait()
-          }
-          items[head] = x
-          head++
-          if (head == 100) {
-            head = 0
-          }
-          count++
+            while (count == 100) {
+                // If the queue is full, wait for the "queue notFull" event.
+                notFull.wait()
+            }
+            items[head] = x
+            head++
+            if (head == 100) {
+                head = 0
+            }
+            count++
 
-          // An object has been inserted and the current queue is no longer
-          // empty, so wake up the thread previously blocked on get()
-          // because the queue was empty.
-          notEmpty.notify()
+            // An object has been inserted and the current queue is no longer
+            // empty, so wake up the thread previously blocked on get()
+            // because the queue was empty.
+            notEmpty.notify()
         } // Release the mutex.
     }
 
@@ -594,23 +597,23 @@ class BoundedQueue {
     public func get(): Object {
         // Acquire the mutex.
         synchronized(m) {
-          while (count == 0) {
-            // If the queue is empty, wait for the "queue notEmpty" event.
-            notEmpty.wait()
-          }
-          let x: Object = items[tail]
-          tail++
-          if (tail == 100) {
-            tail = 0
-          }
-          count--
+            while (count == 0) {
+                // If the queue is empty, wait for the "queue notEmpty" event.
+                notEmpty.wait()
+            }
+            let x: Object = items[tail]
+            tail++
+            if (tail == 100) {
+                tail = 0
+            }
+            count--
 
-          // An object has been popped and the current queue is no longer
-          // full, so wake up the thread previously blocked on put()
-          // because the queue was full.
-          notFull.notify()
+            // An object has been popped and the current queue is no longer
+            // full, so wake up the thread previously blocked on put()
+            // because the queue was full.
+            notFull.notify()
 
-          return x
+            return x
         } // Release the mutex.
     }
 }
@@ -638,6 +641,7 @@ main(): Int64 {
     for (i in 0..1000) {
         let fut = spawn {
             sleep(Duration.millisecond) // sleep for 1ms.
+
             // Use synchronized(mtx), instead of mtx.lock() and mtx.unlock().
             synchronized(mtx) {
                 count++
@@ -738,7 +742,6 @@ public class ThreadLocal<T> {
 <!-- run -->
 
 ```cangjie
-
 main(): Int64 {
     let tl = ThreadLocal<Int64>()
     let fut1 = spawn {

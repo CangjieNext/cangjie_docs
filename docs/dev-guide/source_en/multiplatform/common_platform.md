@@ -20,7 +20,7 @@ The following example defines common code and a global function `foo`:
 ```cangjie
 package cmp
 
-public common func foo(): Unit {
+common public func foo(): Unit {
     println("I am common")
 }
 ```
@@ -30,7 +30,7 @@ The following example defines platform-specific code and a global function `foo`
 ```cangjie
 package cmp
 
-public specific func foo(): Unit {
+specific public func foo(): Unit {
     println("I am platform")
 }
 ```
@@ -48,7 +48,10 @@ A `common` global function may or may not include an implementation.
 
 ```cangjie
 common func foo(): Int64
-common func goo(a: Int64): Int64 { 1 }
+
+common func goo(a: Int64): Int64 {
+    1
+}
 ```
 
 In the above example, two `common` global functions are defined. The function `foo` has no function body, while `goo` includes a function body. Both are valid definitions of `common` global functions.
@@ -853,7 +856,7 @@ Common definition file.
 // common.cj
 package example.cmp
 // Retrieve platform information
-public common func Platform(): String
+common public func Platform(): String
 ```
 
 Linux platform file.
@@ -861,7 +864,8 @@ Linux platform file.
 ```cangjie
 // linux.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Linux"
 }
 ```
@@ -871,7 +875,8 @@ Windows platform file.
 ```cangjie
 // windows.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Win64"
 }
 ```
@@ -881,7 +886,8 @@ macOS platform file.
 ```cangjie
 // macos.cj
 package example.cmp
-public specific func Platform(): String {
+
+specific public func Platform(): String {
     "Mac"
 }
 ```
