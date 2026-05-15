@@ -34,8 +34,8 @@
 <!-- compile.error -->
 
 ```cangjie
-let x: Int8 = 128          // Error, 128 out of the range of Int8
-let y: UInt8 = 256         // Error, 256 out of the range of UInt8
+let x: Int8 = 128 // Error, 128 out of the range of Int8
+let y: UInt8 = 256 // Error, 256 out of the range of UInt8
 let z: Int32 = 0x8000_0000 // Error, 0x8000_0000 out of the range of Int32
 ```
 
@@ -53,9 +53,9 @@ let z: Int32 = 0x8000_0000 // Error, 0x8000_0000 out of the range of Int32
 <!-- compile -->
 
 ```cangjie
-var x = 100i8  // x is 100 with type Int8
+var x = 100i8 // x is 100 with type Int8
 var y = 0x10u64 // y is 16 with type UInt64
-var z = 0o432i32  // z is 282 with type Int32
+var z = 0o432i32 // z is 282 with type Int32
 ```
 
 ## 字符字节字面量
@@ -66,10 +66,10 @@ var z = 0o432i32  // z is 282 with type Int32
 
 ```cangjie
 main(): Unit {
-    var a = b'x'                    // a is 120 with type UInt8
-    var b = b'\n'                   // b is 10 with type UInt8
-    var c = b'\u{78}'               // c is 120 with type UInt8
-    c = b'\u{90}' - b'\u{66}' + c   // c is 162 with type UInt8
+    var a = b'x' // a is 120 with type UInt8
+    var b = b'\n' // b is 10 with type UInt8
+    var c = b'\u{78}' // c is 120 with type UInt8
+    c = b'\u{90}' - b'\u{66}' + c // c is 162 with type UInt8
 }
 ```
 

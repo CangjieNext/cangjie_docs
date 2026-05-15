@@ -37,7 +37,7 @@ The conventions for parameter types in operator functions are as follows:
     open class Point {
         var x: Int64 = 0
         var y: Int64 = 0
-        public init (a: Int64, b: Int64) {
+        public init(a: Int64, b: Int64) {
             x = a
             y = b
         }
@@ -58,8 +58,8 @@ The conventions for parameter types in operator functions are as follows:
     ```cangjie
     main() {
         let p1 = Point(8, 24)
-        let p2 = -p1      // p2 = Point(-8, -24)
-        let p3 = p1 + p2  // p3 = Point(0, 0)
+        let p2 = -p1 // p2 = Point(-8, -24)
+        let p3 = p1 + p2 // p3 = Point(0, 0)
     }
     ```
 
@@ -117,7 +117,7 @@ The conventions for parameter types in operator functions are as follows:
 
     func test1() {
         let a = A() // OK, A() is call the constructor of A
-        a()         // OK, a() is to call the operator () overloading function
+        a() // OK, a() is to call the operator () overloading function
     }
     ```
 
@@ -135,7 +135,7 @@ The conventions for parameter types in operator functions are as follows:
         public operator func ()(): Unit {}
 
         public func foo() {
-            this()  // Error, this() calls the constructor of A.
+            this() // Error, this() calls the constructor of A.
             super() // Error
         }
     }
@@ -164,11 +164,11 @@ The conventions for parameter types in operator functions are as follows:
     }
 
     main() {
-        let e = X(1)    // OK, X(1) is to call the constructor X(Int64)
-        X(1.0)          // OK, X(1.0) is to call the operator () overloading function
+        let e = X(1) // OK, X(1) is to call the constructor X(Int64)
+        X(1.0) // OK, X(1.0) is to call the operator () overloading function
         let e1 = X
-        e1(1)           // OK, e1(1) is to call the operator () overloading function
-        Y(1)            // OK, Y(1) is to call the operator () overloading function
+        e1(1) // OK, e1(1) is to call the operator () overloading function
+        Y(1) // OK, Y(1) is to call the operator () overloading function
     }
     ```
 

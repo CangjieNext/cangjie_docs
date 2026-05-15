@@ -51,8 +51,8 @@ $ cjc tool.cj --output-type=dylib
 <!--compile-->
 ```cangjie
 // main.cj
-main(){
-  println("hello cangjie")
+main() {
+    println("hello cangjie")
 }
 ```
 
@@ -168,10 +168,10 @@ void printHello() {
 foreign func printHello(): Unit
 
 main(): Int64 {
-  unsafe {
-    printHello()
-  }
-  return 0
+    unsafe {
+        printHello()
+    }
+    return 0
 }
 ```
 
@@ -300,6 +300,7 @@ main() {
 ```cangjie
 // this file is placed under directory pkgA
 macro package pkgA
+
 import pkgB.*
 import std.io.*
 import pkgB.subB.*
@@ -1402,6 +1403,7 @@ obf_func2 name2
 
 ```cangjie
 package packA
+
 class MyClassA {
     func funcA(a: String, b: Int64): String {
         return a

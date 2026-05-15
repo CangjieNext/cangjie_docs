@@ -8,6 +8,7 @@
 
 ```cangjie
 package a
+
 import std.math.*
 import package1.foo
 import {package1.foo, package2.bar}
@@ -102,8 +103,10 @@ func f2() {
 // pkga/a.cj
 package pkga
 
-public struct R {}            // R1
-public func f(a: Int32) {}    // f1
+public struct R {} // R1
+
+public func f(a: Int32) {} // f1
+
 public func f(a: Bool) {} // f2
 ```
 
@@ -116,12 +119,13 @@ package pkgb
 
 import pkga.*
 
-func f(a: Int32) {}         // f3
-struct R {}                 // R2
+func f(a: Int32) {} // f3
+
+struct R {} // R2
 
 func bar() {
-    R()     // OK, R2 shadows R1.
-    f(1)    // OK, invoke f3 in current package.
+    R() // OK, R2 shadows R1.
+    f(1) // OK, invoke f3 in current package.
     f(true) // OK, invoke f2 in the pkga
 }
 ```
@@ -143,6 +147,7 @@ func bar() {
     ```cangjie
     // a.cj
     package p1
+
     public func f1() {}
     ```
 
@@ -152,6 +157,7 @@ func bar() {
     ```cangjie
     // d.cj
     package p2
+
     public func f3() {}
     ```
 
@@ -161,6 +167,7 @@ func bar() {
     ```cangjie
     // b.cj
     package p1
+
     public func f2() {}
     ```
 
@@ -170,6 +177,7 @@ func bar() {
     ```cangjie
     // c.cj
     package pkgc
+
     public func f1() {}
     ```
 
@@ -180,19 +188,20 @@ func bar() {
     // main.cj
     import p1 as A
     import p1 as B
-    import p2.f3 as f  // OK
+    import p2.f3 as f // 正确
     import pkgc.f1 as a
-    import pkgc.f1 as b // OK
+    import pkgc.f1 as b // 正确
 
     func f(a: Int32) {}
 
     main() {
-        A.f1()  // OK, package name conflict is resolved by renaming package name.
-        B.f2()  // OK, package name conflict is resolved by renaming package name.
-        p1.f1() // Error, the original package name cannot be used.
-        a()     // OK.
-        b()     // OK.
-        pkgc.f1()    // Error, the original name cannot be used.
+        A.f1() // 正确
+        B.f2() // 正确
+        p1.f1() // 错误，p1 是用别名导入的，不能使用原包名
+        a() // 正确
+        b() // 正确
+        pkgc.f1() // 错误，pkgc.f1 被别名导入，不能使用原名字
+        org_pkgc.f1() // 正确
     }
     ```
 
@@ -204,6 +213,7 @@ func bar() {
     ```cangjie
     // a.cj
     package p1
+
     public class C {}
     ```
 
@@ -213,6 +223,7 @@ func bar() {
     ```cangjie
     // b.cj
     package p2
+
     public class C {}
     ```
 
@@ -221,6 +232,7 @@ func bar() {
     ```cangjie
     // main1.cj
     package pkga
+
     import p1.C
     import p2.C
 
@@ -235,6 +247,7 @@ func bar() {
     ```cangjie
     // main2.cj
     package pkgb
+
     import p1.C as C1
     import p2.C as C2
 
@@ -250,6 +263,7 @@ func bar() {
     ```cangjie
     // main3.cj
     package pkgc
+
     import p1
     import p2
 
@@ -278,7 +292,9 @@ func bar() {
 ```cangjie
 internal package a.b
 
-public func f() { 0 }
+public func f() {
+    0
+}
 ```
 
 <!-- compile -reimport1 -->
@@ -286,6 +302,7 @@ public func f() { 0 }
 
 ```cangjie
 package a
+
 public import a.b.f
 
 public let x = 0
@@ -295,7 +312,8 @@ public let x = 0
 <!-- cfg="liba.a liba.b.a" -->
 
 ```cangjie
-import a.f  // OK
+import a.f // OK
+
 let _ = f() // OK
 ```
 

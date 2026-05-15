@@ -21,16 +21,16 @@ import std.sync.*
 import stdx.log.*
 
 // 1. 构建 Server 实例
-let server = ServerBuilder()
-    .addr("127.0.0.1")
-    .port(0)
-    .build()
+let server = ServerBuilder().addr("127.0.0.1").port(0).build()
 
 func startServer(): Unit {
     // 2. 注册请求处理逻辑
-    server.distributor.register("/hello", {httpContext =>
-        httpContext.responseBuilder.body("Hello Cangjie!")
-    })
+    server
+        .distributor
+        .register("/hello", {
+            httpContext => 
+	    	httpContext.responseBuilder.body("Hello Cangjie!")
+        })
     server.logger.level = LogLevel.OFF
     // 3. 启动服务
     server.serve()
@@ -49,7 +49,7 @@ func startClient(): Unit {
     client.close()
 }
 
-main () {
+main() {
     spawn {
         startServer()
     }

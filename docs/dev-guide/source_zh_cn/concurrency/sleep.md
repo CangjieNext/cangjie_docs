@@ -19,7 +19,7 @@ func sleep(dur: Duration): Unit // Sleep for at least `dur`.
 ```cangjie
 main(): Int64 {
     println("Hello")
-    sleep(Duration.second)  // sleep for 1s.
+    sleep(Duration.second) // sleep for 1s.
     println("World")
     return 0
 }

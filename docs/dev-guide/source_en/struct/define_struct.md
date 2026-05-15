@@ -152,7 +152,7 @@ struct Rectangle {
     /* Auto-generated memberwise constructor:
     public init() {
     }
-    */
+     */
 }
 ```
 
@@ -212,6 +212,7 @@ In the following example, `width` is a `public` member and can be accessed outsi
 
 ```cangjie
 package a
+
 public struct Rectangle {
     public var width: Int64
     var height: Int64
@@ -226,9 +227,9 @@ public struct Rectangle {
 
 func samePkgFunc() {
     var r = Rectangle(10, 20, 40)
-    r.width = 8               // OK: public 'width' can be accessed here
-    r.height = 24             // OK: 'height' has no modifier and can be accessed here
-    r.area = 30               // Error, private 'area' can't be accessed here
+    r.width = 8 // OK: public 'width' can be accessed here
+    r.height = 24 // OK: 'height' has no modifier and can be accessed here
+    r.area = 30 // Error, private 'area' can't be accessed here
 }
 ```
 
@@ -238,12 +239,13 @@ func samePkgFunc() {
 
 ```cangjie
 package b
+
 import a.*
 
 main() {
-    r.width = 8     // OK: public 'width' can be accessed here
-    r.height = 24   // Error, no modifier 'height' can't be accessed here
-    r.area = 30     // Error, private 'area' can't be accessed here
+    r.width = 8 // OK: public 'width' can be accessed here
+    r.height = 24 // Error, no modifier 'height' can't be accessed here
+    r.area = 30 // Error, private 'area' can't be accessed here
 }
 ```
 
@@ -257,9 +259,11 @@ Recursive and mutually recursive `struct` definitions are illegal. For example:
 struct R1 { // Error, 'R1' recursively references itself
     let other: R1
 }
+
 struct R2 { // Error, 'R2' and 'R3' are mutually recursive
     let other: R3
 }
+
 struct R3 { // Error, 'R2' and 'R3' are mutually recursive
     let other: R2
 }
