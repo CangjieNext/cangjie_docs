@@ -151,3 +151,59 @@ let r4 = b2 as Derived // r4 = Option<Derived>.Some(b2)
 let r5 = d as Base     // r5 = Option<Base>.Some(d)
 let r6 = d as Derived  // r6 = Option<Derived>.Some(d)
 ```
+
+### Type Patterns and Subtype Conversion
+
+Type patterns can also be used for subtype conversion. For an expression `e` and a type pattern `id: T`, when the runtime type of `e` is a subtype of `T`, the match succeeds, and `e` is converted to type `T` and then bound to `id`; otherwise, the match fails and execution proceeds to another branch.
+
+Unlike the `is` operator, which is used for type checking, and the `as` operator, which returns an `Option`, a successful type pattern match directly yields a bound variable of the corresponding subtype. Here, subtype conversion means narrowing a parent-typed value to a subtype based on its runtime type. The variable bound by the pattern is only available in the branch or loop body where the match succeeds.
+
+In the conditions of `if` expressions and `while` expressions, type patterns can be used through "let patterns".
+
+For more information about type patterns, see [Type Patterns](../enum_and_pattern_match/pattern_overview.md#type-patterns). For more information about "let patterns", see [Examples of "Conditions" Involving let Patterns](../basic_programming_concepts/expression.md#examples-of-conditions-involving-let-patterns).
+
+The following example demonstrates subtype conversion with type patterns in the conditions of `if` expressions and `while` expressions:
+
+<!-- verify -->
+
+```cangjie
+open class Base {
+    var name: String = "Alice"
+}
+class Derived <: Base {
+    var age: UInt8 = 18
+}
+
+main() {
+    let b1: Base = Base()
+    let b2: Base = Derived()
+    var b3: Base = Derived()
+
+    if (let d: Derived <- b1) {
+        println("The age of b1 is ${d.age}")
+    } else {
+        println("b1 is not Derived")
+    }
+
+    if (let d: Derived <- b2) {
+        println("The age of b2 is ${d.age}")
+    } else {
+        println("b2 is not Derived")
+    }
+
+    while (let d: Derived <- b3) {
+        println("The age of b3 is ${d.age}")
+        b3 = Base()
+    }
+}
+```
+
+The execution result of the above code is:
+
+```text
+b1 is not Derived
+The age of b2 is 18
+The age of b3 is 18
+```
+
+In the above result, `b1` does not match successfully, while `b2` and `b3` match successfully and complete type binding.

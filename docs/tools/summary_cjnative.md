@@ -4,6 +4,7 @@
     - [格式化工具](source_zh_cn/cmd-tools/cjfmt_manual.md)
     - [静态检查工具](source_zh_cn/cmd-tools/cjlint_manual.md)
     - [覆盖率统计工具](source_zh_cn/cmd-tools/cjcov_manual.md)
+    - [性能分析工具](source_zh_cn/cmd-tools/cjprof_manual.md)
     - [HLE 工具](source_zh_cn/cmd-tools/HLE_manual.md)
         - [ArkTS 三方模块生成仓颉胶水代码的转换规则](source_zh_cn/cmd-tools/cj-dts2cj-translation-rules.md)
         - [C 语言转换到仓颉胶水代码的规则](source_zh_cn/cmd-tools/cj-c2cj-translation-rules.md)

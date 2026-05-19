@@ -303,15 +303,57 @@ cjc --debug-macro demo.cj --import-path ./target
 ```cangjie
 // demo.cj.macrocall
 /* ===== Emitted by MacroCall @Outer in demo.cj:3:1 ===== */
-/* 3.1 */class Demo {
-/* 3.2 */    var state = 1
-/* 3.3 */    var cnt = 42
-/* 3.4 */    public func getCnt() {
-/* 3.5 */        state + cnt + 0
-/* 3.6 */    }
-/* 3.7 */}
-/* 3.8 */
+class Demo {
+    var state = 1
+    var cnt = 42
+    public func getCnt() {
+        state + cnt + 0
+    }
+}
+
 /* ===== End of the Emit ===== */
 ```
 
-如果宏展开后的代码有语义错误，则编译器的错误信息会溯源到宏展开后代码的具体行列号。
+如果宏展开后的代码有语义错误，则编译器的错误信息会溯源到宏展开后代码的具体行列号。如果在编译时开启了 _debug_ 模式，那么编译器的错误信息中不会打印完整的宏展开代码，仅打印实际错误位置和临时文件路径，开发者可以通过临时文件路径跳转至对应的错误位置；非 _debug_ 模式下，报错信息中会给出 `--debug-macro` 提示，不会打印出完整的宏展开代码。仓颉宏的 _debug_ 模式有以下注意事项：
+
+- 宏的 _debug_ 模式会重排源码的行列号信息，不适用于某些特殊的换行场景。例如：
+
+  <!-- code_check_manual -->
+
+  ```cangjie
+  // before expansion
+  @M{} - 2 // macro M return 2
+
+  // after expansion
+  // ===== Emmitted my Macro M at line 1 ===
+  2
+  // ===== End of the Emit =====
+  - 2
+  ```
+
+  这些因换行符导致语义改变的情形，不应使用 _debug_ 模式。
+
+- 不支持宏调用在宏定义内的调试，会编译报错。
+
+  <!-- code_check_manual -->
+
+  ```cangjie
+  public macro M(input: Tokens) {
+      let a = @M2(1+2) // M2 is in macro M, not suitable for debug mode.
+      return input + quote($a)
+  }
+  ```
+
+- 不支持带括号宏的调试。
+
+  <!-- code_check_manual -->
+
+  ```cangjie
+  // main.cj
+
+  main() {
+      // For macro with parenthesis, newline introduced by debug will change the semantics
+      // of the expression, so it is not suitable for debug mode.
+      let t = @M(1+2)
+  }
+  ```

@@ -941,7 +941,9 @@ attach 29551
     <!-- code_no_check -->
 
     ```cangjie
-    func global_func_02<K, G>() { 0 }
+    func global_func_02<K, G>() {
+        0
+    }
     public struct Pair<T, U> {
         let x: T
         let y: U
