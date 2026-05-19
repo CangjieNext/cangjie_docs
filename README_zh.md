@@ -26,31 +26,6 @@
     └── dev-guide    # 该目录存放仓颉编程语言开发指南
 ```
 
-## 文档版本与分支说明
-
-本节介绍 cangjie_docs 仓库各分支的作用。
-
-> **说明：**
->
-> 分支会根据版本发布情况增加或删除，请以实际查询结果为准。
-
-### 主分支
-
-[main](https://gitcode.com/Cangjie/cangjie_docs/tree/main)：默认主分支，合入稳定特性文档。
-
-### 开发分支
-
-[dev](https://gitcode.com/Cangjie/cangjie_docs/tree/dev)：开发分支，用于主线的持续开发和预集成。
-
-### 版本发布与配套分支
-
-- [release/1.1](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.1)：Cangjie 1.1.0 STS 版本发布分支。单击[此处](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md)了解版本详情。
-- [release/1.0](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.0)：Cangjie 1.0.x LTS 版本发布分支。单击[此处](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md)了解版本详情。
-
-### OpenHarmony 配套分支
-
-[release/OpenHarmony-release-6.0.2](https://gitcode.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2)：配套 OpenHarmony 6.0.2 版本的仓颉文档。
-
 ## 许可证
 
 仓颉开发者文档许可证请参见 [License](./LICENSE) 。
