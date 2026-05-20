@@ -151,3 +151,59 @@ let r4 = b2 as Derived // r4 = Option<Derived>.Some(b2)
 let r5 = d as Base     // r5 = Option<Base>.Some(d)
 let r6 = d as Derived  // r6 = Option<Derived>.Some(d)
 ```
+
+### 类型模式与子类型转换
+
+类型模式也可以用于子类型转换。对于表达式 `e` 和类型模式 `id: T`，当 `e` 的运行时类型是 `T` 的子类型时，匹配成功，并将 `e` 转换为 `T` 类型后与 `id` 进行绑定；否则匹配失败，并进入其他分支。
+
+与 `is` 操作符用于类型判断、`as` 操作符返回 `Option` 不同，类型模式匹配成功后可直接得到对应子类型的绑定变量。这里的子类型转换，是指根据运行时类型将父类型的值收窄为子类型。模式中绑定出的变量仅在匹配成功的分支或循环体内有效。
+
+在 `if` 表达式和 `while` 表达式的条件中，可以通过 “let pattern” 使用类型模式。
+
+关于类型模式的更多介绍，请参见[类型模式](../enum_and_pattern_match/pattern_overview.md#类型模式)。关于 “let pattern” 的更多介绍，请参见[涉及 “let pattern” 的“条件”示例](../basic_programming_concepts/expression.md#涉及-let-pattern-的条件示例)。
+
+下面的例子展示了在 `if` 表达式和 `while` 表达式的条件中使用类型模式进行子类型转换：
+
+<!-- verify -->
+
+```cangjie
+open class Base {
+    var name: String = "Alice"
+}
+class Derived <: Base {
+    var age: UInt8 = 18
+}
+
+main() {
+    let b1: Base = Base()
+    let b2: Base = Derived()
+    var b3: Base = Derived()
+
+    if (let d: Derived <- b1) {
+        println("The age of b1 is ${d.age}")
+    } else {
+        println("b1 is not Derived")
+    }
+
+    if (let d: Derived <- b2) {
+        println("The age of b2 is ${d.age}")
+    } else {
+        println("b2 is not Derived")
+    }
+
+    while (let d: Derived <- b3) {
+        println("The age of b3 is ${d.age}")
+        b3 = Base()
+    }
+}
+```
+
+上述代码的执行结果为：
+
+```text
+b1 is not Derived
+The age of b2 is 18
+The age of b3 is 18
+```
+
+上述结果中，`b1` 未匹配成功，`b2` 和 `b3` 匹配成功并完成了类型绑定。

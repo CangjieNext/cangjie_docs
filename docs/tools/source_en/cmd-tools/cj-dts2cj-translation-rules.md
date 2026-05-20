@@ -1724,13 +1724,13 @@ Supported data types:
 | ---------- | ------------ |
 | string     | String       |
 | number     | Float64      |
-| boolean    | bool         |
+| boolean    | Bool         |
 | bigint     | BigInt       |
 | object     | JSValue      |
 | symbol     | JSValue      |
 | void       | Unit         |
 | undefined  | JSValue      |
-| any        | Any          |
+| any        | JSValue      |
 | unknown    | JSValue      |
 | never      | JSValue      |
 
@@ -1767,7 +1767,7 @@ public class BasicTypes {
     public var symbolKeyword: JSValue/* FIXME: `symbol` */,
     public var voidKeyword: Unit,
     public var undefinedKeyword: JSValue/* FIXME: `undefined` */,
-    public var anyKeyword: Any,
+    public var anyKeyword: JSValue/* FIXME: `any` */,
     public var unknownKeyword: JSValue/* FIXME: `unknown` */,
     public var neverKeyword: JSValue/* FIXME: `never` */) {}
 
@@ -1782,7 +1782,7 @@ public class BasicTypes {
         obj["symbolKeyword"] = symbolKeyword
         obj["voidKeyword"] = voidKeyword.toJSValue(context)
         obj["undefinedKeyword"] = undefinedKeyword
-        obj["anyKeyword"] = anyKeyword.toJSValue(context)
+        obj["anyKeyword"] = anyKeyword
         obj["unknownKeyword"] = unknownKeyword
         obj["neverKeyword"] = neverKeyword
         obj.toJSValue()
@@ -1799,7 +1799,7 @@ public class BasicTypes {
         JSValue/* FIXME: `symbol` */.fromJSValue(context, obj["symbolKeyword"]),
         Unit.fromJSValue(context, obj["voidKeyword"]),
         JSValue/* FIXME: `undefined` */.fromJSValue(context, obj["undefinedKeyword"]),
-        Any.fromJSValue(context, obj["anyKeyword"]),
+        JSValue/* FIXME: `any` */.fromJSValue(context, obj["anyKeyword"]),
         JSValue/* FIXME: `unknown` */.fromJSValue(context, obj["unknownKeyword"]),
         JSValue/* FIXME: `never` */.fromJSValue(context, obj["neverKeyword"])
         )
