@@ -13,6 +13,24 @@
 
 仓颉编程语言现已支持交叉编译至 `Android`（`aarch64` 默认目标为 `API 26+`，`arm32` 默认目标为 `API 23+`）和 `iOS`，方便开发者在不同平台上进行应用开发。
 
+## 支持的编译目标和目标三元组名称
+
+目标三元组名称是通用的用于指定编译平台或目标的名称，通常由架构、供应商、系统三部分组成，供应商在不具备二义性的情况下通常可以省略。当前仓颉编译器支持以下编译目标，可以通过使用 cjc 的 --target 选项指定特定的三元组名称来为指定平台生成二进制程序（需要使用支持的 SDK 安装包）。
+
+| 编译目标名称 | 其他别名 | 编译目标说明 | 备注 |
+|--|--|--|--|
+| x86_64-linux-gnu | x86_64-unknown-linux-gnu | x86_64 架构 Linux 平台 |
+| aarch64-linux-gnu | aarch64-unknown-linux-gnu, arm64-unknown-linux-gnu, arm64-linux-gnu | aarch64 架构 Linux 平台 |
+| x86_64-windows-gnu | x86_64-pc-windows-gnu, x86_64-unknown-windows-gnu, x86_64-pc-w64-mingw32, x86_64-w64-mingw32 | x86_64 架构 Windows 平台 |
+| aarch64-linux-android\<integer\> | aarch64-unknown-linux-android\<integer\>, arm64-unknown-linux-android\<integer\>, arm64-linux-android\<integer\> | aarch64 架构 Android 平台 | \<integer\> 是一个描述 Android API Level 的正整数，该数字不同的目标三元组名称不等价。
+| x86_64-linux-ohos | x86_64-unknown-linux-ohos | x86_64 架构 OpenHarmony/HarmonyOS 平台
+| aarch64-linux-ohos | aarch64-unknown-linux-ohos, arm64-unknown-linux-ohos, arm64-linux-ohos | aarch64 架构 OpenHarmony/HarmonyOS 平台
+| aarch64-apple-darwin | arm64-apple-darwin | arm64 架构 macOS 平台
+| x86_64-apple-darwin | - | x86_64 架构 macOS 平台 | 
+| aarch64-apple-ios\<number\> | arm64-apple-ios\<number\> | arm64 架构 iOS 平台 | \<number\> 是一个描述 iOS 版本号的正数，例如 18 或者 18.0。该数字不同的目标三元组名称不等价。
+| aarch64-apple-ios\<number\>-simulator | arm64-apple-ios\<number\>-simulator | arm64 架构 iOS 模拟器平台 | 同上 |
+| x86_64-apple-ios\<number\>-simulator | - | x86_64 架构 iOS 模拟器平台 | 同上 |
+
 ## 仓颉交叉编译至 Android
 
 ### 安装包下载

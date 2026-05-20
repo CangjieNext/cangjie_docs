@@ -14,6 +14,24 @@ Developers can cross-compile their Cangjie programs to run on different architec
 
 The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 26+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.
 
+## Supported Compilation Targets and Target Triple Names
+
+Target triple names are commonly used to specify the compilation platform or target. They typically consist of three parts: architecture, vendor, and operating system. The vendor part can usually be omitted when it does not introduce ambiguity. The Cangjie compiler currently supports the following compilation targets. You can use the `--target` option of `cjc` to specify a particular triple name to generate binaries for a specific platform (requires a supported SDK installation package).
+
+| Compilation Target Name | Other Aliases | Target Description | Notes |
+|--|--|--|--|
+| x86_64-linux-gnu | x86_64-unknown-linux-gnu | x86_64 architecture Linux platform |
+| aarch64-linux-gnu | aarch64-unknown-linux-gnu, arm64-unknown-linux-gnu, arm64-linux-gnu | aarch64 architecture Linux platform |
+| x86_64-windows-gnu | x86_64-pc-windows-gnu, x86_64-unknown-windows-gnu, x86_64-pc-w64-mingw32, x86_64-w64-mingw32 | x86_64 architecture Windows platform |
+| aarch64-linux-android\<integer\> | aarch64-unknown-linux-android\<integer\>, arm64-unknown-linux-android\<integer\>, arm64-linux-android\<integer\> | aarch64 architecture Android platform | \<integer\> is a positive integer describing the Android API Level. Target triple names with different values are not equivalent.
+| x86_64-linux-ohos | x86_64-unknown-linux-ohos | x86_64 architecture OpenHarmony/HarmonyOS platform
+| aarch64-linux-ohos | aarch64-unknown-linux-ohos, arm64-unknown-linux-ohos, arm64-linux-ohos | aarch64 architecture OpenHarmony/HarmonyOS platform
+| aarch64-apple-darwin | arm64-apple-darwin | arm64 architecture macOS platform
+| x86_64-apple-darwin | - | x86_64 architecture macOS platform |
+| aarch64-apple-ios\<number\> | arm64-apple-ios\<number\> | arm64 architecture iOS platform | \<number\> is a positive number describing the iOS version, e.g., 18 or 18.0. Target triple names with different values are not equivalent.
+| aarch64-apple-ios\<number\>-simulator | arm64-apple-ios\<number\>-simulator | arm64 architecture iOS Simulator platform | Same as above |
+| x86_64-apple-ios\<number\>-simulator | - | x86_64 architecture iOS Simulator platform | Same as above |
+
 ## Cross-Compiling Cangjie to Android
 
 ### Package Download
