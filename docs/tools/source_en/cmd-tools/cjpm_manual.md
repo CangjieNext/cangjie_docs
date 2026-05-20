@@ -1355,6 +1355,10 @@ Multi-backend, multi-platform isolation options for configuring different settin
   [target.x86_64-unknown-linux-gnu.release.bin-dependencies]
 ```
 
+> **Note:**
+>
+> For the list of `target` names supported by `cjc` and their corresponding system platforms, see [Cross-Compilation](../../../dev-guide/source_en/compile_and_build/cross_compilation.md#cross-compilation).
+
 Developers can add a series of configuration items for a specific `target` by configuring the `target.target-name` field. The `target` name can be obtained in the corresponding Cangjie environment via the command `cjc -v`, where the `Target` item in the command output represents the `target` name for that environment. The above example applies to the `Linux` system but is also applicable to other platforms, where the `target` name can similarly be obtained via `cjc -v`.
 
 Dedicated configuration items for a specific `target` will apply to the compilation process for that `target`, as well as cross-compilation processes where other `targets` specify this `target` as the target platform. The list of configurable items includes:
