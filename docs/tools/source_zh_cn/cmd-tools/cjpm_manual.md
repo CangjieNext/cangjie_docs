@@ -1787,6 +1787,10 @@ cfg3 = "-O2"
   [target.x86_64-unknown-linux-gnu.release.bin-dependencies]
 ```
 
+> **注意：**
+>
+> `cjc` 支持的 target 名称列表及对应的系统平台，请参考[交叉编译](../../../dev-guide/source_zh_cn/compile_and_build/cross_compilation.md#交叉编译)。
+
 开发者可以通过配置 `target.target-name` 字段为某个 `target` 添加一系列配置项。`target` 的名称可以在相应的仓颉环境下通过命令 `cjc -v` 获取，命令输出中的 `Target` 项目即为该环境对应的 `target` 名称。上述用例应用于 `Linux` 系统，其他平台也适用，同样可以通过命令 `cjc -v` 获取 `target` 名称。
 
 为特定 `target` 配置的专用配置项，将作用于该 `target` 的编译流程，也能被其他以该 `target` 为目标平台的交叉编译流程使用。配置项列表如下：
