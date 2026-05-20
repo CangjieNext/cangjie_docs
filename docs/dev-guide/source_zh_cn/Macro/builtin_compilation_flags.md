@@ -154,7 +154,7 @@ public macro Component(input: Tokens): Tokens {
 宏调用如下：
 
 <!-- compile -macro_attr -->
-<!-- cfg="--compile-macro"-->
+<!-- cfg="--debug-macro"-->
 
 ```cangjie
 import define.Component
@@ -162,6 +162,8 @@ import define.Component
 @Component(
     @Attribute[State] var cnt = 0
 )
+
+main() {}
 ```
 
 ## @Deprecated
