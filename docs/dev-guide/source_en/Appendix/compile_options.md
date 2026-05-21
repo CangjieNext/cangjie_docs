@@ -81,7 +81,7 @@ public func printLog(message: String) {
 }
 ```
 
-And a file `main.cj`:
+The Cangjie file `main.cj`:
 
 ```cangjie
 import log.*
@@ -183,7 +183,9 @@ void printHello() {
 }
 ```
 
-And a Cangjie file `main.cj`:
+The Cangjie file `main.cj`:
+
+<!-- code_check_manual -->
 
 ```cangjie
 foreign func printHello(): Unit
@@ -299,6 +301,8 @@ Assume the following directory structure, where the `libs/myModule` directory co
 ```
 
 And the following `main.cj` file:
+
+<!-- code_check_manual -->
 
 ```cangjie
 import myModule.log.printLog
@@ -1119,9 +1123,11 @@ When this option is enabled, the compiler will only compile test files (those en
 
 > **Note:**
 >
-> When using this option, the same package should first be compiled in regular mode, and dependencies should be added via the `-L`/`-l` linking options or by including the `.bc` files when using the `LTO` option. Otherwise, the compiler will report missing dependency symbols.
+> When using this option, the same package should first be compiled in regular mode, then dependencies should be added via the `-L`/`-l` linking options or by including the `.bc` files when using the `LTO` option. Otherwise, the compiler will report missing dependency symbols.
 
 Example:
+<!-- run -my_pkg -->
+<!-- cfg="-p my_pkg --output-type=staticlib -o=output/libmain.a" -->
 
 ```cangjie
 /*main.cj*/
@@ -1131,11 +1137,13 @@ func concatM(s1: String, s2: String): String {
     return s1 + s2
 }
 
-main() {
+main(): Int64 {
     println(concatM("a", "b"))
     0
 }
 ```
+<!-- run -my_pkg -->
+<!-- cfg="-p my_pkg --test-only -L output -lmain --import-path output" -->
 
 ```cangjie
 /*main_test.cj*/
@@ -1171,7 +1179,7 @@ If `on` is passed, the package will enable mock compilation, allowing classes in
 
 ## Macro Options
 
-`cjc` supports the following macro options. For more details about macros, refer to the ["Introduction to Macros"](../Macro/macro_introduction.md) chapter.
+`cjc` supports the following macro options. For more details about macros, refer to the <!-- RP1 -->["Introduction to Macros"](../Macro/macro_introduction.md)<!-- RP1End --> chapter.
 
 ### `--compile-macro` <sup>[frontend]</sup>
 
@@ -1187,7 +1195,7 @@ Enable parallel macro expansion. This option can be used to reduce macro expansi
 
 ## Conditional Compilation Options
 
-`cjc` supports the following conditional compilation options. For more details about conditional compilation, refer to the ["Conditional Compilation"](../compile_and_build/conditional_compilation.md) chapter.
+`cjc` supports the following conditional compilation options. For more details on conditional compilation, refer to <!-- RP2 -->[Conditional Compilation](../compile_and_build/conditional_compilation.md)<!-- RP2End -->.
 
 ### `--cfg <value>` <sup>[frontend]</sup>
 
