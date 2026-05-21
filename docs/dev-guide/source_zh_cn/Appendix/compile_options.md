@@ -174,7 +174,7 @@ void printHello() {
 
 仓颉文件 `main.cj`：
 
-<!-- compile -->
+ <!-- code_check_manual -->
 
 ```cangjie
 foreign func printHello(): Unit
@@ -1120,9 +1120,9 @@ Summary: TOTAL: 2
 >
 > 使用此选项时，应单独以常规模式编译相同的包，然后通过 `-L`/`-l` 链接选项添加依赖，或在使用 `LTO` 选项时添加依赖的 `.bc` 文件。否则，编译器将报缺少依赖的符号的错误。
 
-示例:
-
-<!-- code_check_manual -->
+示例：
+<!-- run -my_pkg -->
+<!-- cfg="-p my_pkg --output-type=staticlib -o=output/libmain.a" -->
 
 ```cangjie
 /*main.cj*/
@@ -1137,8 +1137,8 @@ main(): Int64 {
     0
 }
 ```
-
-<!-- code_check_manual -->
+<!-- run -my_pkg-->
+<!-- cfg="-p my_pkg --test-only -L output -lmain --import-path output" -->
 
 ```cangjie
 /*main_test.cj*/
@@ -1286,7 +1286,7 @@ interface I {
 
 ## 宏选项
 
-`cjc` 支持以下宏选项，关于宏的更多内容请参见[“宏的简介”](../Macro/macro_introduction.md)章节。
+`cjc` 支持以下宏选项，关于宏的更多内容请参见<!--RP1-->[“宏的简介”](../Macro/macro_introduction.md)<!--RP1End-->章节。
 
 ### `--compile-macro` <sup>[frontend]</sup>
 
@@ -1302,7 +1302,7 @@ interface I {
 
 ## 条件编译选项
 
-`cjc` 支持以下条件编译选项，关于条件编译的更多内容请参见[“条件编译”](../compile_and_build/conditional_compilation.md)。
+`cjc` 支持以下条件编译选项，关于条件编译的更多内容请参见<!--RP2-->[“条件编译”](../compile_and_build/conditional_compilation.md)<!--RP2End-->。
 
 ### `--cfg <value>` <sup>[frontend]</sup>
 
@@ -1592,7 +1592,7 @@ class MyClassA {
 obf-cf-flatten packA.MyClassA.funcA(std.core.String, Int64)
 ```
 
-用户也可以使用通配符编写更加灵活的规则，达到一条规则保留多个对象的效果。目前支持的通配符包含以下 3 类：
+用户也可以使用通配符编写更加灵活的规则，达到一条规则保留多个对象的目的。目前支持的通配符包含以下 3 类：
 
 混淆功能通配符：
 
@@ -1858,7 +1858,7 @@ void __sanitizer_cov_trace_switch(uint64_t Val, uint64_t *Cases);
 - Array==: __sanitizer_weak_hook_memcmp
 - ArrayList==: __sanitizer_weak_hook_memcmp
 
-## 实验性功能选项
+## 实验性功能选项<!--Del-->
 
 ### `--enable-eh` <sup>[frontend]</sup>
 
@@ -1918,7 +1918,7 @@ It is resumed, a = 9
 > **注意：**
 >
 > - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
-> - 使用 Effect Handler 需引入 `stdx.effect` 库。
+> - 使用 Effect Handler 需引入 `stdx.effect` 库。<!--DelEnd-->
 
 ### `--experimental` <sup>[frontend]</sup>
 
