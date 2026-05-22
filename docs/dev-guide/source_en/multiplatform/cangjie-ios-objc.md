@@ -275,10 +275,10 @@ Taking Cangjie calling ObjC as an example, the overall development process is de
     brew install llvm@15
     ```
 
-3. Add the `llvm@15/lib/` subdirectory to the `DYLD_LIBRARY_PATH` environment variable.
+3. Add the `llvm@15/lib/` subdirectory to the `DYLD_FALLBACK_LIBRARY_PATH` environment variable.
 
    ```bash
-    export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@15/lib:$DYLD_LIBRARY_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/llvm@15/lib:$DYLD_FALLBACK_LIBRARY_PATH
     ```
 
 4. Verify successful installation: Execute the following command. If the ObjCInteropGen usage instructions appear, the installation was successful.

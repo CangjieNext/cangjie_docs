@@ -1510,11 +1510,11 @@ file from the Cangjie open source repository:**
     brew install llvm@16
     ```
 
-2. Add the `llvm@16/lib/` subdirectory to the `DYLD_LIBRARY_PATH`
+2. Add the `llvm@16/lib/` subdirectory to the `DYLD_FALLBACK_LIBRARY_PATH`
    environment variable:
 
     ```bash
-    export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_FALLBACK_LIBRARY_PATH
     ```
 
 3. Run the `envsetup.sh` script from the Cangjie SDK.

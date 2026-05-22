@@ -922,7 +922,7 @@ This feature is temporarily unsupported when compiling for macOS targets.
 
 ### `--set-runtime-rpath`
 
-Writes the absolute path of the Cangjie runtime library directory into the RPATH/RUNPATH section of the binary. When this option is used, there is no need to set the Cangjie runtime library directory using `LD_LIBRARY_PATH` (for Linux platforms) or `DYLD_LIBRARY_PATH` (for macOS platforms) when running the Cangjie program in the build environment.
+Writes the absolute path of the Cangjie runtime library directory into the RPATH/RUNPATH section of the binary. When this option is used, there is no need to set the Cangjie runtime library directory using `LD_LIBRARY_PATH` (for Linux platforms) or `DYLD_FALLBACK_LIBRARY_PATH` (for macOS platforms) when running the Cangjie program in the build environment.
 
 This feature is not supported when compiling for Windows targets.
 

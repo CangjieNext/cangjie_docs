@@ -278,10 +278,10 @@ cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 Obj
     brew install llvm@16
     ```
 
-3. 将 `llvm@16/lib/` 子目录添加到 `DYLD_LIBRARY_PATH` 环境变量中。
+3. 将 `llvm@16/lib/` 子目录添加到 `DYLD_FALLBACK_LIBRARY_PATH` 环境变量中。
 
    ```bash
-    export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
+    export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_FALLBACK_LIBRARY_PATH
     ```
 
 4. 检测是否安装成功：执行如下命令，如果出现 ObjCInteropGen 使用说明，则证明安装成功。

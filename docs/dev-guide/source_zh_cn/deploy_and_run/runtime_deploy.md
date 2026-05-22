@@ -43,7 +43,7 @@
 3. 请在运行环境执行如下命令完成 `runtime` 的部署（其中 `${CANGJIE_HOME}` 请修改为 `cangjie` 目录所在的路径，`${hw_arch}` 请修改为对应的硬件架构）：
 
     ```bash
-    export DYLD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_cjnative:${DYLD_LIBRARY_PATH}
+    export DYLD_FALLBACK_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_cjnative:${DYLD_FALLBACK_LIBRARY_PATH}
     ```
 
 ## Windows

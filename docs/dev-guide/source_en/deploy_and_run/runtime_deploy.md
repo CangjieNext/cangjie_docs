@@ -43,7 +43,7 @@ This section describes the deployment of the Cangjie runtime.
 3. Execute the following command in the runtime environment to complete the runtime deployment (replace `${CANGJIE_HOME}` with the path to the `cangjie` directory and `${hw_arch}` with the corresponding hardware architecture):
 
     ```bash
-    export DYLD_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_cjnative:${DYLD_LIBRARY_PATH}
+    export DYLD_FALLBACK_LIBRARY_PATH=${CANGJIE_HOME}/runtime/lib/darwin_${hw_arch}_cjnative:${DYLD_FALLBACK_LIBRARY_PATH}
     ```
 
 ## Windows
