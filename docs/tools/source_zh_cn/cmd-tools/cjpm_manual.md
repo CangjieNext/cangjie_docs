@@ -271,7 +271,7 @@ cjpm tree success
 > - `-i, --incremental` 选项目前仅支持基于源码的增量分析。如果导入的库内容有变更，需要开发者重新使用全量方式构建。
 > - 以 `_test.cj` 结尾的源码文件和普通源码文件内的测试用例在 `build` 阶段会被忽略，其余涉及编译的命令 `(run/install/bundle)` 在编译阶段也会忽略上述文件。
 
-编译生成的中间文件默认会存放在 `target` 文件夹，而可执行文件会根据编译模式存放到 `target/release/bin` 或 `target/debug/bin` 文件夹。运行可执行文件的方式可参考 `run`。
+编译生成的中间文件默认会存放在 `target` 文件夹，而可执行文件会根据编译模式存放到 `target/release/bin` 或 `target/debug/bin` 文件夹。运行可执行文件的方式可参考 [run](#run)。
 
 为了提供可复制的构建，此命令会创建 `cjpm.lock` 文件，该文件包含所有可传递依赖项的确切版本，这些依赖项将用于所有后续构建，需要更新该文件时请使用 `update` 命令。如果有必要保证每个项目参与者都有可复制的构建，那么此文件应提交到版本控制系统中。
 
@@ -315,9 +315,9 @@ src
 输入: cjpm build
 输出:
 cyclic dependency:
+demo.aoo -> demo.boo
 demo.boo -> demo.coo
 demo.coo -> demo.aoo
-demo.aoo -> demo.boo
 
 Error: cjpm build failed
 ```
@@ -2618,7 +2618,7 @@ cjpm build --no-feature-deduce --enable-features=user.tests_in_source_sets.arch.
 
 上述示例中，通过 `user.tests_in_source_sets.arch.big` 制定了具体所编译的 `source-set` 生成了二进制文件。具体各个配置项含义、选项含义与项目结构信息将在后续逐步展开说明。
 
-关于跨平台编译的通用概念与配置原理，请参见[跨平台编译](../../../dev-guide/source_zh_cn/multiplatform/common_platform.md#跨平台编译)。
+<!--Del-->关于跨平台编译的通用概念与配置原理，请参见[跨平台编译](../../../dev-guide/source_zh_cn/multiplatform/common_platform.md#跨平台编译)。<!--DelEnd-->
 
 #### feature
 
