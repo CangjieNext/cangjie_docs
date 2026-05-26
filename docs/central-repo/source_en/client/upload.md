@@ -65,14 +65,14 @@ The bundling scope of `bundle` is determined by the `include` and `exclude` fiel
 
 The `bundle` command only checks and bundles files under the current project directory. Based on the developer-configured `include` and `exclude` fields, the final bundling scope determination rules for the `bundle` command are as follows:
 
-*   **Files packaged by default, regardless of configuration**: `cjpm.toml`, `README.md`, and `README_zh.md` in the project root directory.
-*   **Files not packaged by default, regardless of configuration**:
-    *   `cjpm.lock` and `cangjie-repo.toml` in the project root directory.
-    *   Build output directories and build script output directories.
-    *   All binary files.
-*   For other files besides the above ranges, the following rules apply:
-    *   If a file matches any `include` rule and does not match any `exclude` rule, it will be packaged.
-    *   If `include` is not configured, all files in the current directory that do not match any `exclude` rule will be packaged.
+* **Files packaged by default, regardless of configuration**: `cjpm.toml`, `README.md`, and `README_zh.md` in the project root directory.
+* **Files not packaged by default, regardless of configuration**:
+  * `cjpm.lock` and `cangjie-repo.toml` in the project root directory.
+  * Build output directories and build script output directories.
+  * All binary files.
+* For other files besides the above ranges, the following rules apply:
+  * If a file matches any `include` rule and does not match any `exclude` rule, it will be packaged.
+  * If `include` is not configured, all files in the current directory that do not match any `exclude` rule will be packaged.
 
 For example, consider the following module `demo` to be packaged:
 
@@ -135,23 +135,23 @@ Result: Packages `cjpm.toml`, `README.md`, and all files in the `src` directory 
 
 The `bundle` packaging process is as follows:
 
-1.  **Module Check**
+1. **Module Check**
 
     A `cjpm` module that can be successfully packaged must meet the following conditions:
 
-    *   Module name and organization name meet the specification requirements:
-        *   Length range [3, 64], and conforms to the module and organization name specifications.
-        *   Cannot be any keyword from the Cangjie syntax (case-insensitive).
-        *   Organization name cannot be `default`.
-    *   `cjpm.toml` contains the module description `description`.
-    *   The root directory contains Chinese documentation `README_zh.md` or English documentation `README.md`.
-    *   The module's dependencies are all in central repository form.
+    * Module name and organization name meet the specification requirements:
+      * Length range [3, 64], and conforms to the module and organization name specifications.
+      * Cannot be any keyword from the Cangjie syntax (case-insensitive).
+      *   Organization name cannot be `default`.
+    * `cjpm.toml` contains the module description `description`.
+    * The root directory contains Chinese documentation `README_zh.md` or English documentation `README.md`.
+    * The module's dependencies are all in central repository form.
 
     If the module does not meet the above conditions, packaging fails.
 
-2.  **Compilation Check**: Performs a compilation check to ensure the module can compile successfully. If `--skip-test` is not configured, unit tests will be run. Compilation or test failures will cause packaging to fail.
-3.  **Code Static Analysis**: If `--skip-lint` is not configured, `cjlint` is called for code static analysis. Errors at the `error` level will cause packaging to fail.
-4.  **Bundling**: Based on the `include` and `exclude` fields, packages the current module into an artifact source code package in `tar.gz` format. The artifact source code package is located in the build output directory, with the filename `module-name-version.cjp`. Simultaneously, generates the corresponding metadata file for the artifact package, also located in the build output directory, with the filename `meta-data.json`.
+2. **Compilation Check**: Performs a compilation check to ensure the module can compile successfully. If `--skip-test` is not configured, unit tests will be run. Compilation or test failures will cause packaging to fail.
+3. **Code Static Analysis**: If `--skip-lint` is not configured, `cjlint` is called for code static analysis. Errors at the `error` level will cause packaging to fail.
+4. **Bundling**: Based on the `include` and `exclude` fields, packages the current module into an artifact source code package in `tar.gz` format. The artifact source code package is located in the build output directory, with the filename `module-name-version.cjp`. Simultaneously, generates the corresponding metadata file for the artifact package, also located in the build output directory, with the filename `meta-data.json`.
 
 Continuing with the example of the `demo` module to be packaged above, assuming its `cjpm.toml` configures `version = "1.0.0"`. Since the build output directory is not configured, the default build output directory is `target`. After executing `cjpm bundle`, the `target` directory will contain the following:
 
@@ -176,7 +176,7 @@ When executing the `publish` command, `cjpm` checks if there is an artifact sour
 
 Successful `publish` requires meeting the following conditions:
 
-1.  A valid user token has been configured in `cangjie-repo.toml`.
-2.  The uploaded artifact package is unique, meaning there is no other artifact package in the repository with the same organization name, artifact name, and version number as the newly uploaded one.
-3.  If the artifact package belongs to an organization, the user corresponding to the token must be a member of that organization.
-4.  The published artifact package passes the central repository's security scan.
+1. A valid user token has been configured in `cangjie-repo.toml`.
+2. The uploaded artifact package is unique, meaning there is no other artifact package in the repository with the same organization name, artifact name, and version number as the newly uploaded one.
+3. If the artifact package belongs to an organization, the user corresponding to the token must be a member of that organization.
+4. The published artifact package passes the central repository's security scan.

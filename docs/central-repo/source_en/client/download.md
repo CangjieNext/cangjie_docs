@@ -18,13 +18,13 @@ The format for `cjpm` central repository dependencies is as follows:
 
 The configuration method is explained in detail as follows:
 
-*   The central repository dependency configuration format is `${artifact-name} = "${version-requirement}"` or `${artifact-name} = { version = "${version-requirement}" }`. These two notations are equivalent.
-*   When depending on an artifact within an organization, the organization name must be prepended to the artifact name, separated by `::`. Due to `toml` format requirements, it must be enclosed in `""`. For example, `"org::dep4" = "4.0.0"` in the example above.
-*   The version requirement supports the following formats:
-    *   **Single Version Number**: Indicates dependency on a specific version of the artifact package. For example, `dep1 = "1.0.0"` in the example above.
-    *   **Version Range**: A version range expressed as a mathematical interval, with customizable open/closed bounds, indicating dependency on any artifact package version within the range. For example, `dep3 = "[1.0.0, 3.0.0)"` in the example above indicates dependency on any `dep3` artifact package with a version number greater than or equal to `1.0.0` and less than `3.0.0`.
-        *   **Unbounded Version Range**: The upper or lower bound of the version range can be omitted, indicating no upper/lower bound. The omitted side must be an open interval. For example, `(, 2.0.0]` indicates any version less than or equal to `2.0.0`; `(1.0.0, )` indicates any version greater than `1.0.0`; `(, )` indicates any version.
-    *   **Multi-interval Combination**: A combination of any number of single version numbers or version ranges, separated by commas. It indicates the artifact package version satisfies any one of the single version numbers or version ranges. For example, `(, 1.0.0), [2.0.0, 3.0.0), 4.0.0` indicates the dependent artifact package version is less than `1.0.0`, OR greater than or equal to `2.0.0` and less than `3.0.0`, OR version `4.0.0`.
+* The central repository dependency configuration format is `${artifact-name} = "${version-requirement}"` or `${artifact-name} = { version = "${version-requirement}" }`. These two notations are equivalent.
+* When depending on an artifact within an organization, the organization name must be prepended to the artifact name, separated by `::`. Due to `toml` format requirements, it must be enclosed in `""`. For example, `"org::dep4" = "4.0.0"` in the example above.
+* The version requirement supports the following formats:
+  * **Single Version Number**: Indicates dependency on a specific version of the artifact package. For example, `dep1 = "1.0.0"` in the example above.
+  * **Version Range**: A version range expressed as a mathematical interval, with customizable open/closed bounds, indicating dependency on any artifact package version within the range. For example, `dep3 = "[1.0.0, 3.0.0)"` in the example above indicates dependency on any `dep3` artifact package with a version number greater than or equal to `1.0.0` and less than `3.0.0`.
+    * **Unbounded Version Range**: The upper or lower bound of the version range can be omitted, indicating no upper/lower bound. The omitted side must be an open interval. For example, `(, 2.0.0]` indicates any version less than or equal to `2.0.0`; `(1.0.0, )` indicates any version greater than `1.0.0`; `(, )` indicates any version.
+  * **Multi-interval Combination**: A combination of any number of single version numbers or version ranges, separated by commas. It indicates the artifact package version satisfies any one of the single version numbers or version ranges. For example, `(, 1.0.0), [2.0.0, 3.0.0), 4.0.0` indicates the dependent artifact package version is less than `1.0.0`, OR greater than or equal to `2.0.0` and less than `3.0.0`, OR version `4.0.0`.
 
 > **Note:**
 >
@@ -34,14 +34,14 @@ The configuration method is explained in detail as follows:
 
 `cjpm` provides three configuration methods for source code dependency modules in the project configuration file `cjpm.toml`, all adhering to the format described above, each corresponding to different application scenarios:
 
-*   **Project Dependencies (`dependencies`)**: Used to provide source code dependency modules for project files (except for the build script `build.cj`).
-*   **Test Dependencies (`test-dependencies`)**: Used to provide source code dependency modules for the project's test code. Test code filenames must end with `_test.cj`. Test dependencies only take effect during testing.
-*   **Script Dependencies (`script-dependencies`)**: Used to provide source code dependency modules for the project's build script. The build script is a file named `build.cj` located at the same level as `cjpm.toml`. Script dependencies only take effect for the build script.
+* **Project Dependencies (`dependencies`)**: Used to provide source code dependency modules for project files (except for the build script `build.cj`).
+* **Test Dependencies (`test-dependencies`)**: Used to provide source code dependency modules for the project's test code. Test code filenames must end with `_test.cj`. Test dependencies only take effect during testing.
+* **Script Dependencies (`script-dependencies`)**: Used to provide source code dependency modules for the project's build script. The build script is a file named `build.cj` located at the same level as `cjpm.toml`. Script dependencies only take effect for the build script.
 
 > **Note:**
 >
-> *   Project source code dependencies (`dependencies`) can also be used in the project's test code.
-> *   The build script is independent of the project source code. Therefore, the build script can only use dependencies from `script-dependencies` and cannot use the other two types of dependencies. Conversely, the project's source code and test code cannot use dependencies from `script-dependencies`.
+> * Project source code dependencies (`dependencies`) can also be used in the project's test code.
+> * The build script is independent of the project source code. Therefore, the build script can only use dependencies from `script-dependencies` and cannot use the other two types of dependencies. Conversely, the project's source code and test code cannot use dependencies from `script-dependencies`.
 
 For example, consider a local module `demo` with the following structure:
 
@@ -105,17 +105,17 @@ import dep3.coo.*         // Build scripts can import packages from module dep3
 
 > **Note:**
 >
-> *   The platform name specified by `target` can be obtained on the corresponding platform via the command `cjc -v`.
-> *   If a dependency specified in `target` conflicts with a non-platform-specific dependency of the same type, `cjpm` will report an error.
+> * The platform name specified by `target` can be obtained on the corresponding platform via the command `cjc -v`.
+> * If a dependency specified in `target` conflicts with a non-platform-specific dependency of the same type, `cjpm` will report an error.
 
 ## Dependency Conflict Resolution
 
 During the use of central repository artifacts, dependency conflicts may occur. They can be attempted to be resolved in the following ways:
 
-*   Depend on other central repository modules with similar functionality to avoid dependency conflicts.
-*   Adjust the version range of the dependency to include more available versions, thereby increasing the possibility of finding a compatible version.
-*   If the compilation process involves multiple local modules, check if there are dependency conflicts between these modules.
-*   Use the `cjpm update` command to update the local index cache to obtain the latest artifact information from the central repository.
+* Depend on other central repository modules with similar functionality to avoid dependency conflicts.
+* Adjust the version range of the dependency to include more available versions, thereby increasing the possibility of finding a compatible version.
+* If the compilation process involves multiple local modules, check if there are dependency conflicts between these modules.
+* Use the `cjpm update` command to update the local index cache to obtain the latest artifact information from the central repository.
 
 When an unavoidable version conflict occurs, `cjpm` dependency resolution will fail. For example, consider a local project with the following structure:
 
