@@ -28,26 +28,36 @@
 
 ## 文档版本与分支说明
 
-本仓库当前远程分支以 [cangjie_docs](https://atomgit.com/Cangjie/cangjie_docs) 为准，按用途示例如下（以实际 `git branch -a` 为准并会随发版增删）：
+分支会随版本发布增删，以实际 `git branch -a` 结果为准。下表按用途分类：
 
 ### 主分支
 
-- [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main)：默认主分支，日常协作与合入建议以该分支为基线。
+| 分支 | 用途 |
+|------|------|
+| [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main) | 默认主分支，日常协作与合入的基线 |
 
 ### 开发分支
 
-- [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev)：开发分支，用于主线的持续开发或预集成。
+| 分支 | 用途 |
+|------|------|
+| [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev) | 开发分支，用于主线持续开发与预集成 |
 
-### 发版与配套分支
+### 发版分支
 
-- [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1)：1.1 线文档发布分支。
-- [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0)：1.0 线文档发布分支。
-- [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta)：`v1.0.3` cjmp 相关 beta 线文档。
+| 分支 | 配套版本 | 说明 |
+|------|---------|------|
+| [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1) | Cangjie 1.1.x STS | 1.1 线文档发布 |
+| [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0) | Cangjie 1.0.x LTS | 1.0 线文档发布 |
+| [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta) | Cangjie 1.0.3 cjmp | cjmp beta 线文档 |
 
-### OpenHarmony 配套文档
+### OpenHarmony 配套分支
 
-- [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2)：与 OpenHarmony 6.0.2 线配套的本仓库文档分支。
-- [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0)：与 OpenHarmony 6.0 线配套的本仓库文档分支。
+| 分支 | 配套 OH 版本 | 说明 |
+|------|-------------|------|
+| [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2) | OpenHarmony 6.0.2 | OH 6.0.2 配套文档 |
+| [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0) | OpenHarmony 6.0 | OH 6.0 配套文档 |
+
+> **提示**：分支名中的 `/` 在 URL 中编码为 `%2F`，点击上方链接已自动处理。
 
 ## 许可证
 

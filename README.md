@@ -28,26 +28,36 @@ The directory structure of this repository is as follows:
 
 ## Documentation versions and branches
 
-The remote branches for this repository are defined on [cangjie_docs](https://atomgit.com/Cangjie/cangjie_docs). The list below matches the current layout (verify with `git branch -a`; branches may change with releases).
+Branches may change with releases. Verify the current list with `git branch -a`. The table below groups branches by purpose.
 
 ### Main branch
 
-- [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main): default branch. Use it as the baseline for day-to-day collaboration and merges.
+| Branch | Purpose |
+|--------|---------|
+| [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main) | Default branch; baseline for day-to-day collaboration and merges |
 
 ### Development branch
 
-- [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev): development branch for ongoing work or pre-integration on the main line.
+| Branch | Purpose |
+|--------|---------|
+| [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev) | Ongoing development and pre-integration |
 
-### Release and feature branches
+### Release branches
 
-- [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1): documentation for the 1.1 release line.
-- [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0): documentation for the 1.0 release line.
-- [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta): `v1.0.3` cjmp-related beta documentation.
+| Branch | Cangjie version | Notes |
+|--------|----------------|-------|
+| [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1) | 1.1.x STS | Documentation for the 1.1 line |
+| [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0) | 1.0.x LTS | Documentation for the 1.0 line |
+| [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta) | 1.0.3 cjmp | cjmp beta documentation |
 
-### OpenHarmony-aligned documentation
+### OpenHarmony-aligned branches
 
-- [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2): this repo’s documentation branch aligned with the OpenHarmony 6.0.2 line.
-- [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0): this repo’s documentation branch aligned with the OpenHarmony 6.0 line.
+| Branch | OH version | Notes |
+|--------|-----------|-------|
+| [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2) | OpenHarmony 6.0.2 | Documentation aligned with OH 6.0.2 |
+| [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0) | OpenHarmony 6.0 | Documentation aligned with OH 6.0 |
+
+> **Note**: The `/` in branch names is encoded as `%2F` in URLs. Links above are pre-encoded.
 
 ## License
 
