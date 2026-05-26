@@ -26,6 +26,39 @@
     └── dev-guide    # 该目录存放仓颉编程语言开发指南
 ```
 
+## 文档版本与分支说明
+
+分支会随版本发布增删，以实际 `git branch -a` 结果为准。下表按用途分类：
+
+### 主分支
+
+| 分支 | 用途 |
+|------|------|
+| [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main) | 默认主分支，日常协作与合入的基线 |
+
+### 开发分支
+
+| 分支 | 用途 |
+|------|------|
+| [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev) | 开发分支，用于主线持续开发与预集成 |
+
+### 发版分支
+
+| 分支 | 配套版本 | 说明 |
+|------|---------|------|
+| [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1) | Cangjie 1.1.x STS | 1.1 线文档发布 |
+| [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0) | Cangjie 1.0.x LTS | 1.0 线文档发布 |
+| [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta) | Cangjie 1.0.3 cjmp | cjmp beta 线文档 |
+
+### OpenHarmony 配套分支
+
+| 分支 | 配套 OH 版本 | 说明 |
+|------|-------------|------|
+| [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2) | OpenHarmony 6.0.2 | OH 6.0.2 配套文档 |
+| [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0) | OpenHarmony 6.0 | OH 6.0 配套文档 |
+
+> **提示**：分支名中的 `/` 在 URL 中编码为 `%2F`，点击上方链接已自动处理。
+
 ## 许可证
 
 仓颉开发者文档许可证请参见 [License](./LICENSE) 。
@@ -38,6 +71,6 @@
 
 ## 相关仓
 
-- [**cangjie_docs**](https://gitcode.com/Cangjie/cangjie_docs)
-- [cangjie_runtime](https://gitcode.com/Cangjie/cangjie_runtime)
-- [cangjie_stdx](https://gitcode.com/Cangjie/cangjie_stdx)
+- [**cangjie_docs**](https://atomgit.com/Cangjie/cangjie_docs)
+- [cangjie_runtime](https://atomgit.com/Cangjie/cangjie_runtime)
+- [cangjie_stdx](https://atomgit.com/Cangjie/cangjie_stdx)
