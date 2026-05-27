@@ -26,38 +26,26 @@ The directory structure of this repository is as follows:
     └── dev-guide    # This directory stores the Cangjie programming language development guide
 ```
 
-## Documentation versions and branches
+## Document Versions and Branch Descriptions
 
-Branches may change with releases. Verify the current list with `git branch -a`. The table below groups branches by purpose.
+This section explains the purpose of each branch in the cangjie_docs repository.
 
-### Main branch
+> **Note:**
+>
+> Branches may be added or removed depending on version releases. Please refer to actual query results.
 
-| Branch | Purpose |
-|--------|---------|
-| [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main) | Default branch; baseline for day-to-day collaboration and merges |
+### Main Branch
 
-### Development branch
+[main](https://gitcode.com/Cangjie/cangjie_docs/tree/main): The default main branch, integrating stable feature documentation.
 
-| Branch | Purpose |
-|--------|---------|
-| [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev) | Ongoing development and pre-integration |
+### Release and Supporting Branches
 
-### Release branches
+- [release/1.1](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.1): Cangjie 1.1.0 STS release branch. Click [here](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md) for version details.
+- [release/1.0](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.0): Cangjie 1.0.x LTS release branch. Click [here](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md) for version details.
 
-| Branch | Cangjie version | Notes |
-|--------|----------------|-------|
-| [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1) | 1.1.x STS | Documentation for the 1.1 line |
-| [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0) | 1.0.x LTS | Documentation for the 1.0 line |
-| [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta) | 1.0.3 cjmp | cjmp beta documentation |
+### OpenHarmony Supporting Branch
 
-### OpenHarmony-aligned branches
-
-| Branch | OH version | Notes |
-|--------|-----------|-------|
-| [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2) | OpenHarmony 6.0.2 | Documentation aligned with OH 6.0.2 |
-| [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0) | OpenHarmony 6.0 | Documentation aligned with OH 6.0 |
-
-> **Note**: The `/` in branch names is encoded as `%2F` in URLs. Links above are pre-encoded.
+[release/OpenHarmony-release-6.0.2](https://gitcode.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2): Cangjie documentation supporting OpenHarmony 6.0.2.
 
 ## License
 
@@ -71,6 +59,6 @@ You can evaluate existing documentation, make simple changes, provide feedback o
 
 ## Related Repositories
 
-- [**cangjie_docs**](https://atomgit.com/Cangjie/cangjie_docs)
-- [cangjie_runtime](https://atomgit.com/Cangjie/cangjie_runtime)
-- [cangjie_stdx](https://atomgit.com/Cangjie/cangjie_stdx)
+- [**cangjie_docs**](https://gitcode.com/Cangjie/cangjie_docs)
+- [cangjie_runtime](https://gitcode.com/Cangjie/cangjie_runtime)
+- [cangjie_stdx](https://gitcode.com/Cangjie/cangjie_stdx)

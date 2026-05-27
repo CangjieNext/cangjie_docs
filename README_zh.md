@@ -28,36 +28,24 @@
 
 ## 文档版本与分支说明
 
-分支会随版本发布增删，以实际 `git branch -a` 结果为准。下表按用途分类：
+本节介绍 cangjie_docs 仓库各分支的作用。
+
+> **说明：**
+>
+> 分支会根据版本发布情况增加或删除，请以实际查询结果为准。
 
 ### 主分支
 
-| 分支 | 用途 |
-|------|------|
-| [main](https://atomgit.com/Cangjie/cangjie_docs/tree/main) | 默认主分支，日常协作与合入的基线 |
+[main](https://gitcode.com/Cangjie/cangjie_docs/tree/main)：默认主分支，合入稳定特性文档。
 
-### 开发分支
+### 版本发布与配套分支
 
-| 分支 | 用途 |
-|------|------|
-| [dev](https://atomgit.com/Cangjie/cangjie_docs/tree/dev) | 开发分支，用于主线持续开发与预集成 |
-
-### 发版分支
-
-| 分支 | 配套版本 | 说明 |
-|------|---------|------|
-| [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.1) | Cangjie 1.1.x STS | 1.1 线文档发布 |
-| [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2F1.0) | Cangjie 1.0.x LTS | 1.0 线文档发布 |
-| [release/v1.0.3-cjmp-beta](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2Fv1.0.3-cjmp-beta) | Cangjie 1.0.3 cjmp | cjmp beta 线文档 |
+- [release/1.1](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.1)：Cangjie 1.1.0 STS 版本发布分支。单击[此处](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md)了解版本详情。
+- [release/1.0](https://gitcode.com/Cangjie/cangjie_docs/tree/release/1.0)：Cangjie 1.0.x LTS 版本发布分支。单击[此处](https://gitcode.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md)了解版本详情。
 
 ### OpenHarmony 配套分支
 
-| 分支 | 配套 OH 版本 | 说明 |
-|------|-------------|------|
-| [release/OpenHarmony-release-6.0.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2) | OpenHarmony 6.0.2 | OH 6.0.2 配套文档 |
-| [release/OpenHarmony-release-6.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0) | OpenHarmony 6.0 | OH 6.0 配套文档 |
-
-> **提示**：分支名中的 `/` 在 URL 中编码为 `%2F`，点击上方链接已自动处理。
+[release/OpenHarmony-release-6.0.2](https://gitcode.com/Cangjie/cangjie_docs/tree/release%2FOpenHarmony-release-6.0.2)：配套 OpenHarmony 6.0.2 版本的仓颉文档。
 
 ## 许可证
 
@@ -71,6 +59,6 @@
 
 ## 相关仓
 
-- [**cangjie_docs**](https://atomgit.com/Cangjie/cangjie_docs)
-- [cangjie_runtime](https://atomgit.com/Cangjie/cangjie_runtime)
-- [cangjie_stdx](https://atomgit.com/Cangjie/cangjie_stdx)
+- [**cangjie_docs**](https://gitcode.com/Cangjie/cangjie_docs)
+- [cangjie_runtime](https://gitcode.com/Cangjie/cangjie_runtime)
+- [cangjie_stdx](https://gitcode.com/Cangjie/cangjie_stdx)
