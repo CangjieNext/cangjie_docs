@@ -1277,7 +1277,7 @@ interface I {
 - 接口类型用作泛型约束。
 - 函数类型变量。
 - 互操作场景下的 `inout` 变量。
-- 使用 Common/Platform 特性。详见[跨平台](../multiplatform/common_platform.md)。
+- 使用 Common/Platform 特性。<!--Del-->详情请参见[跨平台](../multiplatform/common_platform.md)。<!--DelEnd-->
 - 使用反射 API 获取信息时，将获取到编译器内部生成的类型。
 
 建议在启动 `mock=on` 模式时，避免在代码中使用上述特性，以确保稳定性。
