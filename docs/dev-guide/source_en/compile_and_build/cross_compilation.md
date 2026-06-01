@@ -4,34 +4,44 @@ Developers can cross-compile their Cangjie programs to run on different architec
 
 |  Compilation  Platform        | Target Platform     | Common Scenarios / Tools              | Corresponding SDK Installation Package                          |
 |-------------------------|-----------------------|-------------------------------|-------------------------------------------------|
-| Windows (x64)           | Android (aarch64)     | Android physical devices | cangjie-sdk-windows-x64-android.x.y.z.zip (or .exe) |
-| Linux (x64)             | Android (aarch64)     | Android physical devices  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz |
-| macOS (aarch64/x64)     | Android (aarch64)     | Android physical devices and Android Studio Emulator | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz |
-| macOS (aarch64)     | Android (arm32)       | Android physical devices | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
-| macOS (aarch64)         | iOS (aarch64)         | iOS physical devices | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
-| macOS (aarch64)         | iOS Simulator (aarch64/x86_64)   | Xcode Simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
+| Windows (x64)           | OpenHarmony/HarmonyOS | OpenHarmony/HarmonyOS devices or emulators | Refer to the HarmonyOS developer website for more information. |
+| macOS (aarch64)     | OpenHarmony/HarmonyOS | OpenHarmony/HarmonyOS devices or emulators | Refer to the HarmonyOS developer website for more information. |
+| Linux (x64)             | OpenHarmony/HarmonyOS | OpenHarmony/HarmonyOS devices or emulators  | Refer to the HarmonyOS developer website for more information. |
+|<!--DelRow--> Windows (x64)           | Android (aarch64)     | Android physical devices | cangjie-sdk-windows-x64-android.x.y.z.zip (or .exe) |
+|<!--DelRow--> Linux (x64)             | Android (aarch64)     | Android physical devices  | cangjie-sdk-linux-x64-android.x.y.z.tar.gz |
+|<!--DelRow--> macOS (aarch64)     | Android (aarch64)     | Android physical devices and Android Studio Emulator | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz |
+|<!--DelRow--> macOS (aarch64)     | Android (arm32)       | Android physical devices | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
+|<!--DelRow--> macOS (aarch64)         | iOS (aarch64)         | iOS physical devices | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
-
-The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 26+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.
+<!--Del-->The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 26+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.<!--DelEnd-->
 
 ## Supported Compilation Targets and Target Triple Names
 
 Target triple names are commonly used to specify the compilation platform or target. They typically consist of three parts: architecture, vendor, and operating system. The vendor part can usually be omitted when it does not introduce ambiguity. The Cangjie compiler currently supports the following compilation targets. You can use the `--target` option of `cjc` to specify a particular triple name to generate binaries for a specific platform (requires a supported SDK installation package).
 
-| Compilation Target Name | Other Aliases | Target Description | Additional Notes |
-|--|--|--|--|
-| x86_64-linux-gnu | x86_64-unknown-linux-gnu | x86_64 architecture Linux platform | - |
-| aarch64-linux-gnu | aarch64-unknown-linux-gnu, arm64-unknown-linux-gnu, arm64-linux-gnu | aarch64 architecture Linux platform | - |
-| x86_64-windows-gnu | x86_64-pc-windows-gnu, x86_64-unknown-windows-gnu, x86_64-pc-w64-mingw32, x86_64-w64-mingw32 | x86_64 architecture Windows platform | - |
-| aarch64-linux-android\<integer> | aarch64-unknown-linux-android\<integer>, arm64-unknown-linux-android\<integer>, arm64-linux-android\<integer> | aarch64 architecture Android platform | \<integer> is a positive integer describing the Android API Level. Target triple names with different values are not equivalent. |
-| x86_64-linux-ohos | x86_64-unknown-linux-ohos | x86_64 architecture OpenHarmony/HarmonyOS platform | - |
-| aarch64-linux-ohos | aarch64-unknown-linux-ohos, arm64-unknown-linux-ohos, arm64-linux-ohos | aarch64 architecture OpenHarmony/HarmonyOS platform | - |
-| aarch64-apple-darwin | arm64-apple-darwin | arm64 architecture macOS platform | - |
-| x86_64-apple-darwin | - | x86_64 architecture macOS platform | - |
-| aarch64-apple-ios\<number> | arm64-apple-ios\<number> | arm64 architecture iOS platform | \<number> is a positive number describing the iOS version, e.g., 18 or 18.0. Target triple names with different values are not equivalent. |
-| aarch64-apple-ios\<number>-simulator | arm64-apple-ios\<number>-simulator | arm64 architecture iOS Simulator platform | Same as above |
-| x86_64-apple-ios\<number>-simulator | - | x86_64 architecture iOS Simulator platform | Same as above |
+| Compilation Target Name | Other Aliases | Target Description |
+|--|--|--|
+| x86_64-linux-gnu | x86_64-unknown-linux-gnu | x86_64 architecture Linux platform |
+| aarch64-linux-gnu | aarch64-unknown-linux-gnu, arm64-unknown-linux-gnu, arm64-linux-gnu | aarch64 architecture Linux platform |
+| x86_64-windows-gnu | x86_64-pc-windows-gnu, x86_64-unknown-windows-gnu, x86_64-pc-w64-mingw32, x86_64-w64-mingw32 | x86_64 architecture Windows platform |
+| aarch64-apple-darwin | arm64-apple-darwin | arm64 architecture macOS platform |
+| x86_64-apple-darwin | - | x86_64 architecture macOS platform |
+| x86_64-linux-ohos | x86_64-unknown-linux-ohos | x86_64 architecture OpenHarmony/HarmonyOS platform |
+| aarch64-linux-ohos | aarch64-unknown-linux-ohos, arm64-unknown-linux-ohos, arm64-linux-ohos | aarch64 architecture OpenHarmony/HarmonyOS platform |
+|<!--DelRow--> aarch64-linux-android\<integer> | aarch64-unknown-linux-android\<integer>, arm64-unknown-linux-android\<integer>, arm64-linux-android\<integer> | aarch64 architecture Android platform |
+|<!--DelRow--> aarch64-apple-ios\<number> | arm64-apple-ios\<number> | arm64 architecture iOS platform |
+|<!--DelRow--> aarch64-apple-ios\<number>-simulator | arm64-apple-ios\<number>-simulator | arm64 architecture iOS Simulator platform |
+|<!--DelRow--> x86_64-apple-ios\<number>-simulator | - | x86_64 architecture iOS Simulator platform |
 
+<!--Del-->
+> **Note:**
+>
+> \<integer> is a positive integer describing the Android API Level. Target triple names with different values are not equivalent.
+> 
+> \<number> is a positive number describing the iOS version, e.g., 18 or 18.0. Target triple names with different values are not equivalent.
+<!--DelEnd-->
+
+<!--Del-->
 ## Cross-Compiling Cangjie to Android
 
 ### Package Download
@@ -194,3 +204,4 @@ After configuration, build the project directly through `Xcode`.
 ### Deployment and Execution
 
 Build and deploy to real devices or simulators through `Xcode`. Refer to the "Build and running an app" section in the `Xcode` manual for specific steps.
+<!--DelEnd-->
