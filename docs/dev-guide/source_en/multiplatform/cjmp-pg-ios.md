@@ -1,15 +1,10 @@
----
-author: Huawei Technologies Co., Ltd.
-title: Cangjie Multiplatform Programmer's Guide
-subtitle: for iOS™
-titlepage: true
-numbersections: true
-toc-own-page: true
-listings-no-page-break: true
-textables: false
----
+# Cangjie Interoperability with Objective-C
 
-# Introduction
+**NOTE:** The Objective-C interoperability feature is experimental and still
+under continuous improvement.
+
+
+## Introduction
 
 The **Cangjie Multiplatform** technology enables Cangjie developers
 to incorporate their code into new Android/iOS applications and/or gradually
@@ -21,14 +16,14 @@ of one language to the other.
 On the Cangjie side, mirror types enable the inheritance of Java/Objective-C
 classes with method overriding, as well as the implementation of Java
 interfaces and Objective-C protocols, all while using conventional Cangjie
-syntax. On the Java/Objective-C side, the mirror types that represent Cangjie
-types are expressed in terms of the respective language's own types.
-All in all, this enables seamless transitions between the Java/Objective-C
-and Cangjie parts of the application, which includes usage of the target
-O/S APIs in Cangjie code.
+syntax. And those Cangjie classes that extend and implement the mirrored classes
+and interfaces/protocols are exposed back to Java/Objective-C as if they were
+classes of the respective platform-native language. All in all, this enables
+seamless transitions between the Java/Objective-C and Cangjie parts
+of the application, which includes usage of the target O/S APIs in Cangjie code.
 
 
-## The Challenge and the Solution
+### The Challenge and the Solution
 
 Java, Objective-C and Cangjie are object-oriented languages that support
 inheritance and polymorphism. However, the differences in their semantics,
@@ -41,72 +36,55 @@ but again they do that differently. Making two separately designed complex
 language runtimes aware of each other might push the complexity of the entire
 system beyond human comprehension.
 
-Instead, the interoperability between Cangjie and Java is achieved
-by disguising them both as low-level languages. Cangjie and Java parts
-of the application see each other through the lens of the Java Native Interface
-(JNI), originally designed to facilitate the development of Java `native`
-methods in languages such as C and C++. JNI is a rich, but low-level API,
-and writing `native` Java methods is known to be cumbersome. Fortunately,
-CJMP automates away the complexity of JNI.
+Instead, the interoperability between Cangjie and Objective-C is achieved
+by disguising them both as the lower-level C language. The Objective-C Runtime
+module API is designed specifically to enable the creation of bridge layers
+between Objective-C and other languages. It provides a rich, but low-level
+C API, and writing the bridge code manually is known to be cumbersome
+Fortunately, CJMP automates all that complexity away.
 
-The Objective-C Runtime module API serves a similar role on iOS. It is also
-designed specifically to enable the creation of bridge layers between
-Objective-C and other languages. And just like with JNI, CJMP takes care
+Similarly, on Android the Cangjie and Java parts of the application see each
+other through the lens of the Java Native Interface (JNI), originally designed
+to facilitate the development of Java `native` methods in languages such
+as C and C++. And just like with the Objective-C Runtime, CJMP takes care
 about the cumbersome parts.
 
 
-## Additional Setup
+## Key Concepts
 
-The current version of the Cangjie SDK for iOS requires you to download
-the `Cangjie.h` header file from the Cangjie open source repository:
-
-[https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
-
-and integrate it into your XCode project in order to use the interoperability
-features described in this document.
-
-
-# Key Concepts
-
-## Mirror Types
+### Mirror Types
 
 Considering Cangjie and Objective-C as a pair of interoperating languages,
-a _mirror type_ _`T'`_ defined in one language of the pair is a type that
-represents an existing type _`T`_ defined in the other language, enabling
-the code written in the first language to use that type, possibly with some
-limitations.
+a _mirror type_ _`T'`_ defined in Cangjie is a type that represents an existing
+Objective-C type _`T`_, enabling the code written in the first language to use
+that type, possibly with some limitations.
 
 The Boolean types and numeric types that are essentially the same in both
-languages naturally mirror each other: the Objective-C mirror type for the
-Cangjie type `Int32` is `int` and vice versa. Mirroring of numeric types
-that the other language does not naturally support is not currently possible,
-so e.g. the Cangjie type `Float16` cannot be mirrored to an Objective-C
+languages naturally mirror each other: the Cangjie mirror type for the
+Objective-C type `int` is `Int32` and so on. Mirroring of numeric types
+that Cangjie does not naturally support is not currently possible,
+so e.g. the Objective-C type `int128_t` cannot be mirrored to a Cangjie
 primitive type.
 
-For a user-defined type such as class, struct, protocol, or interface,
-the mirror type would be its closest equivalent in the other language.
-For instance, the only Objective-C type that can approximate a Cangjie struct
-type with reasonable accuracy is an Objective-C class attributed
-with `objc_subclassing_restricted`.
+For a user-defined type such as a class or protocol, the mirror type would be
+its closest equivalent in the other language. For instance, Objective-C
+protocols are quite similar to Cangjie interfaces.
 
 A mirror type exposes the members and constructors of the original user-defined
 type that are accessible _and_ can be used in the other language, so again
-a Cangjie function that returns a value of type `Float16` cannot be mirrored
-straight to Objective-C.
+an Objective-C method that returns a value of type `int128_t` cannot be
+mirrored to Cangjie.
 
-Normally you would obtain mirror type definitions for a type that you want
-to use in the other language _and_ its required dependencies automatically.
-For Objective-C types, a standalone
-[mirror generator](#objective-c-mirror-generator-reference) is provided,
-whereas Objective-C mirrors of Cangjie types are generated by the
-[`cjc` compiler](#cangjie-mirror-generation-reference) as a byproduct
-of the normal compilation process.
+Normally you would obtain mirror type definitions for Objective-C types that you
+want to use in Cangjie automatically using the standalone
+[mirror generator](#objective-c-mirror-generator-reference) included in the
+Cangjie SDK for iOS.
 
 
-### Mirroring Objective-C Types to Cangjie
+#### Mirroring Objective-C Types to Cangjie
 
 The `cjc` compiler replaces any uses of Objective-C mirror types with the
-appropriate glue code, so only the names of types themselves and names and
+appropriate bridge code, so only the names of types themselves and names and
 types of their accessible members matter. Therefore, mirrors of Objective-C
 types only contain member declarations, not definitions: constructors and
 member functions/properties have no bodies and member variables have no
@@ -133,82 +111,29 @@ might look like this:
 @ObjCMirror
 public open class Node <: NSObject {
     @ForeignName["initWith:"]
-    public init(x: Int32) 
+    public init(x: Int32)
     public open func getX(): Int32
 }
 ```
 
 
-### Mirroring Cangjie Types to Objective-C
-
-Unlike the mirrors of Objective-C types, for which `cjc` has dedicated support,
-mirrors of Cangjie types must look exactly like normal Objective-C types
-from the outside, for the iOS toolchain to pick them up. The `cjc` compiler
-therefore generates those mirrors in the form of Objective-C source code
-files containing glue code responsible for linking the Objective-C and Cangjie
-worlds together.
-
-For instance, if the class `Node` from the example in the
-[previous section](#mirroring-objective-c-types-to-cangjie) was originally defined
-in Cangjie as follows:
-
-```cangjie
-public class Node {
-    private let _x: Int
-    public func x(): Int {
-        _x
-    }
-    public init(x: Int) {
-        this._x = x
-    }
-}
-```
-
-the `cjc` compiler could generate the following Objective-C mirror for it
-(glue code mostly omitted for brevity):
-
-```objectivec
-// Node.h
-@interface Node : NSObject
-- (id)init:(int64_t)x;
-- (int)x;
-@end
-```
-
-```objectivec
-// Node.m
-@implementation Node
-- (id)init:(int64_t)x {
-    /* Glue code constructing a Cangjie Node instance and associating
-     * it with the Objective-C Node instance being constructed, i.e. 'self'.
-     */
-}
-- (int64_t)x {
-    /* Glue code invoking the 'x' member function of the associated
-     * Cangjie Node instance and returning the result.
-     */
-     }
-@end
-```
-
-
-## Mirror Functions
+### Mirror Functions
 
 Both Objective-C and Cangjie support top-level, global functions that are not
-members of any other type. They are exposed to the other language as _mirror
-functions_, which are essentially automatically generated pieces of glue
-code that pass control and data through the inter-language barrier.
+members of any other type, so such Objective-C functions are exposed to Cangjie
+as _mirror functions_, which are essentially automatically generated pieces
+of bridge code that pass control and data through the inter-language barrier.
 
 
-## Interop Classes
+### Interop Classes
 
 An _interop class_ is essentially a Cangjie class that is derived from one
 or more [mirror types](#mirror-types) and is usable from Objective-C. All its
-constructors and non-inherited public member functions are exposed
-to Objective-C code via a conjugate _wrapper class_, automatically generated
-by the `cjc` compiler. The wrapper class itself defines no other user-callable
-methods or constructors, but any methods it may have inherited from its
-supertypes may be called from both Objective-C and Cangjie code.
+constructors and non-inherited `public` member functions are exposed
+to Objective-C code via a _wrapper class_, automatically generated by the `cjc`
+compiler. The wrapper class itself defines no other user-callable methods
+or constructors, but any methods it may have inherited from its supertypes
+may be called from both Objective-C and Cangjie code.
 
 For example, when compiling the following Objective-C interop class:
 
@@ -220,7 +145,7 @@ public class BooleanNode <: Node {
         super.init(x)
         this._flag = flag
     }
-    public func flag(): Bool {
+    public func isFlagged(): Bool {
         _flag
     }
 }
@@ -234,7 +159,7 @@ similar to the following:
 @interface BooleanNode : Node
 /* glue code */
 - (id)init:(int32_t)x:(BOOL)flag;
-- (BOOL)flag;
+- (BOOL)isFlagged;
 /* more glue code */
 @end
 ```
@@ -244,13 +169,13 @@ similar to the following:
 @implementation BooleanNode : Node
 /* glue code */
 - (id)init:(int32_t)x:(BOOL)flag {
-    /* Glue code constructing a Cangjie BooleanNode(x, flag) instance and
+    /* Bridge code constructing a Cangjie BooleanNode(x, flag) instance and
      * associating it with the Objective-C instance being constructed,
      * i.e. 'self'.
      */
 }
-- (BOOL)flag {
-    /* Glue code invoking the 'flag' member function of the Cangjie
+- (BOOL)isFlagged {
+    /* Bridge code invoking the 'isFlagged' member function of the Cangjie
      * BooleanNode instance associated with 'self' and returning the result.
      */
 }
@@ -258,8 +183,13 @@ similar to the following:
 @end
 ```
 
+Now both Objective-C and Cangjie parts of the application code can instantiate
+the inetrop class `BooleanNode`, call its `public` instance member functions
+`getX()` (inherited from the Objective-C class `Node`) and `isFlagged()`,
+convert its instances respectively to the type `Node` and its mirror, etc.
 
-## Foreign Types
+
+### Foreign Types
 
 The [mirror types](#mirror-types) and [interop classes](interop-classes) are
 not perfectly native to the language in which they are defined. Extending the
@@ -268,1197 +198,35 @@ respectively, so they are collectively called _foreign types_ throughout
 this document.
 
 
-## Objective-C-Compatible Types
+### Objective-C-Compatible Types
 
 The following Cangjie types are called _Objective-C-compatible_:
 
 * Value types that have direct equivalents among Objective-C primitive types
-  (`Int16` is included, but `Float16` is not)
-* [Foreign types](#foreign-types)
+  (`Int16` is included, but `Float16` is not);
+* [Foreign types](#foreign-types);
 * Types of the form `Option<`_`T`_`>` where _`T`_ is a [foreign type](#foreign-types)
-  (see _[`null` Handling](null-handling)_ for reasoning)
-
-
-For obvious reasons, the parameters and return values of public member functions
-of a foreign type may only have types compatible with the respective language.
-
-The member variables of an interop class may have any types. Their public member
-variables that have Objective-C-compatible types may be accessed from both
-Objective-C and Cangjie.
-
-
-## Interop Scenarios
-
-There are essentially two Objective-C-Cangjie interoperation scenarios:
-
-* In one scenario,
-  [Cangjie types and functions are exposed to Objective-C](#using-cangjie-in-objective-c),
-  enabling the use of Cangjie APIs, libraries and application components
-  in Objective-C code.
-
-* In the other scenario,
-  [Objective-C classes and interfaces are exposed to Cangjie](#using-objective-c-in-cangjie),
-  enabling Cangjie code to access iOS APIs, third party Objective-C libraries
-  and components of the application that remain coded in Objective-C.
-
-The above scenarios are _not_ mutually exclusive, one application may as well
-be utilizing both. Also, class inheritance and interface implementation
-are supported in both scenarios (an Objective-C class may subclass a Cangjie
-class and vice versa). That enables seamless callbacks, so neither scenario is
-unidirectional. However, each scenario has its own feature set, limitations,
-tooling, etc., so they are described separately.
-
-
-# Using Cangjie in Objective-C
-
-To enable access to a Cangjie library, API, or some other piece of code
-from Objective-C, you need to generate Objective-C
-[mirror types](#mirror-types) for the Cangjie types that you want to expose.
-The `cjc` compiler can do that for you as described
-in [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference).
-
-**NOTE:** The type system of the Cangjie language is more versatile than its
-Objectiove-C counterpart. There are also some principal differences in the
-features shared by the two languages, most notably
-[generics](#generic-cangjie-types-mirroring).
-Expressing certain features of Cangjie in Objective-C is therefore impossible,
-and other features can be difficult to express in a natural and compact manner.
-See [Cangjie to Objective-C Mapping](#cangjie-to-objective-c-mapping) for the exact list
-of supported features and associated restrictions.
-
-**Example:**
-
-Suppose you want to expose to Objective-C a Cangjie struct `Vector` defined
-as follows:
-
-```cangjie
-package cj
-
-import interoplib.objc.*
-
-public struct Vector {
-    private let _x: Int32
-    private let _y: Int32
-
-    public prop x: Int32 {
-        get() {
-            _x
-        }
-    }
-    public prop y: Int32 {
-        get() {
-            _y
-        }
-    }
-
-    public init(x: Int32, y: Int32) {
-        _x = x
-        _y = y
-    }
-
-    public func add(v: Vector): Vector {
-        Vector(x + v.x, y + v.y)
-    }
-}
-```
-
-First, you need to import the `interoplib.objc` package into the source code
-file where `Vector` is defined:
-
-```cangjie
-import interoplib.objc.*
-```
-
-When compiling `Vector.cj`, you would invoke the `cjc` compiler with two
-additional options: `--experimental --enable-interop-cjmapping=ObjC`.
-The compiler would then generate two extra files, `Vector.h` and `Vector.m`,
-similar to the following:
-
-```objectivec
-// Vector.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-
-__attribute__((objc_subclassing_restricted))
-@interface Vector : NSObject
-
-/* glue code */
-
-- (id)init:(int32_t)x :(int32_t)y;
-
-@property (readonly, getter=x) int32_t x;
-- (int32_t)x;
-@property (readonly, getter=y) int32_t y;
-- (int32_t)y;
-
-- (Vector*)add:(Vector*)v;
-
-/* glue code */
-
-@end
-```
-
-```objectivec
-// Vector.m
-
-/* glue code */
-
-@implementation Vector
-
-/* glue code */
-
-- (id)init:(int32_t)x:(int32_t)y {
-    /* Glue code constructing an instance of Cangjie Vector(x,y) and associating
-     * it with 'self'.
-     */
-}
-- (int32_t)x {
-    /* Glue code retrieving the value of the 'x' property of the
-     * assocated instance of Cangjie Vector.
-     */
-}
-- (int32_t)y {
-    /* Glue code retrieving the value of the 'y' property of the
-     * assocated instance of Cangjie Vector.
-     */
-}
-- (Vector*)add:(Vector*)v {
-    /* Glue code invoking the 'add' mmber function of the Cangjie Vector
-     * instance associated with 'self', passing over the Cangjie Vector
-     * instance associated with 'v', and wrapping the result in a new
-     * instance of the Objective-C Vector class.
-     */
-}
-
-/* more glue code */
-
-@end
-```
-
-Now you can add `Vector.h` and `Vector.m` to your XCode project and use the
-class `Vector` in your Objective-C code as if it was a normal Objective-C class:
-define variables of the type `Vector*`, create instances, pass them around,
-including to Cangjie code via `[Vector add]`, etc.
-
-**IMPORTANT: The current version of the Cangjie SDK for iOS also requires
-downloading and integrating into the XCode project the `Cangjie.h` header
-file from the Cangjie open source repository:**
-
-[https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
-
-
-## Limiting the Exposure
-
-The option `--enable-interop-cjmapping` instructs the `cjc` compiler
-to generate mirror types for _all_ `public` Cangjie types that it compiles,
-and expose _all_ `public` member functions and constructors of those types.
-Oftentimes, however, such total exposure is undesirable, as what you want
-to use in Objective-C may be just a small percentage of the functionality
-provided by a Cangjie library or framework.
-
-You may precisely control the exposure of Cangjie types and their members
-by passing the pathname of a dedicated configuration file to `cjc` via the
-option `--import-interop-cj-package-config-path`. That file is a plain
-text file the contents of which must conform to the [TOML](https://toml.io)
-syntax.
-
-In the `[default]` section of that file, you can specify the default API
-exposure strategy for all Cangjie packages, and then modify it
-for particular packages in the respective `[[package]]` entries. For example:
-
-```toml
-[default]
-APIStrategy="None"       # Expose nothing by default
-
-[[packages]]
-name="com.example.pkg1"  # From this specific package,
-APIStrategy="Full"       # expose everything
-#   .  .  .
-```
-
-Furthermore, for each package you can use either the `included_apis`
-or `excluded_apis` property to respectively expose or hide particular types
-and/or members:
-
-```toml
-#   .  .  .
-[[packages]]
-name="com.example.pkg2"          # From this specific package,
-included_apis = [ "Vector",      # Only the type 'Vector'
-                  "Vector.add"   # and its member function 'add'
-                ]                # are exposed
-
-[[packages]]
-name="com.example.pkg3"          # From this specific package,
-APIStrategy="Full"               # everything
-excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
-                  "Auth.getPwd"  # member function 'Auth.getPwd'
-                ]                # are exposed
-```
-
-Refer
-to [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-for more details.
-
-
-## Generic Cangjie Types Mirroring
-
-Many important Cangjie types are parameterized. Unfortunately, certain
-fundamental differences between Cangjie and Objective-C generics preclude
-mirroring of the former into the latter. As a workaround, the Cangjie SDK
-supports _monomorphization_ of mirror types: it generates a separate
-_non-generic_ Objective-C mirror type for each supplied set of valid type
-arguments for the given parameterized Cangjie type.
-
-**NOTE:** The current version only supports mirroring of generic
-types instantiated with primitive types used as type arguments.
-
-For instance, if you have a generic Cangjie class `p.Pair<T,U>`:
-
-```cangjie
-package p
-public class Pair<T,U> { . . . }
-```
-
-and want to manipulate instances of `Pair<Int, Bool>` in your Objective-C code,
-you would add a `generic_object_configuration` property to the `[[package]]`
-entry for `p` in the `cjc` mirror generation configuration file,
-with the following content:
-
-```toml
-#   .  .  .
-[[package]]
-name = "p"
-generic_object_configuration = [
-    { name = "Pair", type_arguments = [ "Int, Bool" ] },
-#       .  .  .
-```
-
-`cjc` would then generate a non-generic Objective-C class:
-
-```objectivec
-@interface PairIntBool
-   .  .  .
-@end
-```
-
-representing that particular _instantiation_ of the type `Pair<T,U>`.
-
-Refer to [Generics Instantiations](#cangjie-mirror-generation-reference)
-for more details.
-
-
-# Cangjie to Objective-C Mapping
-
-The current version of the `cjc` compiler uses Cangjie → Objective-C mapping
-described in this chapter. See
-[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-for applicable `cjc` command-line options.
-
-
-## General Considerations {#cangjie-general-considerations}
-
-The Cangjie type system is different from that of the Objective-C language.
-Certain Cangjie types and their features do not have direct or even reasonably
-close equivalents in Objective-C, so they have limited support in the
-current version, and some are not supported at all.
-
-Consequently, if the type of a public member, function/constructor parameter,
-or function return type is not supported, the respective member, function
-or constructor cannot be mirrored. The current compiler does not report such
-usages as errors, the respective entity is simply not mirrored.
-
-Mirror types should be compiled into a separate dynamic library with ARC
-support disabled (`-fno-objc-arc` Objective-C compiler option). For details,
-see the notice in the [Classes and Interfaces(#cangjie-classes-and-interfaces)
-section.
-
-
-## Names {#cangjie-names}
-
-The original names of Cangjie packages, functions, types and type members
-are currently preserved, which means that some of them may clash
-with Objective-C keywords, such as "`int`", or contain characters that
-are not permitted in Objective-C names.
-
-
-## Boolean and Numeric Types
-
-Cangjie Boolean and numeric types that have equivalents among Objective-C
-types are mirrored to those equivalent; those that don't (`Float16`)
-are not supported:
-
-Cangjie type  | Objective-C type
-------------- | -----------------
-`Bool`        | `BOOL`
-`Int8`        | `int8_t`
-`Int16`       | `int16_t`
-`Int32`       | `int32_t`
-`Int64`       | `int64_t`
-`Int`         | `int64_t`
-`IntNative`   | `ssize_t`
-`UInt8`       | `uint8_t`
-`UInt16`      | `uint16_t`
-`UInt32`      | `uint32_t`
-`UInt64`      | `uint64_t`
-`UInt`        | `uint64_t`
-`UIntNative`  | `size_t`
-`Float16`     | Not supported
-`Float32`     | `float`
-`Float64`     | `double`
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Rune
-
-The type `Rune` is not supported.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Special Types
-
-The type `Unit` is only supported as a function return type, mapped
-to Objective-C `void`.
-
-The type `Nothing` cannot be supported.
-
-The type `Any` is not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Tuple
-
-Tuple types are not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Struct Types
-
-Public Cangjie struct type definitions are mirrored into Objective-C class
-definitions attributed with `objc_subclassing_restricted`.
-Those definitions are generated automatically by the `cjc`
-compiler and contain glue code that transfers control and data between
-Objective-C and Cangjie. They should not be modified manually.
-
-```cangjie
-package cj
-
-import interoplib.objc.*
-
-public struct Vector {
-    let x: Int32
-    let y: Int32
-
-    public init(x: Int32, y: Int32) {
-        this.x = x
-        this.y = y
-    }
-
-    public func add(v: Vector): Vector {
-        Vector(x + v.x, y + v.y)
-    }
-}
-```
-
-```objectivec
-// Vector.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-__attribute__((objc_subclassing_restricted))
-@interface Vector : NSObject
-// Auxiliary glue code methods
-- (id)init:(int32_t)x :(int32_t)y;
-- (Vector*)add:(Vector*)v;
-// More auxiliary glue code methods
-@end
-```
-
-```objectivec
-// Vector.m
-
-// Glue code
-
-@implementation Vector
-
-// Glue code
-
-- (id)init:(int32_t)x :(int32_t)y {
-    // Glue code creating an instance of Cangjie Vector(x, y) and
-    // associating it with 'self'.
-}
-- (Vector*)add:(Vector*)v {
-    // Glue code retireving instances of Cangjie Vector associated
-    // with 'self' and 'v', invoking the add() member function
-    // of Cangjie-self with Cangjie-v passed a parameter, and then
-    // creating a new instance of Vector and associating it with the
-    // result of the add() call.
-}
-
-// Glue code
-
-@end
-```
-
-Only public struct members and common constructors are mirrored.
-
-**Member functions** are mirrored into methods with the respective
-mirror types substituted for parameter types and return value type. Mirrors
-of member functions returning `Unit` are mirrored into `void` methods.
-Instance member functions are mirrored into instance methods (prefixed
-with a minus sign `-`), `static` member functions are mirrored
-into class methods (prefixed with a plus sign `+`).
-
-**Member properties** of supported types are mirrored into `@property`
-declarations with the same name and with type that mirrors the Cangjie
-property type, attributed with `readonly`. The getter is mirrored
-into a parameterless method with the same name as the property
-and return type that is the mirror of the Cangjie property type.
-**NOTICE:** Setters are currently _not_ mirrored, so mirrors of `mut`
-member properties are also `readonly`.
-
-**Member variables** of supported types are mirrored into `@property`
-declarations with the same name and with type that mirrors the Cangjie
-variable type, attributed with `readonly`. A getter is synthesized
-to enable access.
-**NOTICE:** Setters are currently _not_ synthesized for `var` member
-variables, so mirrors of the latter are also `readonly`.
-
-**Constructors** are mirrored into constructors with the respective
-mirror types substituted for parameter types. _This includes the default
-constructor that might have been implicitly declared._
-
-The current version imposes a number of severe limitations on the struct
-types that can be mirrored, to the extent that it may be fair to say
-that a struct type needs to be designed specifically for exposing it
-to Cangjie:
-
-* Function overloading is not supported: mirrors of overloaded member
-  functions are generated with the same name, which results in a name clash.
-
-* Both `let` and `var` member variables are mirrored into `readonly`
-  properties in the current version, so the latter may not be altered
-  from Objective-C code. This limitation will be removed in a future
-  version. In the meantime, you may add setter functions as a workaround.
-
-* Mirroring of `mut` instance member functions is a work in progress.
-  They are mirrored, but incorrect glue code is generated in some
- circumstances.
-
-* Mirrored structs may implement interfaces other than `Any`, but
-  the "implements" relationship is _not_ propagated to Objecttive-C:
-  th generated `@interface` directive does not bear the names
-  of mirrors of implemented interfaces in angle brackets `<>`
-  after the class name.
-
-* Mirroring of member operator functions is not supported. They are
-  skipped during mirror generation.
-
-* Mirroring of generic structs is supported through monomorphization.
-  See [Generics](#cangjie-generics) for details.
-
-* Struct member functions and constructors with unsupported parameter
-  types, as well as member functions with unsupported return types,
-  are not mirrored.
-
-* A mirrored struct may have direct and/or interface extensions,
-  but they are ignored during mirror generation.
-
-* Memeber functions may not have any type parameters.
-
-## Classes and Interfaces {#cangjie-classes-and-interfaces}
-
-Cangjie class and interface definitions are mirrored respectively
-into Objective-C class and protocol definitions. Those definitions contain
-automatically generated glue code and should not be altered in any way.
-
-```cangjie
-package cj
-
-import interoplib.objc.*
-
-public interface Valuable {
-    public func value(): Int
-}
-
-public open class Singleton <: Valuable {
-    private let _v: Int
-    public init(v: Int) {
-        _v = v
-    }
-    public func value(): Int {
-        _v
-    }
-}
-
-public class Zero <: Singleton {
-    public init() {
-        super(0)
-    }
-}
-```
-
-```objectivec
-// Valuable.h
-@protocol Valuable
-- (int64_t)value;
-@end
-```
-
-```objectivec
-// Singleton.h
-// Glue code
-@interface Singleton : NSObject
-// Glue code
--(id)init:(int64_t)v;
-- (int64_t)value;
-// Glue code
-@end
-```
-
-```objectivec
-// Singleton.m
-// Glue code
-@implementation Singleton
-// Glue code
--(id)init:(int64_t)v {
-    if (self = [super init]) {
-        // Glue code creating an instance of Cangjie Singleton(v)
-        // and associating it with `self`.
-    }
-    return self;
-}
-- (int64_t)value {
-    // Glue code calling the value() member function of the Cangjie
-    // Singleton instance associated with 'self' and returning the result
-}
-// Glue code
-@end
-
-```
-
-```objectivec
-// Zero.h
-#import "Singleton.h"
-__attribute__((objc_subclassing_restricted))
-@interface Zero : Singleton
-// Glue code
-- (id)init;
-// Glue code
-@end
-```
-
-```objectivec
-// Zero.m
-// Glue code
-@implementation Zero
-- (id)init {
-    if (self = [super init]) {
-        // Glue code creating an instance of Cangjie Zero()
-        // and associating it with `self`.
-    }
-    return self;
-}
-@end
-```
-
-Identifiers that serve as names of mirrored types and their members are
-currently preserved even if they clash with Objective-C keywords such as `int`.
-
-
-Mirrors of non-`open` classes are attributed
-with `objc_subclassing_restricted`.
-
-`public` members and constructors are mirrored. In addition, `protected open`
-instance member functions of `open` classes are also mirrored, so that they
-could be overridden in subclasses. No other class or interface members are
-mirrored.
-
-> **CAUTION:** As there are neither packages nor namespaces of any other kind
-> in Objective-C, the mirrors of such `protected open` member functions are
-> accessible from anywhere in Objective-C code.
-
-**Member variables** are not mirrored in the current version and no means
-for accessing them from Objective-C is provided.
-
-**Member properties** are not mirrored in the current version.
-
-**Member functions** are mirrored into methods with the respective mirror
-types substituted for parameter types and return value type. Mirrors of
-member functions returning `Unit` are mirrored into `void` methods.
-`static` member functions are mirrored into class methods (prefixed
-with "`+`"), instance member functions -- into instance methods (prefixed
-with "`-`").
-
-**Common constructors** are mirrored into constructors with the respective
-mirror types substituted for parameter types. _This includes the default
-constructor that might have been implicitly declared._
-
-**IMPORTANT:** From the outside, types that mirror Canglie classes and
-interfaces are normal Objective-C classes and protocols in all aspects:
-they can be inherited/implemented, their methods can be overloaded and
-overridden with conventional Objective-C methods, types of their instances
-can be queried, and so on. The differences between the languages, however,
-pose a few potential problems that require extra care when using such types
-in Objective-C code:
-
-1. There is no attribute that would make Objective-C methods non-overrideable,
-   so methods that mirror non-`open` member functions of `open` classes
-   _can_, but obviously should not, be overridden.
-
-2. The current implementation does not support overriding of mirrors
-   of `static` Cangjie methods of `open` classes. They are mirrored
-   into Objective-C class methods (those prefixed with a plus sign `+`),
-   and should never be overridden in subclasses. There is no way to enforce
-   this restriction at compile-time.
-
-3. Constructors are not inherited in Cangjie, whereas init methods
-   in Objective-C are inherited just like other methods, which may lead
-   to undesirable effects. For instance, consider the following Cangjie
-   classes:
-
-    ```cangjie
-    public class A {
-        public init() {...}
-    }
-    public class B <: A {
-        private init() {...}
-        public init(x: Int) {...}
-    }
-    ```
-
-    In Cangjie, the class `B` does not expose its parameterless common
-    constructor. However, the mirror of `B` will inherit the parameterless
-    `init` method from the mirror of `A`, so the expression
-    `[[B alloc] init]` will compile and run, but the `init` method inherited
-    from `A` will create and associate with `self` an instance of the
-    Cangjie class `A`, not `B`.
-
-
-**NOTICE**: Mirrors of `open` Cangjie classes rely on low-level Objective-C
-features that are not compatible with Automatic Reference Counting (ARC).
-That is why all mirror types should generally be compiled into a separate
-dynamic library with ARC support disabled (`-fno-objc-arc` Objective-C
-compiler option).
-
-The current version imposes a number of severe limitations on the class
-and interface types that can be mirrored, to the extent that it may be
-fair to say that such types need to be designed specifically for exposing
-them to Cangjie:
-
-* Abstract classes are not mirrored and mirrors of concrete classes that
-  implement abstract classes won't compile.
-
-* Function overloading is not supported: mirrors of overloaded member
-  functions are generated with the same name, which results in a name clash.
-
-* Member variables are not mirrored and no means for accessing them
-  is provided. This limitation will be removed in a future version.
-  In the meantime, you may add getter/setter functions to Cangjie
-  classes manually as a workaround.
-
-* Mirroring of classes that implement interfaces other than `Any`
-  is not currently supported in the sense that explicit interface
-  implementation information gets lost during mirror generation.
-
-* Mirroring of generic classes is supported via monomorphization.
-  See [Generics](#cangjie-generics) for more information.
-
-* Mirroring of classes/interfaces that contain public member properties,
-  member operator functions, or primary constructors is not supported.
-  Such entities are simply not mirrored without a warning.
-
-* For member functions and constructors, the only universally supported
-  parameter types are `Bool` and numeric types. For member functions,
-  the only universally supported return value types are `Bool`, numeric
-  types and `Unit`. Specifically for member functions and constructors
-  of non-`open` classes, structs, enums, and non-`open` classes are also
-  supportted as parameter and return value types, provided that they are
-  defined in the same package.
-  Member functions and constructors with unsupported parameter types,
-  as well as member functions with unsupported return types, are not mirrored.
-
-* Inheritance relationships between interfaces are not preserved during
-  mirror generation.
-
-* Interface implementation information is not propagated to Objective-C
-  during mirror generation (notice how in the above example the `@interface`
-  directive in `Singleton.h` does _not_ end with `<Valuable>`).
-
-* A mirrored class may have direct and/or interface extensions,
-  but they are ignored during mirror generation.
-
-
-## Enums
-
-A Cangjie enum is mirrored into an Objective-C class attributed
-with `objc_subclassing_restricted`, with `static` methods matching
-the enum constructors (factory methods) and without a `public`
-constructor.
-
-```cangjie
-public enum TimeUnit {
-    | Year(Int)
-    | Month(Int)
-    | Year
-    | Month
-}
-```
-
-```objectivec
-__attribute__((objc_subclassing_restricted))
-@interface TimeUnit : NSObject
-// Glue code
-+ (TimeUnit*)Year:(int64_t)p1;
-+ (TimeUnit*)Month:(int64_t)p1;
-+ (TimeUnit*)Year;
-+ (TimeUnit*)Month;
-// Glue code
-@end
-```
-
-**Enum constructors** are mirrored into `static` factory methods with the same
-names and matching types and numbers of parameters; names of parameters
-are synthesized (`p1`, `p2`, ...).
-
-Only the `public` enum members are mirrored.
-
-**Member functions** are mirrored into methods with the respective mirror
-types substituted for parameter types and return value type. Mirrors of
-member functions returning `Unit` are mirrored into `void` methods.
-`static` member functions are mirrored into class methods (prefixed
-with "`+`"), instance member functions -- into instance methods (prefixed
-with "`-`").
-
-**Member properties** of supported types are mirrored into `@property`
-declarations with the same name and with type that mirrors the Cangjie
-property type, attributed with `readonly`. The getter is mirrored
-into a parameterless method with the same name as the property
-and return type that is the mirror of the Cangjie property type.
-**NOTICE:** Setters are currently _not_ mirrored, so mirrors of `mut`
-member properties are also `readonly`.
-
-The current version imposes a number of limitations on the enum that can be
-mirrored:
-
-* Function overloading is not supported: mirrors of overloaded member
-  functions are generated with the same name, which results in a name clash.
-
-* Mirrored enums may implement interfaces other than `Any`, but
-  the "implements" relationship is _not_ propagated to Objecttive-C:
-  th generated `@interface` directive does not bear the names
-  of mirrors of implemented interfaces in angle brackets `<>`
-  after the class name.
-
-* Mirroring of generic enums is _not_ supported yet; will be supported
-  through monomorphization. See [Generics](#cangjie-generics) for details.
-
-* For member functions and constructors, the only supported
-  parameter types are `Bool` and numeric types. For member functions,
-  the only universally supported return value types are `Bool`, numeric
-  types and `Unit`.
-  Member functions and constructors with unsupported parameter types,
-  as well as member functions with unsupported return types, are not mirrored.
-
-* Mirroring of enums that contain member operator functions is not supported.
-  An attempt to mirror an enum containing such an entity currently results
-  in the generation of invalid Objectove-C code.
-
-* Enum member functions and constructors with unsupported parameter
-  types, as well as member functions with unsupported return types,
-  are not mirrored and no warning is issued.
-
-* A mirrored enum may have direct and/or interface extensions,
-  but they are ignored during mirror generation.
-
-
-
-Recursively defined enums are supported:
-
-```cangjie
-public enum Peano {
-    | Z
-    | S(Peano)
-
-    public func toInt(): Int {
-        match (this) {
-            case Z => 0
-            case S(x) => 1 + x.toInt()
-        }
-    }
-}
-```
-
-
-## Generics {#cangjie-generics}
-
-Objective-C and Cangjie generics are fundamentally different, so the latter
-cannot be mirrored into the former. However, _specific instantiations_
-of parameterized Cangjie types, such as `G<Int64>`, are concrete types,
-and therefore can be mirrored into non-generic Objective-C types.
-Such types are also called _monomorphized generics_.
-
-**NOTE:** The current version only supports mirroring of generic
-types instantiated with primitive types used as type arguments.
-Mirroring of member functions that have their own type arguments
-is not supported either.
-
-Use the respective
-[configuration file](#cangjie-mirror-generation-configuration)
-of the `cjc` compiler to specify which instantiations of which types
-to mirror. Refer to [Generics Instantiations](#generics-instantiations)
-for details.
-
-**Example:**
-
-When compiling the following Cangjie class definition:
-
-```cangjie
-public class G<T> {
-    private let _t: T
-    public init(t: T) {
-        _t = t
-    }
-    public func get(): T {
-        _t
-    }
-}
-```
-
-with the following lines in the respective section of the configuration
-file:
-
-```toml
-       .  .  .
-    generic_object_configuration  = [
-        { name = "G", type_arguments = ["Bool", "Int"] },
-    ]
-       .  .  .
-```
-
-the compiler will generate Objective-C mirror classes for `G<Bool>` and
-`G<Int>`, named respectively `GBool` and `GInt`.
-
-Refer to the
-[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-section for complete instructions.
-
-
-
-
-## `null` Handling {#cangjie-null-handling}
-
-As Cangjie has no null type, passing `nil` as a parameter to a mirrored
-Cangjie method results in a run-time exception in glue code:
-
-```cangjie
-public class Node {
-    private let next: ?Node
-    public init() {
-        next = None
-    }
-    public init(next: Node) { /* Pure Cangjie */
-        this.next = Some(next)
-    }
-}
-```
-
-```objectivec
-__attribute__((objc_subclassing_restricted))
-@interface Node
-/* glue code */
-- (id)init;
-- (id)init:(Node *)next;
-/* glue code */
-@end
-   .  .  .
-     Node *list = [[Node alloc] init:nil];   /* NullPointerException */
-```
-
-Conversely, there is currently no way to return `nil` from a `public` member
-function of an Objective-C-compatible type.
-
-**NOTICE:** The current version supports automatic `Option<T>` (un)wrapping
-with `nil` mapped to `None`, but only for Objective-C pointers to classes
-and protocols mirrored to Cangjie, not the other way round.
-See [`nil` Handling](#nil-handling) for details.
-
-
-
-
-# Cangjie Mirror Generation Reference
-
-There is no standalone mirror generator facilitating the exposure of Cangjie
-types to Java and Objective-C code in the Cangjie SDK. The `cjc` compiler
-itself is capable of generating Java/Objective-C mirror type definitions
-for Cangjie types right when it compiles the Cangjie source code of those
-types.
-
-
-## Command-line Syntax {#cjc-command-line-syntax}
-
-The following additional `cjc` options enable and control the generation
-of mirrors for Cangjie types during compilation:
-
-`--experimental`    _(mandatory)_
-
-This option must be specified as of the current version, since the whole
-interop feature is still in development, but will not be necessary
-in the future.
-
-`--enable-interop-cjmapping=Java` _or_  
-`--enable-interop-cjmapping=ObjC`        _(mandatory)_
-
-Enables the generation of mirror type definitions for Cangjie types
-respectively in the form of Java or Objective-C source code files.
-
-`--output-interop-cjmapping-dir` _`pathname`_     _(optional)_
-
-The _`pathname`_ must point to a directory into which the `cjc`
-compiler shall place its output Java or Objective-C source code files
-containing mirror type definitions. If _`pathname`_ does not point to
-an existing file system location, `cjc` attempts to create a directory there.
-If _`pathname`_ points to something other than a directory, `cjc`
-terminates with an error message.
-
-The default value of _`pathname`_ is either `./java-gen` or `./objc-gen`,
-depending on whether `--enable-interop-cjmapping` is set respectively
-to "`Java`" or "`ObjC`".
-
-`--import-interop-cj-package-config-path` _`pathname`_     _(optional)_
-
-The _`pathname`_ must point to a configuration file that defines which
-Cangjie types are exposed to Java or Objective-C as mirror types. See
-[Cangjie Mirror Generation Configuration](#cangjie-mirror-generation-configuration)
-for details.
-
-
-## Cangjie Mirror Generation Configuration
-
-A Cangjie mirror generation configuration file is a plain text file
-in the [TOML](https://toml.io) syntax. It specifies:
-
-* Non-generic Cangjie types to mirror
-* Specific instances of generic Cangjie types to mirror
-
-
-### Defaults
-
-The `[default]` table defines the default settings for packages for which
-either no [package-specific settings](#packages) are provided at all, or those
-settings don't override the defaults.
-
-**Properties:**
-
-`APIStrategy`    _(optional)_
-
-A string defining whether all public entities shall be mirrored by default
-or not. Valid values:
-
-* `"Full"` - all public entities shall be mirrored by default
-* `"None"` - no public entities shall be mirrored by default
-
-`GenericTypeStrategy`    _(optional)_
-
-A string defining whether generic public entities shall be mirrored
-by default or not. Valid values:
-
-* `"Partial"` - instantiations explicitly listed in
-  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
-* `"None"` - no generic public entities shall be mirrored by default
-
-
-### Packages
-
-Each entry in the `[[packages]]` array specifies the name of a separate
-source Cangjie package, and, optionally:
-
-* A filter that defines which types from that package to include in,
-  or exclude from, the set of mirrors
-* API mirroring strategy (if other than the [default](#defaults))
-* Generic type mirroring strategy (if other than the [default](#defaults))
-* Specific generic type instantiations to mirror
-
-**Properties:**
-
-`name`    _(mandatory)_
-
-A string containing the name of the _source_ Cangjie package to which
-the settings in this `[[packages]]` array entry apply.
-
-Example:
-
-```toml
-name = "com.example.VectorMath"
-```
-
-`APIStrategy`    _(optional)_
-
-A string defining whether all public entities of the given package shall
-be mirrored by default or not. Valid values:
-
-* `"Full"` - all public entities shall be mirrored by default
-* `"None"` - no public entities shall be mirrored by default
-
-If this property is absent, the [default](#defaults) value is used.
-
-`included_apis`    _(optional)_
-
-An array of strings each containing the name of a public entity that
-needs to be mirrored. If the array contains the qualified name of a type
-member, the type itself is also mirrored. Either `included_apis` or
-`excluded_apis` may be present in a given `[[packages]]` array entry,
-but not both.
-
-Example:
-
-```toml
-included_apis = [
-   "Vector.product", // Vector also exposed
-   "HiddenV"
-]
-```
-
-`excluded_apis`    _(optional)_
-
-An array of strings each containing the name of a public Cangjie entity
-defined in the given package that has to be _not_ mirrored.
-Either `included_apis` or `excluded_apis` may be present in a given
-`[[packages]]` array entry, but not both.
-
-
-Example:
-
-```toml
-excluded_apis = [
-   "Vector.product", // Even if Vector is exposed, product is not
-   "HiddenV"
-]
-```
-
-`GenericTypeStrategy`    _(optional)_
-
-A string defining whether generic public entities defined in this package
-shall be mirrored by default or not. Valid values:
-
-* `"Partial"` - instantiations explicitly listed in
-  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
-* `"None"` - no generic public entities shall be mirrored by default
-
-If this property is absent, the [default](#defaults) value is used.
-
-
-`generic_object_configuration`    _(optional)_
-
-A list of tables defining the specific instantiations of generic entities
-to be mirrored. See [Generics Instantiations](#generics-instantiations)
-for details.
-
-
-#### Generics Instantiations
-
-The `generic_object_configuration` property of a `[[packages]]` array
-entry defines which specific instantiations of generic Cangjie entities
-will be mirrored.
-
-The value of the property is a (possibly empty) array of tables.
-Each entry of the array has the following two mandatory properties:
-
-`name`
-
-A string containing the name of a public generic Cangjie type or global
-function defined in the current package.
-
-`type_arguments`
-
-An array of strings, each containing valid type argument(s) for the generic
-type or global function the name of which is specified in the `name` property.
-
-> Simply put, "valid" means that the type/function can be instantiated
-> with the given string between the angle brackets `< >`.
->
-> Consider the following Cangjie class:
->
-> ```cangjie
-> public class G<T> {
->     public func f(t: T): Unit {}
->     public func f(b: Bool): Unit {}
-> }
-> ```
->
-> `G<Bool>` cannot be instantiated, so
->
-> ```toml
-> generic_object_configuration  = [
->     { name = "G", type_arguments = ["Bool"] }
-> ]
-> ```
-> would trigger a compiler error.
-
-**NOTE:** The current version only supports mirroring of generic
-types instantiated with primitive types used as type arguments.
-
-**Example:**
-
-Given the following Cangjie definitions
-
-```cangjie
-public class G<T> { . . . }
-public func f<T>(): Unit { . . . }
-public struct S<T,U> { . . . }
-```
-
-the property
-
-```toml
-generic_object_configuration  = [
-    { name = "G", type_arguments = ["Int32"] },
-    { name = "f", type_arguments = ["Float32", "Float64"] }
-    { name = "S", type_arguments = ["Int, Bool"] }
-]
-```
-
-instructs the `cjc` compiler to generate the following generics
-instantiations and mirrors for them:
-
-```cangjie
-G<Int32>
-f<Float32>
-f<Float64>
-S<Int, Bool>
-```
-
-naming the mirrors `GInt32`, `fFloat32`, `fFloat64`, and `SIntBool`
-respectively.
-
-
-# Using Objective-C in Cangjie
-
-In the first interoperation scenario, described
-in [Using Cangjie in Objective-C](#using-cangjie-in-objective-c), user-defined
-Cangjie types are mapped to Objective-C types that behave just like any
-conventional Objective-C classes and protocols: classes can be extended,
-protocols implemented, instances created and passed around freely, and so on.
-
-The Cangjie SDK for iOS also supports similar features for the reverse
-scenario, in which Objective-C classes and protocols are mapped to Cangjie
-classes and interfaces and can be extended, implemented, instantiated.
-However, the exact set of features and limitations is different, as well
-as tooling: mirror type and function declarations for Objective-C entities are
-generated by a [standalone tool](#objective-c-mirror-generator-reference),
-not the `cjc` compiler.
-
-The process of enabling this second scenario is therefore more involved. Here
-are the steps you need to take:
-
-1. Design the interoperability layer in terms of Objective-C classes and methods.
+  (see _[`null` Handling](null-handling)_ for reasoning);
+* [Built-in `ObjC*`-types](#built-in-types)
+  `ObjCPointer<T>`, `ObjCFunc<F>`, `ObjCBlock<F>`;
+* `@C` structs;
+* `CFunc<F>` function types;
+* `CString`; and
+* `Unit` (as a function return value type only).
+
+**IMPORTANT:** As of the current version, the types `CPointer<T>`
+and `VArray<T,$N>` are _not_ Objective-C-compatible types themselves, but that
+does not impose any restrictions on their use in `@C` structs or `CFunc<F>`
+function types.
+
+
+## Using Objective-C in Cangjie
+
+To enable interoperation between the Objective-C and Cangjie parts of your iOS
+application, you need to take the following steps:
+
+1. Design the interoperability layer in terms of Objective-C classes
+   and methods.
 
     developer → `interop layer design` (Objective-C _pseudo-code_)
 
@@ -1474,13 +242,14 @@ are the steps you need to take:
     `interop layer design` + `.cj` (mirrors) → developer → `.cj` (interop layer)
 
 4. Compile the interoperability layer classes (_interop classes_ for short)
-  and mirror types together with `cjc`. `cjc` will generate:
+   and mirror types together with `cjc`. `cjc` will generate:
 
     * the necessary glue code for all uses of the mirror types.
-    * the actual Objective-C source for the Objective-C part of the interoperability layer
+    * the actual Objective-C source for the Objective-C part
+      of the interoperability layer
       (so called Objective-C _wrappers_ for interop classes)
 
-    `.cj` (mirrors + interop layer) → `cjc`  → `.dylib` + `.h`/`.m` (interop layer)
+   `.cj` (mirrors + interop layer) → `cjc`  → `.dylib` + `.h`/`.m` (interop layer)
 
 5. Add to your iOS project:
 
@@ -1493,43 +262,10 @@ are the steps you need to take:
 6. Now you may start using the interop class wrappers in the Objective-C code
    of your application, effectively calling Cangjie code from Objective-C.
 
-**IMPORTANT: The current version of the Cangjie SDK for iOS also requires
-downloading and integrating into the XCode project the `Cangjie.h` header
-file from the Cangjie open source repository:**
 
-[https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
+### Initial Interop Class Creation Workflow
 
-
-## Initial Interop Class Creation Workflow
-
-### Setup
-
-1. Install the `llvm@16` [Homebrew](https://brew.sh/) formula:
-
-    ```bash
-    brew install llvm@16
-    ```
-
-2. Add the `llvm@16/lib/` subdirectory to the `DYLD_LIBRARY_PATH`
-   environment variable:
-
-    ```bash
-    export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
-    ```
-
-3. Run the `envsetup.sh` script from the Cangjie SDK.
-
-4. Verify the installation by running the following command in the terminal:
-
-    ```bash
-    ObjCInteropGen
-    ```
-
-    If mirror generator usage instructions start to appear, you now have everything
-    you need to begin using the iOS interoperability features of the Cangjie SDK.
-
-
-### Step 1: Design the Interoperability Layer {#step-1}
+#### Step 1: Design the Interoperability Layer {#step-1}
 
 On this step, you design the API of one or more interop classes
 _from the Objective-C code perspective_, i.e. you need to decide, for each
@@ -1538,8 +274,9 @@ interop class:
 * What Objective-C class it will extend, e.g. `NSObject`;
 * Which Objective-C protocols it will implement, if any; and
 * What `public`/`protected` methods and/or constructors it will have.
-  You only need to know the types of parameters and, for methods, their names
-  and return value types; the implementations you will write in Cangjie.
+  At this step, you only need to know the types of parameters and, for methods,
+  their names and return value types; the implementations you will write
+  in Cangjie later.
 
 See also
 [Features and Limitations of Interop Classes](#features-and-limitations-of-interop-classes).
@@ -1547,7 +284,7 @@ See also
 For the Objective-C part of the application, the interoperability layer is
 indistinguishable from a set of regular Objective-C classes. So you can design
 it in the form of Objective-C pseudo-code. Write down the specifications
-and `@interface` definitions of one or more Objective-C classes. **Note:**
+and `@interface` definitions of one or more Objective-C classes. **NOTE:**
 You do not need to write the respective `@implementation` parts as you would
 re-write them in Cangjie at a [later step](#step-3) anyway.
 
@@ -1609,7 +346,7 @@ Your interop class design would then look like this:
 ```
 
 
-### Step 2: Generate Mirror Type Declarations {#step-2}
+#### Step 2: Generate Mirror Type Declarations {#step-2}
 
 Now, you need [mirror type](#mirror-types) declarations for all Objective-C
 types on which your interop classes depend: their supertypes, types of member
@@ -1625,7 +362,7 @@ Then write an appropriate
 run the mirror generator:
 
 ```bash
-ObjCInteropGen --mode=normal <config-file>
+ObjCInteropGen <config-file>
 ```
 
 where `<config-file>` is the pathname of the configuration file.
@@ -1635,12 +372,12 @@ where `<config-file>` is the pathname of the configuration file.
 The only immediate dependency of your class `A` is its superclass `M`,
 so the configuration file is pretty simple:
 
-```
+```toml
 # A.toml
-# Place the mirror of M and any dependencies it may have in the 'cjworld' package:
-[[packages]]
+# Place the mirror of M and any dependencies it may have in the 'objcworld' package:
+[[package]]
 filters = { include = ["M", "NS.+"] }
-package-name = "cjworld"
+package-name = "objcworld"
 
 # Write the output files with mirror type definitions to the current directory:
 [output-roots.default]
@@ -1666,27 +403,27 @@ arguments-append = [
 Mirror generator command line:
 
 ```bash
-ObjCInteropGen --mode=normal A.toml
+ObjCInteropGen A.toml
 ```
 
-The above command will generate files `cjworld/M.cj` with a mirror type
-declaration for the class `M` and a bunch of `cjworld/NS*.cj` files
+The above command will generate files `objcworld/M.cj` with a mirror type
+declaration for the class `M` and a bunch of `objcworld/NS*.cj` files
 with mirror type declarations for the Foundation framework classes
 and protocols on which `M` depends.
 
 
-#### Common Misconfiguration Issues
+##### Common Misconfiguration Issues
 
 **The mirror generator is unable to find the standard header files, such as
 `stdarg.h` or `stdbool.h`.**
 
 Example error messsage:
 
-```
+```text
 ..../CoreFoundation.h:19:10: error: 'stdarg.h' file not found
 ```
 
-This usially means that the pathnames in `arguments-append` array of the
+This usually means that the pathnames in `arguments-append` array of the
 `[sources-mixins]` table are not correct. Double check that they match the
 locations of the header files on your system.
 
@@ -1694,7 +431,7 @@ locations of the header files on your system.
 
 Example error messsage:
 
-```
+```text
 .../NSObjCRuntime.h:626:74: error: unknown type name 'NSUInteger'
 ```
 
@@ -1704,28 +441,28 @@ either "`-DTARGET_OS_IPHONE=1`" or "`-DTARGET_OS_OSX=1`".
 Add it to the `arguments-append` array of the `[sources-mixins]` table.
 In the above example, it is present but commented out:
 
-```
-   .  .  .
+```toml
+#   .  .  .
 arguments-append = [
     # Uncomment the following line if you get "unknown type name" errors
     # "-DTARGET_OS_IPHONE=1",
-   .  .  .
+#   .  .  .
 ```
 
 
-### Step 3: Write the Interop Classes {#step-3}
+#### Step 3: Write the Interop Classes {#step-3}
 
 For each Objective-C class skeleton that you included in your interop layer
 design on [Step 1](#step-1), write a matching Cangjie class as follows:
 
 * Use the appropriate package and class names (the Objective-C wrapper class
   that `cjc` will generate for you will have the same fully qualified name).
-* Import `interoplib.objc.*`.
+* Import `objc.lang.*`.
 * Import the mirror types, if you've generated any on [Step 2](#step-2).
   Do not import all generated dependencies, only the types you actually need.
 * Annotate the interop class with `@ObjCImpl`.
-* Make the interop class inherit the respective `open` mirror class, or `NSObject`
-  if it has no explicit supertype in your design.
+* Make the interop class inherit the respective `open` mirror class,
+  or `NSObject` if it has no explicit supertype in your design.
 * Annotate `public` class members and constructors
   with `@ForeignName["`_`foreign-name`_`"]`, where _`foreign-name`_ is the
   desired Objective-C name for that member or constructor, according
@@ -1739,7 +476,7 @@ design on [Step 1](#step-1), write a matching Cangjie class as follows:
      > The Objective-C names of such overriding functions must match
      > the names of the overridden Objective-C methods. The latter are
      > propagated _from_ Objective-C to Cangjie automatically
-     > via `@ForeignName` annotations in mirror type declarations
+     > via `@ForeignName` annotations in mirror supertype declarations
      > (see [Classes and Protocols](#classes-and-protocols) for details).
      > The `cjc` compiler picks those annotations up.
 
@@ -1755,7 +492,7 @@ design on [Step 1](#step-1), write a matching Cangjie class as follows:
 
   3. Overloaded member functions and constructors _must_ be given distinctive
      Objective-C names using `@ForeignName`, as there is no method overloading
-     in Objective-C. Exacly one of such overloaded entities can retain
+     in Objective-C. Exacly one of several overloaded entities can retain
      its original Cangjie name, provided it has at most one parameter.
 
   4. Annotating the remaining members and constructors with `@ForeignName`
@@ -1768,11 +505,11 @@ design on [Step 1](#step-1), write a matching Cangjie class as follows:
 
   **NOTE:** The current version of the `cjc` compiler  does _not_ fully
   validate _`foreign-name`_. In particular, it does not check that the number
-  of colon `:` separators mathes the number of method or constructor
+  of colon `:` separators matches the number of member function or constructor
   parameters.
 
-* Use the following Objective-C-to-Cangjie type mapping (`T'` is either the matching
-  value type or the respective mirror type):
+* Use the following Objective-C-to-Cangjie type mapping (`T'` is either the
+  equivalent value type or the respective mirror type):
 
     Objective-C            | Cangjie       | Remark
     ---------------------- | ------------  | ------
@@ -1804,9 +541,9 @@ design on [Step 1](#step-1), write a matching Cangjie class as follows:
     (\*) The Objective-C structure must not contain fields of types that
     are not `CType`-compatible. See [Structs](#structs) for details.
 
-    (†) Use `?<T'>` (`Option<T'>`) types for parameters, return values, and local
-    variables of mirror types and interop classe types that may receive/hold
-    the Objective-C `nil` value.
+    (†) Use `?<T'>` (`Option<T'>`) types for parameters, return values,
+    and local variables of mirror types and interop classe types that may
+    receive/hold the Objective-C `nil` value.
 
     See [Objective-C to Cangjie Mapping](#objective-c-to-cangjie-mapping)
     for details.
@@ -1826,11 +563,11 @@ Constructors and member functions of interop classes:
 
 * Can use conventional Cangjie syntax to:
 
-    - instantiate objects of interop classes and mirrored Objective-C classes
-    - call static and instance methods of interop classes and mirrored
+    - Instantiate objects of interop classes and mirrored Objective-C classes;
+    - Call static and instance member functions of interop classes and mirrored
       Objective-C types (that includes using `super` to call Objective-C
-      superconstructors and superclass methods)
-    - access their own member properties and non-`private` member properties
+      superconstructors and superclass methods); and
+    - Access their own member properties and non-`private` member properties
       of other interop classes and mirrored Objective-C types
 
 **Limitations:**
@@ -1869,25 +606,26 @@ To continue the above example, the interop class `A` would look
 like this:
 
 ```cangjie
-package cjworld // Same package name
+package cjworld           // Same package name
 
-import interoplib.objc.* // Always required
+import objc.lang.*        // Always required
 
 @ObjCImpl
 public class A <: M {
+
     public init() {
         super()
     }
 
-    @ForeignName["foo"]
-    public open override func foo(): Unit {
+    override public open func foo(): Unit {
         println("Hello from overridden A.foo()")
     }
+
 }
 ```
 
 
-### Step 4: Compile the Interop Classes {#step-4}
+#### Step 4: Compile the Interop Classes {#step-4}
 
 Command line:
 
@@ -1944,7 +682,47 @@ xcrun codesign --sign - libcjworld.dylib
 ```
 
 
-### Step 5: Put It All Together {#step-5}
+#### Step 5: Put It All Together {#step-5}
+
+**IMPORTANT: The current version of the mirror generator does _not_ propagate
+names of the original header files into mirror type declarations. As a result,
+the wrapper classes generated on the previous step will import non-existing
+headers and won't compile. A temporary workaround is given out below.**
+
+For example, if any member functions of your interop class accept parameters
+and/or return values of the type `UIDevice` from UIKit, the source code file
+containing the generated wrapper class will include a line
+
+```objectivec
+#import "UIDevice.h"
+```
+
+instead of
+
+```objectivec
+#import <UIKit/UIKit.h>
+```
+or
+
+```objectivec
+#import <UIKit/UIDevice.h>
+```
+
+**NOTE:**The Foundation framework is an exception, as all Objective-C files
+generated by `cjc` always contain these two lines at the top:
+
+```objectivec
+#import <Foundation/Foundation.h>
+#import <stddef.h>
+```
+
+As a temporary workaround, you need to manually create the `.h` files for
+such mirror types, putting the right `#import` declarations into them, and
+add those files to your Xcode project before proceeding.
+
+This inconvenience will be eliminated in future versions.
+
+Now do the following:
 
 * Create another subdirectory in your project and copy all dynamic libraries
   from the `$CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/`
@@ -1977,7 +755,7 @@ With Libraries” lists).
 
 Move the `.h` and `.m` files generated by `cjc` to project root:
 
-```
+```shell
 mv cjworld/objc-gen/*.h ./
 mv cjworld/objc-gen/*.m ./
 ```
@@ -1985,13 +763,13 @@ mv cjworld/objc-gen/*.m ./
 Rebuild the Xcode project.
 
 
-## Calling Objective-C from Cangjie
+### Calling Objective-C from Cangjie
 
 Once you have designed, built and integrated the interoperability layer
 as described
 in the [previous section](#initial-interop-class-creation-workflow),
 you can add code that uses Objective-C types to the member functions
-of your interop classes. The type mapping is the same:
+of your interop classes. The type mapping is the same.
 
 Add the code invoking a Cangjie function from Objective-C via the respective
 method of an interop class wrapper and re-build your iOS project again.
@@ -2014,7 +792,7 @@ instance into your Objective-C code:
 Rebuild the Xcode project and run your app on the iOS simulator.
 
 
-# Subsequent Enhancements
+### Subsequent Enhancements
 
 Following [the above process](#initial-interop-class-creation-workflow) should
 have helped you develop a good understanding of how to add more classes
@@ -2045,7 +823,7 @@ Now you can start [using](#calling-objective-c-from-cangjie) the newly added int
 in the Objective-C part of your application.
 
 
-## Features and Limitations of Interop Classes
+### Features and Limitations of Interop Classes
 
 1. An interop class _must_ be a direct subclass of a mirror class.
 
@@ -2054,9 +832,10 @@ in the Objective-C part of your application.
    may not implement or inherit an interface mirroring an Objective-C protocol.
 
 3. An interop class may not be declared as `open` or `abstract` and may not be
-   extended using `extend`.
+   extended using `extend`, and may not be generic.
 
 4. An interop class may introduce new instance fields _of any Cangjie type_
+   (as they are not exposed to Objective-C)
    and override the member functions of its mirrored superclass.
 
 
@@ -2071,20 +850,19 @@ in the Objective-C part of your application.
    superclass that the interop class overrides.
 
 7. The signatures of constructors and member functions of all mirror types
-   and interop classes can only use types that are (a) mirror types
-   or interop classes themselves, or (b) are 100% analogous to Objective-C
-   primitive types. See the Type Mapping table in [Step 3](#step-3) above
-   and the Chapter
+   and interop classes can only use
+   [Objective-C compatible types](#objective-c-compatible-types)
+   See the Type Mapping table in [Step 3](#step-3) above and the Chapter
    [Objective-C to Cangjie Mapping](#objective-c-to-cangjie-mapping).
 
 
-# Objective-C to Cangjie Mapping
+## Objective-C to Cangjie Mapping
 
 The current version of the mirror generator does the following Objective-C
 → Cangjie conversions.
 
 
-## General Considerations
+### General Considerations
 
 The Objective-C mirror generator relies on Clang for parsing Objective-C
 sources, invoking it with the `-fobjc-arc` option.
@@ -2098,7 +876,7 @@ as the order of the respective definitions in the input Objective-C source
 code, with the exception of nested type definitions.
 
 
-## Names
+### Names
 
 The original Objective-C identifiers are preserved, with the following
 exceptions:
@@ -2115,7 +893,7 @@ exceptions:
   If the conflicting instance/static methods are first introduced
   in the same class/protocol, the static method is renamed. For example:
 
-    ```
+    ```objectivec
     @interface A
     +(void)foo;
     @end
@@ -2127,9 +905,9 @@ exceptions:
     @end
     ```
 
-    will be converted to
+    will be mirrored into
 
-    ```
+    ```cangjie
     @ObjCMirror
     public open class A <: ObjCId {
         public static func foo()
@@ -2143,17 +921,17 @@ exceptions:
     }
     ```
 
-* Conflicts between `init` methods having different names, but
-  the same number and types of parameters are not resolved.
-  See [Classes](#classes) for details.
+* Conflicts between `init` methods that have the same number and types
+  of parameters are resolved, but with a limitation. See [Classes](#classes)
+  for details.
 
 
-## Type Aliases
+### Type Aliases
 
-C typedef declarations are converted to public Cangjie type aliases.
+C typedef declarations are mirrored into public Cangjie type aliases.
 
 
-## Primitive Types
+### Primitive Types
 
 Objective-C primitive types map to the respective Cangjie value types.
 C types with platform-specific sizes map to Cangjie in accordance with their
@@ -2178,20 +956,70 @@ generator runs. For example, on macOS it can be the following:
 | `double`             | `Float64` |
 
 
-## Structs
+### Strings
 
-A C struct is converted to a public Cangjie struct marked as `@C` if it is
+The Cangjie `String` type and the Objective-C `NSString` type are not binary
+compatible. They even encode character data differently (in UTF-8 and UTF-16
+respectively).
+
+To facilitate string conversions, the Cangjie compiler implicitly extends
+mirrors of the Foundation Framework classes `NSObject` and `NSString`
+as follows:
+
+* A mirror of the `NSObject` class has an implicitly defined instance member
+  function `toString()`:
+
+  ```cangjie
+      public open func toString(): String
+  ```
+
+  That function calls the `description` method of its receiver, converts the
+  result into a Cangjie `String` and returns it.
+
+* A mirror of the `NSString` class has an implicitly defined constructor taking
+  a Cangjie `String` as an argument:
+
+  ```cangjie
+      public init(s: String)
+  ```
+
+  It initializes the `NSString` instance being constructed with transcoded
+  character data of its argument.
+
+**NOTE:** It does not matter how those mirror classes themselves are called.
+The values of their `@ObjCMirror` annotations must be respectively `"NSObject"`
+and `"NSString"` for the compiler to insert the implicit declarations described
+above:
+
+  ```cangjie
+  @ObjCMirror["NSObject"]
+  public class ObjC_Object {    // toString() added implicitly
+      //   .  .  .
+  }
+  ```
+
+  ```cangjie
+  @ObjCMirror["NSObjectWrapper"]
+  public class NSObject {       // toString() NOT added implicitly
+      //   .  .  .
+  }
+  ```
+
+
+### Structs
+
+A C struct is mirrored into a public Cangjie struct marked as `@C` if it is
 `CType`-compatible, that is, contains fields of `CType`-compatible types only.
 Other scenarios, e.g. the original Objective-C structure containing pointers
 to objects, are not currently supported.
 
 
-Nested structures are converted to top-level Cangjie structs.
+Nested structures are mirrored into top-level Cangjie structs.
 
-Incomplete structure declarations are converted to empty structs
+Incomplete structure declarations are mirrored into empty structs
 (without any members).
 
-Fields of Objective-C structures are converted to public member variables
+Fields of Objective-C structures are mirrored into public member variables
 of the respective Cangjie structs. The `static` modifier is maintained.
 
 Bit fields are not supported by the Cangjie language,
@@ -2223,29 +1051,46 @@ public struct A {
 ```
 
 
-## Enumerations
+### Enumerations
 
 
-Named C enumeration declarations are converted to abstract sealed Cangjie
-classes (effectively, namespaces). Enumerators are converted to public static
+Named C enumeration declarations are mirrored into abstract sealed Cangjie
+classes (effectively, namespaces). Enumerators are mirrored into public static
 constants initialized with their values. Their type corresponds to the
 explicitly specified underlying type for the enumeration, if any, otherwise
 it is `Int32`.
 
 
-## Unions
+### Unions
 
 The Cangjie language does not support C union types.
-They are converted to structs with sequential fields and a warning is issued.
+Unions are mirrored into structs with sequential fields and a warning is issued.
 
 
-## Classes and Protocols
+### `id`
 
-Objective-C classes and protocols are mirrored respectively to Cangjie
-classes and interfaces. All such mirror classes and interfaces explicitly
-implement the built-in `ObjCId` mirror interface
+The type `id` is mirrored into a built-in mirror interface `ObjCId`.
+
+
+### Classes and Protocols
+
+Objective-C classes and protocols are mirrored respectively into Cangjie
+classes and interfaces. All such mirror classes and interfaces implicitly
+implement/inherit the built-in `ObjCId` mirror interface
 (see [Built-in Types](#built-in-types)).
 
+**Methods** (except `init`-methods, see below) are mirrored into `public open`
+member functions with the respective mirror types substituted for parameter
+types and return value type. Mirrors of `void` methods have the `Unit` return
+type. `instancetype` is mirrored into the name of the current declaration.
+Mirrors of class methods (those with the "`+`" prefix) are modified
+with `static`.
+
+`init`-methods are a special case. They are mirrored into constructors,
+as described in [Classes](#classes).
+
+Bodies are omitted in the mirrors of _all_ methods, so they all look like
+abstract member functions in regular Cangjie code.
 
 In methods with a variable number of parameters, `, ...` is ignored.
 
@@ -2256,8 +1101,7 @@ valid Cangjie identifiers. Such names are mangled as follows:
   is capitalized.
 * All `:` characters are removed.
 
-The original selector is specified in the `@ForeignName` attribute
-on the Cangjie side.
+The original selector is retained in the `@ForeignName` annotation.
 
 **Example:**
 
@@ -2272,33 +1116,60 @@ on the Cangjie side.
 
 is mirrored to
 
-```
+```cangjie
 @ObjCMirror
 public open class A {
     public open func foo(): Unit
-    @ForeignName["foo:"] public open func foo(i: Int32): Unit
-    @ForeignName["foo:bar:"] public open func fooBar(i: Int32, j: Int32): Unit
-    @ForeignName["foo:bar:baz:"] public open func fooBarBaz(i: Int32, j: Int32, k: Int32): Unit
+
+    @ForeignName["foo:"]
+    public open func foo(i: Int32): Unit
+
+    @ForeignName["foo:bar:"]
+    public open func fooBar(i: Int32, j: Int32): Unit
+
+    @ForeignName["foo:bar:baz:"]
+    public open func fooBarBaz(i: Int32, j: Int32, k: Int32): Unit
 }
 ```
 
+**Properties** are normally mirrored into `public` Cangjie member properties
+of the respective mirror types, with one exception: a property that overrides
+a superclass property is not mirrored.
 
-In Cangjie, a property that overrides another property must have the same
-type. Also, the getter/setter functions of Cangjie properties may not be named
-arbitrarily. Hence any properties declared in Objective-C classes are only
-mirrored into Cangjie properties _when possible_. In all other cases,
-their getter/setter methods are mirrored as ordinary instance member
-functions. This includes properties declared within `@protocol` directives.
-
-Instance variables are mirrored into instance member variables.
-
-`instancetype` is converted to the name of the current declaration.
+Bodies (`{ }` blocks containing the getter and setter) are omitted in the
+mirrors of properties.
 
 
-### Classes
+The getter/setter functions of Cangjie properties may not be named arbitrarily.
+The annotations `@ForeignGetterName` and `@ForeignSetterName` retain custom
+names, if any, of the original getter and setter:
 
-Objective-C `@interface` class declarations are converted to Cangjie classes
-marked as `@ObjCMirror public open`.
+```objectivec
+@interface FormElement : UIComponent
+- (void)setEditable:(BOOL)flag;
+- (BOOL)isEditable;
+@property(getter=isEditable, setter=setEditable:) BOOL editable;
+//   .  .  .
+@end
+```
+
+```cangjie
+public interface FormElement <: UIComponent {
+    @ForeignGetterName["isEditable"]
+    @ForeignSetterName["setEditable:"]
+    public mut prop editable: Bool
+//   .  .  .
+@end
+
+```
+
+
+#### Classes
+
+Objective-C `@interface` class declarations are mirrored into `public open`
+Cangjie classes annotated with `@ObjCMirror`. The value of that annotation is
+a string that retains the original name of the Objective-C class, if different
+from the mirror class name.
 
 Objective-C `@interface` category and extension declarations are merged
 with the respective Cangjie class declarations.
@@ -2309,98 +1180,251 @@ Forward class declarations (`@class` directives) are mirrored into empty
 classes (without any members).
 
 
-Methods identified as `init` methods as described in the
+**Methods identified as `init` methods** in accordance with in the
 [Method families section of the Clang documentation on Objective-C ARC](https://clang.llvm.org/docs/AutomaticReferenceCounting.html#method-families)
-are mirrored into Cangjie constructors, with two limitations:
+are mirrored into Cangjie constructors, with three limitations:
 
 * If two or more `init` methods of a class differ only by name, i.e. have
-  the same number and types of parameters, the mirror generator comments out
-  the respective Cangjie constructor declarations and issues a conflict
-  warning.
+  the same number and types of parameters, they cannot be mirrored into
+  overloaded constructors. Instead, they are mirrored into `static`
+  member functions annotated with `@ObjCInit`, which return an instance
+  of the class being mirrored --- essentially, object factories:
 
-* `init` methods are inherited like any other methods, whereas
-  constructors in Cangjie are not inherited. The constructors that mirror
-  the `init` methods of superclasses are therefore unavailable at the point
-  of a mirror class or interop class instantiation.
+  ```objectivec
+  @interface Point2D : NSObject {
+      double x;
+      double y;
+  }
+  - (id)init;
+  - (id)initWithX:(double)x;
+  - (id)initWithY:(double)y;
+  - (id)initWithX:(double)x andY:(double)y;
+  @end
+  ```
 
-Other methods of Objective-C classes are mirrored into public open member
-functions of the respective Cangjie mirror types. Mirrors of class methods
-(those with the "`+`" prefix) are modified with `static`.
+  ```cangjie
+  @ObjCMirror
+  public open class Point2D {
+      public init()
+
+      @ObjCInit
+      @ForeignName["initWithX:"]
+      public static func initWithX(x: Float64): Point2D
+
+      @ObjCInit
+      @ForeignName["initWithY:"]
+      public static func initWithY(y: Float64): Point2D
+
+      @ForeignName["initWithX:andY:"]
+      public init(x: Float64, y: Float64)
+  }
+  ```
+
+  The names of those factory functions are derived from the original Objective-C
+  names of the respective `init` methods, and the latter are retained
+  in `@ForeignName` annotations, in the exact same way as it is done for any
+  other mirrored methods.
+  See [Classes and Protocols](#classes-and-protocols) for details.
+
+* In Objective-C, `init` methods are inherited just like any other methods,
+  whereas constructors in Cangjie are not inherited. The constructors that
+  mirror the `init` methods of superclasses are therefore unavailable at the
+  point of a mirror class or interop class instantiation. In contrast, the
+  factory functions mirroring certain `init` methods as per the previous item
+  _are_ inherited, but may not be used as superconstructors, as they return
+  completely initialized superclass instances.
+
+* Unlike a Cangjie/Java/etc. constructor that always initializes its receiver
+  object, an Objective-C `init` method can return a substitute object and has
+  an explicit return type. That type used to be `id`, so technically an `init`
+  method could even return an instance of a totally different class.
+  In [modern Objective-C code](https://developer.apple.com/library/archive/releasenotes/ObjectiveC/ModernizationObjC/AdoptingModernObjective-C/AdoptingModernObjective-C.html),
+  however, the return type of an `init` method is normally `instancetype`,
+  a special keyword meaning "pointer to an instance of (a subclass of) the
+  receiver class". (The Xcode compiler actually promotes `id` to `instancetype`
+  for known methods such as `init` and `alloc`, but not for, say, object
+  factories.) The use of `instancetype` ensures that the returned object
+  at least belongs to the right class, but does not preclude the return
+  of a `nil` value. In fact, returning `nil` from an `init` method is the
+  recommended way of signaling to the caller that the object could not be
+  initialized for a reason that does not warrant raising an exception.
+
+  The current implementation expects `init` methods to return instances of the
+  respective class and does not validate the returned value.
+  **WARNING: If an `init` method called from Cangjie returns `nil` or a pointer
+  to an instance of a class that is not (a subclass of) the receiver class,
+  the behavior is undefined.**
+
+**Instance variables** are mirrored into instance member variables of the
+respective mirror types. There are no class variables in Objective-C.
 
 
-### Protocols
+
+#### Protocols
 
 Objective-C `@protocol` directives are mirrored into Cangjie interfaces
-marked as `@ObjCMirror public`. However, the cjc compiler does not support
-such interfaces yet.
+marked as `@ObjCMirror public`.
 
 Forward protocol declarations are mirrored into empty interfaces (without any
 members).
 
 
-Methods of Objective-C protocols are mirrored into public open member functions
-of the respective Cangjie interfaces. The `static` modifier is maintained.
+**Methods** of Objective-C protocols are mirrored into member functions of the
+respective Cangjie interfaces. Mirrors of class methods (those with the "`+`"
+prefix) are modified with `static`.
 
-The `@optional` directive is ignored.
+Objective-C protocols may contain optional instance methods, which have no
+direct equivalent in Cangjie. The member functions mirroring such methods are
+annotated with `@ObjCOptional`. The bridge code implementing a cross-language
+call of an `@ObjCOptional` method first checks if the receiver implements it at
+all, throwing `NotImplementedException` if it does not.
+
+```objectivec
+@protocol MyDelegate <NSObject>
+
+@required
+- (void)requiredMethod;
+
+@optional
+- (void)optionalMethod;
+@end
+```
+
+```cangjie
+@ObjCMirror
+public interface MyDelegate {
+    func requiredMethod(): Unit
+
+    @ObjCOptional
+    func optionalMethod(): Unit
+}
+//   .  .  .
+    try {
+        delegate.optionalMethod()
+    } catch (nie: NotImplementedException) { } // OK, not a big deal
+```
 
 
-## Pointers
+### Pointers
 
 The modifiers `const`, `volatile`, and `restrict` are ignored.
 
-Pointers to C primitives and their type aliases are converted to `CPointer`
-with the respective type parameters.
+Pointers to C primitives and their type aliases are mirrored
+into `CPointer<`_`T`_`>`, where _`T`_ is the matching Cangjie type.
 
-A pointer to a C enumeration is converted to a `CPointer` to its underlying
+A pointer to a C enumeration is mirrored into a `CPointer` to its underlying
 type, with the actual enumeration name specified in a comment.
 
 
-### Pointers to Structures
 
-A pointer to a C structure `T` is converted to `CPointer<T'>`, where `T'` is
+#### Pointers to Structures
+
+A pointer to a C structure `T` is mirrored into `CPointer<T'>`, where `T'` is
 the mirror type for `T`, if the structure is `CType`-compatible. Otherwise,
-they are converted to `ObjCPointer<T'>` (provisional name), which is a type
-that should be implemented in the interop library.
+they are mirrored into the built-in type `ObjCPointer<T'>`.
 
 
-### Pointers to Functions
+#### Pointers to Functions
 
-Pointers to C functions are converted to either `CFunc` (if the function
+Pointers to C functions are mirrored into either `CFunc` (if the function
 parameter types and return value are all `CType`-compatible) or to `ObjCFunc<F>`
-(provisional name) otherwise. The latter is a type implemented in the interop
-library.
+otherwise. The latter is a built-in struct type, the public interface of which
+consists of a single property:
+
+```cangjie
+public struct ObjCFunc<F> {
+    public prop call: F
+}
+```
+
+The compiler enforces a handful of restrictions on that type:
+
+* The types of parameters and return value of the function type used as the
+  type argument _`F`_ of `ObjCFunc<`_`F`_`>` must be
+  [Objective-C-compatible](#objective-c-compatible-types),
+  but the type _`F`_ itself is not Objective-C-compatible.
+
+* The property `call` may only be used in function call expressions.
+
+* There is no way to create an instance of `ObjCFunc<F>` in Cangjie code,
+  all such instances originate from Objective-C code.
+
+* There is currently no straightforward way to check whether the value
+  of a certain `ObjCFunc<F>` passed over from Objective-C is `null`.
 
 
-### Pointers to Blocks
+#### Pointers to Blocks
 
-Pointers to Objective-C blocks are converted to `ObjCBlock<F>` (provisional
-name), which is a type implemented in the interop library. The type argument `F`
-of `ObjCBlock<F>` must be the respective Cangjie function type.
+Pointers to Objective-C blocks are mirrored into the built-in struct type
+`ObjCBlock<`_F_`>`, where _`F`_ is the respective Cangjie function type.
+The public interface of `ObjCBlock<F>` consists of a single constructor and
+a single property:
+
+```cangjie
+public struct ObjCBlock<F> {
+    public init(f: F)
+    public prop call: F
+}
+```
+
+The compiler enforces a handful of restrictions on that type:
+
+* The types of parameters and return value of the function type used as the
+  type argument _`F`_ of `ObjCBlock<`_`F`_`>` must be
+  [Objective-C-compatible](#objective-c-compatible-types).
+  **NOTE:** That does not make the type _`F`_ itself Objective-C-compatible.
+
+* The property `call` may only be used in function call expressions.
+
+* There is currently no straightforward way to check whether the value
+  of a certain `ObjCBlock<F>` passed over from Objective-C is `null`.
+
+Unlike `ObjCFunc<F>`, instances of `ObjCBlock<F>` may be created in Cangjie
+code from lambda expressions:
+
+```cangjie
+let halve: ObjCBlock<(Double) -> Double> =
+    ObjCBlock { it => it / 2.0 }
+```
+
+The blocks may be called from Cangjie:
+
+```cangjie
+let x = halve.call(2.0)    // x == 1.0d
+```
+
+and passed over to mirrored Objective-C methods and functions as an argument.
 
 
-### Pointers to Class Instances
+#### Pointers to Class Instances
 
 Pointers to Objective-C class instances are mirrored as follows:
 
-* Pointers to class instances (`SomeClass*`) are mirrored to the
-  respective mirror classes.
+* Pointers to class instances (`SomeClass*`) are mirrored into the
+  respective mirror class types.
 
 * The mirror of the Objective-C type `id` narrowed with a single protocol
   (for example, `id<NSCopying>`), is the mirror interface for that protocol.
 
 * `id` narrowed with several protocols, e.g. `id<NSCopying, NSSecureCoding>`,
-  is mirrored to a pure `ObjCId` (the interface that all `@ObjCMirror`
+  is mirrored into a pure `ObjCId` (the interface that all `@ObjCMirror`
   classes and interfaces respectively implement and inherit),
   with the actual protocol list specified in a comment.
 
 * If a generic type parameter is used inside a generic template
-  with a narrowing protocol specified, it is converted to a reference to that
+  with a narrowing protocol specified, it is mirrored into a reference to that
   protocol, with the name of the type parameter specified in a comment.
 
+When used as the type of a parameter, return value, or member variable, such
+mirror type additionally gets wrapped in `Option<T>`, _unless_ the said entity
+is annotated an non-nullable. That enables the safe passage of `nil` values
+between Objective-C and Cangjie.
+See [`nil` Handling](#nil-handling) for details.
 
-## Generics
 
-Parameterized Objective-C classes are mirrored as regular, non-generic
+### Generics
+
+Parameterized Objective-C classes are mirrored into regular, non-generic
 Cangjie class declarations. The original lightweight generics syntax
 such as "`<T>`" or "`<Foo>`" is retained in comments; type parameter
 usages are replaced with `ObjCId`.
@@ -2415,7 +1439,7 @@ usages are replaced with `ObjCId`.
 
 is mirrored to
 
-```
+```cangjie
 @ObjCMirror
 public open class G/*<T>*/ <: NSObject {
     @ForeignName["f:"] public open func f(t: ?ObjCId /*T*/): Unit
@@ -2433,27 +1457,41 @@ However. type constraints are lost as of the current version, i.e.
 is now mirrored exactly as the first sample above.
 
 
-## Built-in Types
+### Top-Level Functions
+
+Top-level Objective-C functions are mirrored into global `public` function
+declarations annotated with `@ObjCMirror`, with the respective mirror types
+substituted for parameter types and return value type. Mirrors of `void`
+functions have the `Unit` return type. Function bodies are omitted.
+
+For the avoidance of doubt, the above applies even if all parameter types and
+the return type of the function meet the `CType` constraint. One reason is that
+a regular `@C` foreign function declaration may not be `public` in Cangjie.
+
+In functions with a variable number of parameters, `, ...` is ignored.
+
+
+### Built-in Types
 
 The mirror generator assumes that the following user-available Cangjie types
 are implemented in the interop library. As of the current version, however,
-they are not yet implemented, and their names may change.
+some of them (marked with "?") are not yet implemented, and their names may
+change.
 
-| Objective-C         | Cangjie (\*)        | Description                                           |
-| ------------------- | ------------------- | ----------------------------------------------------- |
-| `id`                | `ObjCId`            | Interface that should be implemented by all `@ObjCMirror` classes and interfaces. Bound to Objective-C `id`. |
-| `SEL`               | `SEL`?              | Class bound to Objective-C `SEL`.                     |
-| `Class`             | `Class`?            | Class bound to Objective-C `Class`.                   |
-| `Protocol`          | `Protocol`?         | Class bound to Objective-C `Protocol`.                |
-| pointer type        | `ObjCPointer<T>`?   | Structure bound to Objective-C pointers of two kinds: with arity more than one and when `T` is a not `CType`-compatible structure. |
-| non-C function type | `ObjCFunc<F>`?      | Class implementing `CFunc` for functions that are not `CType`-compatible. `F` is a Cangjie function type. |
-| block type          | `ObjCBlock<F>`?     | Structure implementing an Objective-C block. `F` is a Cangjie function type. |
-|                     | `__builtin_va_list` | Helper type alias for `CPointer<Unit>`, technically needed in the current generator implementation. May and should be dropped in the future. |
+| Objective-C                                   | Cangjie (\*)        | Description                                           |
+| --------------------------------------------- | ------------------- | ----------------------------------------------------- |
+| `id`                                          | `ObjCId`            | Interface implicitly implemented by all `@ObjCMirror` classes and interfaces. Bound to Objective-C `id`. |
+| `SEL`                                         | `SEL`?              | Class bound to Objective-C `SEL`.                     |
+| `Class`                                       | `Class`?            | Class bound to Objective-C `Class`.                   |
+| [pointer type](#pointers)                     | `ObjCPointer<T>`    | Structure bound to Objective-C pointers of two kinds: with arity more than one and when `T` is not a `CType`-compatible structure. |
+| [non-C function type](#pointers-to-functions) | `ObjCFunc<F>`       | Class implementing `CFunc` for functions that are not `CType`-compatible. `F` is a Cangjie function type. |
+| [block type](#pointers-to-blocks)             | `ObjCBlock<F>`      | Structure implementing an Objective-C block. `F` is a Cangjie function type. |
+|                                               | `__builtin_va_list` | Helper type alias for `CPointer<Unit>`, technically needed in the current generator implementation. May and should be dropped in the future. |
 
 (\*) Names of Cangjie types are provisional.
 
 
-# Not (Yet) Implemented Features
+### Not (Yet) Implemented Features
 
 Objective-C interoperability support in the Cangjie SDK is still in development.
 Certain features are not implemented yet, others may change in the first
@@ -2473,10 +1511,13 @@ differences between the two languages.
   not supported.
 
 * Anonymous C enumeration declarations are ignored. Named ones are mirrored
-  to abstract sealed Cangjie classes. See [Enumerations](#enumerations)
+  into abstract sealed Cangjie classes. See [Enumerations](#enumerations)
   for details.
 
 * In methods with a variable number of parameters, `...` is ignored.
+
+* Annotations related to memory management, such as `NS_RETURNS_RETAINED`,
+  are ignored.
 
 * The `@optional` directive is ignored.
 
@@ -2484,55 +1525,59 @@ differences between the two languages.
   and setter methods are mirrored as if they were regular instance methods.
   See [Classes and Protocols](#classes-and-protocols) for details.
 
-* The modifiers `const`, `volatile`, and `restrict` are ignored.
+* The modifiers `const` and `volatile` are ignored.
 
-* `init` methods are mirrored into Cangjie constructors,
-  which imposes two limitations:
+* The types `SEL` and `Class` are not supported.
 
-  - Two constructors of a Cangjie class may not have the same number
-    and types of parameters, whereas `init` method may differ by name, and
+* There is a handful of nuances related to the construction of instances
+  of mirrored Objective-C classes:
 
-  - Constructors in Cangjie are not inherited.
+  - The `init` methods of an Objective-C class are normally mirrored
+    into Cangjie constructors, except when two or more of those methods have
+    exactly the same number and types of parameters. Such `init` methods are
+    instead mirrored into `static` factory member functions annotated
+    with `@ObjCInit`. However, such functions may not be used
+    as superconstructors.
 
-    See [Classes](#classes) for details.
+  - Constructors in Cangjie are not inherited, unlike `init` methods
+    (but the factory functions are).
 
-* Parameterized Objective-C classes are mirrored as regular, non-generic
+  - An `init` method may return `nil`, which Cangjie does not expect in the
+    current version, leading to abnormal application termination.
+    Future versions will throw `NoneValueException` in such a case.
+
+  See [Classes](#classes) for details.
+
+* Parameterized Objective-C classes are mirrored into regular, non-generic
   Cangjie class declarations. See [Generics](#generics) for details.
 
-* Mirroring of `@protocol` declarations into Cangjie interfaces is not fully
-  supported yet.
+* Properties that override superclass properties are not mirrored.
 
-* Pointers to functions with parameter/return types that are not
-  `CType`-compatible are not supported.
+* Objective-C error handling is only possible using the
+  `ObjCPointer<Option<`_`NSError'`_`>>` type, where _`NSError'`_ is the name
+  of the mirror of the `NSError` class.
 
-* Objective-C blocks are not supported.
+### `nil` Handling {#objc-nil-handling}
 
-* The intrinsic helper functions for converting values of the Objective-C
-  type `NSString` to/from values of the Cangjie type `String` are not
-  implemented yet.
-
-
-# `nil` Handling
-
-Cangjie has no concept of null references and hence no equivalent
-for the Objective-C `nil` value. If pointers to Objective-C
-classes and protocols were mirrored to Cangjie classes and interfaces,
-any such value passed over from Objective-C to Cangjie could lead
-to a segmentation fault. Conversely, there would be no way
-to pass a `nil` value from Cangjie to Objective-C either.
+Cangjie has no concept of null references and hence no equivalent for the
+Objective-C `nil` value. If pointers to Objective-C classes and protocols were
+mirrored into Cangjie classes and interfaces, any such value passed over
+from Objective-C to Cangjie could lead to a segmentation fault. That would also
+happen if Cangjie code accessed a member variable of such type mirroring a field
+containing `nil`. Conversely, there would be no way to pass a `nil` value
+from Cangjie to Objective-C either.
 
 The `Option<T>` enum is therefore generally used to represent the values
-of those Objective-C types, with `None` standing for the `nil`
-value, and `Some(r)` representing a (non-null) reference value `r`.
-The `cjc` compiler recognizes `Option<T>` as an Objective-C compatible
-type if `T` is a mirror type or interop class and wraps/unwraps
-the values of `T` accordingly.
+of those Objective-C types, with `None` standing for the `nil` value,
+and `Some(r)` representing a (non-null) reference value `r`. The `cjc` compiler
+recognizes `Option<T>` as an Objective-C compatible type if `T` is a mirror type
+or interop class and maps its values accordingly.
 
 For instance, the following Objective-C `@interface` directive:
 
 ```objectivec
 @interface MyContainer: NSObject
-   .  .  .
+//   .  .  .
 - (void)addItem:(MyItem *)item withUuid:(NSString *)uuid;
 - (MyItem *)itemWithUuid:(NSString *)uuid;
 - (NSString *)uuidForItem:(MyItem *)item;
@@ -2540,44 +1585,43 @@ For instance, the following Objective-C `@interface` directive:
 @end
 ```
 
-will be mirrored to (`@ForeignName` annotations omitted for brevity):
+will be mirrored into (`@ForeignName` annotations omitted for brevity):
 
 ```cangjie
 @ObjCMirror
-open class MyContainer <: NSObject {
-       .  .  .
+public open class MyContainer <: NSObject {
+//       .  .  .
     public open func addItemWithUuid(item: ?MyItem, uuid: ?NSString): Unit
     public open func itemWithUuid(uuid: ?NSString): ?MyItem
     public open func uuidForItem:(item: ?MyItem): ?NSString
-    public mut prop allItems ?NSArray/*<MyItem>*/
+    public open mut prop allItems ?NSArray/*<MyItem>*/
 }
 ```
 
-
-The `Option<T>` wrapping ensures that the code won't break if a `nil`
-value sneaks into the Cangjie world from the Objective-C one,
-but it does that at the cost of performance and memory footprint.
-The other disadvantage of this approach is [loss of variance](#loss-of-variance).
-That being said, [support for nullability annotations](#nullability-annotations)
-considerably reduces the impact of reference wrapping, at least when
-it comes to the use of iOS APIs in Cangjie code.
+`Option<T>` wrapping ensures that the code won't break if a `nil` value sneaks
+into the Cangjie world from the Objective-C one, but it does that at the cost
+of performance and memory footprint. The other disadvantage of this approach is
+the [loss of variance](#loss-of-variance). That being said,
+[support for nullability annotations](#nullability-annotations) considerably
+reduces the impact of reference wrapping, at least when it comes to the use
+of iOS APIs in Cangjie code.
 
 **NOTE:** This problem does not exist for the low-level C types that get
 mirrored to the conventional `CPointer<T>` type, as the latter provides
-explicit null check functions.
+explicit null check member functions.
 
 
-## Loss of Variance
+#### Loss of Variance
 
 One limitation imposed by the [`Option<T>` wrapping](#nil-handling)
-of Objective-C mirror types and interop classes is that such wrapped types follow
-the semantics of Cangjie in all other respects. In particular, `Option<T>` is
-_invariant by its type parameter `T`_: `Option<U>` is not a subtype of `Option<T>`
-if `U` is a subtype of `T` unless `T` and `U` are the same type. For mirror types
-that means that any overriding Objective-C method that relies on return type
-covariance may not be mirrored that way with `Option<T>` wrapping. The return
-value type of the mirror of such a method has to be propagated
-from the method that it overrides.
+of Objective-C mirror types and interop classes is that such wrapped types
+follow the semantics of Cangjie in all other respects. In particular,
+`Option<T>` is _invariant by its type parameter `T`_: `Option<U>` is not
+a subtype of `Option<T>` if `U` is a subtype of `T` unless `T` and `U` are
+exactly the same type. For mirror types that means that any overriding
+Objective-C method that relies on return type covariance may not be mirrored
+that way with `Option<T>` wrapping. The return value type of the mirror of such
+a method has to be propagated from the method that it overrides.
 
 **Example:**
 
@@ -2612,19 +1656,19 @@ Without `Option<T>` wrapping, all those classes could be mirrored to:
 
 ```cangjie
 @ObjCMirror
-open class Foo <: NSObject {}
+public open class Foo <: NSObject {}
 
 @ObjCMirror
-open class Bar <: Foo {}
+public open class Bar <: Foo {}
 
 @ObjCMirror
-open class C <: NSObject {
+public open class C <: NSObject {
     open func get(): Foo
 }
 
 @ObjCMirror
-open class D <: C {
-    open func get(): Bar // Return type covariance in action
+public open class D <: C {
+    open func get(): Bar       // Return type covariance in action
 }
 ```
 
@@ -2635,20 +1679,20 @@ methods have to be lowered to the return type of the original method:
 
 ```cangjie
 @ObjCMirror
-open class Foo <: NSObject {}
+public open class Foo <: NSObject {}
 
 @ObjCMirror
-open class Bar <: Foo {}
+public open class Bar <: Foo {}
 
 @ObjCMirror
-open class C <: NSObject {
+public open class C <: NSObject {
     open func get(): Option<Foo>
 }
 
 @ObjCMirror
-open class D <: C {
+public open class D <: C {
     // open func get(): Option<Bar>  // Error, `Option<T>` is not covariant by T
-    open func get(): Option<Foo> // OK, but the return type is lowered
+    open func get(): Option<Foo>     // OK, but the return type is lowered
 }
 ```
 
@@ -2656,7 +1700,7 @@ open class D <: C {
 partially.
 
 
-## Nullability Annotations
+#### Nullability Annotations
 
 Nullability keywords were introduced to Objective-C with the release
 of XCode 6.3 back in the day, for better integration with the new iOS/OS X
@@ -2681,11 +1725,12 @@ utilizing those APIs.
 >
 > For details, see
 > [Designating Nullability in Objective-C APIs](https://developer.apple.com/documentation/swift/designating-nullability-in-objective-c-apis)
+> on the Apple Developer Web site.
 
 All uses of Objective-C reference types annotated as non-nullable are therefore
 exempt from `Option<T>` wrapping. In other words, the Objective-C mirror
 generator emits wrapped types only for properties, method result types and
-method parameter types that are _not_ annotated with either `nonull`
+method parameter types that are _not_ annotated with either `nonnull`
 or `_Nonnull` in the original Objective-C code.
 
 Suppose the example from the
@@ -2694,7 +1739,7 @@ was enhanced with nullability annotations as follows:
 
 ```objectivec
 @interface MyContainer: NSObject
-   .  .  .
+//   .  .  .
 - (void)addItem:(nonnull MyItem *)item withUuid:(nonnull NSString *)uuid;
 - (nullable MyItem *)itemWithUuid:(nonnull NSString *)uuid;
 - (nullable NSString *)uuidForItem:(nonnull MyItem *)item;
@@ -2707,12 +1752,12 @@ The mirror generator would then bypass `Option<T>` wrapping for the
 
 ```cangjie
 @ObjCMirror
-open class MyContainer <: NSObject {
-       .  .  .
-    public open fund addItemWithUuid(item: MyItem, uuid: NSString): Unit
+public open class MyContainer <: NSObject {
+//       .  .  .
+    public open func addItemWithUuid(item: MyItem, uuid: NSString): Unit
     public open func itemWithUuid(uuid: NSString): ?MyItem
     public open func uuidForItem:(item: MyItem): ?NSString
-    public open prop allItems: NSArray
+    public open mut prop allItems: NSArray/*<MyItem*>*/
 }
 ```
 
@@ -2728,10 +1773,37 @@ the use of `Option<T>` wrapping in the respective mirror types, making the
 code of interop classes cleaner and easier to read.
 
 
+### Foreign Types Conversion And Testing
 
-# Objective-C Mirror Generator Reference
+The Cangjie operators `is` and `as` are supported for all
+[foreign types](#foreign-types), as well as the type pattern _`v`_`: `_`T`_
+in match, if-let, and while-let expressions (see the next paragraph for
+applicable limitations). Note, however, that the semantics of type testing
+and conversion for those types matches that of Objective-C, and those operations
+are conducted with the help of the Objective-C Runtime functions
+in the general case.
 
-## Prerequisites
+As of the current version, if-let and while-let support is limited: the
+`let` expression must consitute the entire conditional expression, i.e.
+it cannot be combined with another one using a logical binary operator `&&`
+or `||`.
+
+
+**IMPORTANT:** Nullable values of mirror types and interop classes, represented
+using `Option<T>` wrapping as described
+in [`nil` Handling](#objc-nil-handling), need to be null-tested and unwrapped
+before type testing. The reason is that Cangjie generics are invariant
+with respect to their type arguments: _`e`_` is ?`_`T`_ evaluates to `true` only
+if the type of _`e`_ is `Option<`_`T`_`>` specifically, not some
+`Option<`_`U`_`>` where _`U`_` <: `_`T`_. Moreover, it does not even matter
+whether the value _`e`_ is `Some(`_`v`_`)` or `None`; _`v`_ is not type-tested
+at all.
+
+
+
+## Objective-C Mirror Generator Reference
+
+### Prerequisites
 
 Make sure to run the `envsetup.sh` script from the Cangjie SDK before using
 the mirror generator.
@@ -2743,47 +1815,41 @@ all directories in which the Objective-C compiler looks up header files when it
 builds your project.
 
 
-## Command-line Syntax
+### Command-line Syntax
 
-`ObjCInteropGen [-v] [--mode=normal `_`config-file`_`]`
+`ObjCInteropGen [-v] _`config-file`_`]`
 
 `-v`
 
 Produce verbose output.
-
-`--mode=normal`
-
-Enforces the normal operation mode. Other modes are only used
-for the development and testing of the mirror generator itself.
-The use of `--mode=normal` is _mandatory_ in the current version
-if _`config-file`_ is specified, but will be optional in the future.
 
 _`config-file`_
 
 The pathname of the configuration file.
 
 
-## Configuration File Syntax
+### Configuration File Syntax
 
 An Objective-C mirror generator configuration file is a plain text file
 in the [TOML](https://toml.io) syntax. It specifies:
 
 * Output directories
 * Names of the source Objective-C headers (`.h`-files)
-* Names of the output Cangjie packages and the distribution of mirror types across them
+* Names of the output Cangjie packages and the distribution of mirror types
+  across them
 * Mappings for types that you want to be handled in a special way
 
 String values that are interpreted as regular expressions must follow the
 [ECMAScript regular expression syntax](https://262.ecma-international.org/#sec-regular-expressions).
 
 
-### Output Directories Roots
+#### Output Directories Roots
 
 Each entry in the `[output-roots]` table of tables defines a symbolic name
 for the pathname of a directory in the local file system. The mirror generator
 will use that pathname as the common root of one or more package-specific
 output directories, set using the `output-root` property of the respective
-[`[[packages]]` array](#packages) elements.
+[`[[package]]` array](#packages) elements.
 
 **Example:**
 
@@ -2794,24 +1860,24 @@ path = "./lib/src"
 [output-roots.app]
 path = "./main/src"
 
-[[packages]]
+[[package]]
 package-name = "com.vendor1.lib1"
 output-root = "lib"  # Output to "./lib/src/com/vendor1/lib1"
 filters = ...
 
-[[packages]]
+[[package]]
 package-name = "com.vendor2.lib2"
 output-root = "lib"  # Output to "./lib/src/com/vendor2/lib2"
 filters = ...
 
-[[packages]]
+[[package]]
 package-name = "com.mycompany.app"
 output-root = "app"  # Output to "./main/src/com/mycompany/app"
 filters = ...
 ```
 
 
-### Source Files
+#### Source Files
 
 Each entry in the `[sources]` table of tables specifies a set of individual
 header files that the mirror generator must take as input.
@@ -2836,7 +1902,7 @@ paths = ["original-objc/M.h"]
 ```
 
 
-### Additional Clang Arguments
+#### Additional Clang Arguments
 
 Each entry in the `[sources-mixins]` table of tables specifies a regular
 expression matching one or more keys of the [`[sources]` table](#source-files)
@@ -2845,12 +1911,12 @@ the header files from its respective entries.
 
 **Properties:**
 
-`sources` (mandatory)
+`sources`   _(mandatory)_
 
 A string containing a regular expression.
 
-`arguments-prepend`  
-`arguments-append` (optional)
+`arguments-prepend`\
+`arguments-append`   _(optional)_
 
 Arrays of strings that the mirror generator will pass over to Clang
 as options when processing the source files listed in any `[sources]`
@@ -2882,27 +1948,27 @@ arguments-append = [
 ```
 
 
-### Packages
+#### Packages
 
-Each entry in the `[[packages]]` array specifies a target Cangjie package
+Each entry in the `[[package]]` array specifies a target Cangjie package
 name, a set of name filters that define which Objective-C entities will
 be mirrored to that package, and, optionally, the output directory
 specific for that package.
 
 **Properties:**
 
-`package-name` (mandatory)
+`package-name`   _(mandatory)_
 
 A string containing the target Cangjie package name.
 
-`output-path` (optional)
+`output-path`   _(optional)_
 
 A string containing the _exact_ pathname of the directory into which
 the mirror generator shall place the output files for the given package.
 If any directories in that pathname do not exist, the mirror generator
 will attempt to create them.
 
-`output-root` (optional)
+`output-root`   _(optional)_
 
 A string containing a key from the [`output-roots` table](#output-directories-roots)
 The name of the target Cangjie package will be appended to the value
@@ -2920,14 +1986,14 @@ Otherwise, an error is shown.
 [output-roots.main]
 path="./cj-mirrors"
 
-[[packages]]
+[[package]]
 package-name = "objc.foundation"
 output-root = "main"
 ```
 
 The output files will be placed in `./cj-mirrors/objc/foundation`.
 
-`filters` (mandatory)
+`filters`   _(mandatory)_
 
 A table defining a set of name filters that select only those
 Objective-C entity declarations from the source files that
@@ -2938,13 +2004,13 @@ must be mirrored to the given Cangjie package. See
 
 ```toml
 # The Foundation framework
-[[packages]]
+[[package]]
 package-name = "objc.foundation"
 filters = { include = "NS.+" }
 ```
 
 
-#### Name Filters
+##### Name Filters
 
 Each name filter is, in turn, a TOML table that contains:
 
@@ -3007,7 +2073,7 @@ the entire `intersect` filter.
 **Example:**
 
 ```toml
-// Adding a negative filter:
+# Adding a negative filter:
 filters = { intersect = [ { include = "NS.+" },
                           { exclude = "NSAccidentalClash" } ] }
 ```
@@ -3020,13 +2086,13 @@ be a single filter:
 **Example:**
 
 ```toml
-// Another way to add a negative filter:
+# Another way to add a negative filter:
 filters = { intersect = [ { include = "NS.+" },
                           { not = { include = "NSAccidentalClash" } } ] }
 ```
 
-`filter`  
-`filter-not` (optional)
+`filter`\
+`filter-not`   _(optional)_
 
 These properties must be mixed with other properties, i.e.
 they cannot be the only properties of a `filters` table.
@@ -3061,7 +2127,7 @@ filters = { include    = ".*Fizz.+",
 ```
 
 
-### Type Substitutions
+#### Type Substitutions
 
 `[[mappings]]` is an array of tables, each adding to the list of substitutions
 of one Objective-C type for another. All mentions of almost any type
@@ -3078,7 +2144,7 @@ id = "NSObjectProtocol"
 ```
 
 
-### Configuration File Import
+#### Configuration File Import
 
 `imports` is an array of strings each containing the pathname of another
 configuration file, the settings from which will be added to the current
@@ -3094,5 +2160,112 @@ in an error.
 import = "../common.toml"
 ```
 
+
+
+## Execution
+
+### Initialization
+
+All Cangjie global variables are initilaized and the static initializers of all
+Cangjie types are called when control first reaches Cangjie code, that is, when
+any [interop class](#interop-class) is used in Objective-C code for the first
+time.
+
+That Cangjie initialization code may use mirror types and/or interop classes
+other than the one that has triggered initialization. As a result, control may
+pass back and forth between Objective-C and Cangjie code many times during that
+period.
+
+If that happens at application startup, it will take longer and the _initial_
+memory footprint of the application may be higher than if the same application
+logic was coded entirely in Objective-C. That is expected behavior.
+
+
+### Finalization
+
+#### `dealloc`
+
+Interop classes may not override the `dealloc()` method of `NSObject`.
+An attempt to do so would result in a name clash and compile-time error,
+because the interop-enabling code defines a `dealloc` method in the wrapper
+object for its own purposes.
+
+
+
+#### Cangjie Finalizers
+
+A mirror class declaration cannot contain a Cangjie finalizer (`~init()`).
+
+It is **TBD** whether an [interop class](#interop-classes) can contain
+a finalizer.
+
+
+### Exceptions
+
+Both Objective-C and Cangjie feature exceptions - events that interrupt the
+normal control flow of the program, usually to signal that a non-fatal execution
+error has occurred and needs to be handled.
+
+In the bidirectional interop scenario supported by CJMP, control may pass
+between methods/functions written in different languages multiple times
+in a chain of nested calls. As a result, there may be a number of Objective-C
+and Cangjie frames interspersed on the thread stack when an exception gets
+thrown in either Objective-C or Cangjie code. That in turn means that the stack
+unwinding process may cross a language boundary. **IMPORTANT: In the current
+version, such crossing leads to undefined behavior**, which means that
+Objective-C methods and functions called from Cangjie must not leave any
+exceptions uncaught and vice versa.
+
+
+There is no way to `throw` an Objective-C exception in Cangjie code or vice
+versa.
+
+
+### Memory Management
+
+Objective-C and Cangjie objects reside in separate heaps. The respective
+language runtime manages each of the two heaps. The interop library and bridge
+code ensure that objects in one language heap do not get released/garbage
+collected if references to them still exist in accessible variables and data
+structures of the other language.
+
+**IMPORTANT: The mechanism that ensures cross-language heap consistency has
+three significant limitations that must be understood and remembered at all
+times when using the interop facilities:**
+
+1. The efficiency and timing of release of Objective-C objects that had been
+   used in Cangjie code and then became inaccessible from either language
+   depends on the Cangjie garbage collector. Even if a reference is short-lived
+   from the application developer perspective, that does not mean the object
+   gets released immediately when e.g. the last variable holding it gets
+   assigned a new value. Traversing a large Objective-C array or collection
+   in Cangjie code in a loop could create thousands of such temporarily pinned
+   objects. The application memory footprint would therefore inflate until the
+   Cangjie garbage collector is invoked.
+
+
+2. As Objective-C ARC and Cangjie garbage collector each operate solely within
+   their respective managed environments, inter-language circular references may
+   lead to memory leaks. The creation of such references must be either avoided
+   altogether, or accompanied with logic that would break such cycles before the
+   objects forming the cycles become unreachable from both Objective-C
+   and Cangjie parts of the application code.
+
+3. As of the current version, values of mirror types and interop classes must
+   not be stored in global or static Cangjie variables, nor in any data
+   structures to which such variables refer. For that reason, converting values
+   of foreign types to `Object` and `Any` is prohibited.
+
+   Work is underway on the removal of this limitation.
+
+   **WARNING:** The `cjc` compiler does not fully enforce the above
+   restrictions, so strict programming discipline is required. Failure to comply
+   with that discipline may lead to an abnormal program termination.
+
+
+### Threads
+
+Threads created by Cangjie `spawn` may use Objective-C mirror types
+without any restrictions.
 
 
