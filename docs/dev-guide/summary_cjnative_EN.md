@@ -112,7 +112,7 @@
     - [Cangjie-C Interoperability](source_en/FFI/cangjie-c.md)
 - [Cross-Platform]()
     - [Cross-Platform](source_en/multiplatform/common_platform.md)
-    - [Cangjie-Java Interoperability](source_en/multiplatform/cangjie-android-Java.md)
+    - [Cangjie-Java Interoperability](source_en/multiplatform/cjmp-pg-android.md)
     - [Cangjie-ObjC Interoperability](source_en/multiplatform/cangjie-ios-objc.md)
 - [Compilation and Building]()
     - [cjc Usage](source_en/compile_and_build/cjc_usage.md)

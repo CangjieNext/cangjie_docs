@@ -1,22 +1,9 @@
----
-author: Huawei Technologies Co., Ltd.
-title: Cangjie Multiplatform Programmer's Guide
-subtitle: for Android™
-titlepage: true
-numbersections: true
-toc-own-page: true
-listings-no-page-break: true
-textables: false
----
+# Cangjie Interoperability With Java
 
-``` {=html}
-<style>
-body { max-width: unset; }
-</style>
-```
-\newpage
+**NOTE:** The Java interoperability feature is experimental and still
+under continuous improvement.
 
-# Introduction
+## Introduction
 
 The **Cangjie Multiplatform** technology enables Cangjie developers
 to incorporate their code into new Android/iOS applications and/or gradually
@@ -28,14 +15,14 @@ of one language to the other.
 On the Cangjie side, mirror types enable the inheritance of Java/Objective-C
 classes with method overriding, as well as the implementation of Java
 interfaces and Objective-C protocols, all while using conventional Cangjie
-syntax. On the Java/Objective-C side, the mirror types that represent Cangjie
-types are expressed in terms of the respective language's own types.
-All in all, this enables seamless transitions between the Java/Objective-C
-and Cangjie parts of the application, which includes usage of the target
-O/S APIs in Cangjie code.
+syntax. And those Cangjie classes that extend and implement the mirrored classes
+and interfaces/protocols are exposed back to Java/Objective-C as if they were
+classes of the respective platform-native language. All in all, this enables
+seamless transitions between the Java/Objective-C and Cangjie parts
+of the application, which includes usage of the target O/S APIs in Cangjie code.
 
 
-## The Challenge and the Solution
+### The Challenge and the Solution
 
 Java, Objective-C and Cangjie are object-oriented languages that support
 inheritance and polymorphism. However, the differences in their semantics,
@@ -62,41 +49,36 @@ Objective-C and other languages. And just like with JNI, CJMP takes care
 about the cumbersome parts.
 
 
-# Key Concepts
+## Key Concepts
 
-## Mirror Types
+### Mirror Types
 
 Considering Cangjie and Java as a pair of interoperating languages,
-a _mirror type_ _`T'`_ defined in one language of the pair is a type that
-represents an existing type _`T`_ defined in the other language, enabling
-the code written in the first language to use that type, possibly with some
-limitations.
+a _mirror type_ _`T'`_ defined in Cangjie is a type that represents an existing
+Java type _`T`_. It enables Cangjie developers to use the type _`T`_, possibly
+with some limitations.
 
 The Boolean types and numeric types that are essentially the same in both
-languages naturally mirror each other: the Java mirror type for the Cangjie
-type `Int32` is `int` and vice versa. Mirroring of numeric types that the
-other language does not naturally support is not currently possible, so e.g.
-the Cangjie type `Float16` cannot be mirrored to a Java primitive type.
+languages naturally mirror each other: the Cangjie mirror type for the Java
+type `int` is `Int32` and so on.
 
-For a user-defined type such as class, struct or interface, the mirror type
-would be its closest equivalent in the other language. For instance, the only
-Java type that can approximate a Cangjie struct or tuple type with reasonable
-accuracy is a `final` Java class.
+For a user-defined type such as a class, interface, or array, the mirror type
+would be its closest equivalent in the other language. For instance, Cangjie
+enums are way too different from Java enum classes, so the latter are
+best [approximated with Cangjie classes](#enum-classes).
 
 A mirror type exposes the members and constructors of the original user-defined
-type that are accessible _and_ can be used in the other language, so again
-a Cangjie member function that returns a value of type `UInt64` cannot be
-mirrored to Java without some trickery.
+type that are accessible _and_ can be used in the other language. Constructors
+of a Java enum class, for example, are only used during its initialization,
+so it makes no sense to expose them to Cangjie.
 
-Normally you would obtain mirror type definitions for a Java or Cangjie
-type _and_ its required dependencies automatically. For Java types,
-a standalone [mirror generator](#java-mirror-generator-reference)
-is provided, whereas Java mirrors of Cangjie types are produced by the
-[`cjc` compiler](#cangjie-mirror-generation-reference) as a byproduct
-of the normal compilation process.
+Normally you would obtain mirror type definitions for a Java type _and_ its
+required dependencies automatically, using the standalone
+[mirror generator](#java-mirror-generator-reference) included in the Cangjie
+SDK for Android.
 
 
-### Mirroring Java Types to Cangjie
+#### Mirroring Java Types to Cangjie
 
 The `cjc` compiler replaces any uses of Java mirror types with the appropriate
 glue code, so only the names of types themselves and names and types of their
@@ -127,7 +109,7 @@ might look like this:
 @JavaMirror
 public open class Node {
     public static let A: Int32
-    public init(id: Int32) 
+    public init(id: Int32)
     public open func id(): Int32
 }
 ```
@@ -137,63 +119,16 @@ and arrays, have [predefined mirrors](#interop-library-api-reference)
 in the interoperability library.
 
 
-### Mirroring Cangjie Types to Java Types
 
-Unlike the mirrors of Java types, for which `cjc` has dedicated support,
-mirrors of Cangjie types must look exactly like normal Java types
-from the outside, for the Android toolchain to pick them up. The `cjc`
-compiler therefore generates those mirrors in the form of Java source code
-files containing glue code responsible for linking together the Java and
-Cangjie worlds.
-
-For instance, if the class `Node` from the example in the
-[previous section](#mirroring-java-types-to-cangjie) was originally defined
-in Cangjie as follows:
-
-```cangjie
-public class Node {
-    private let _id: Int
-    public prop id: Int {
-        get() {
-            _id
-        }
-    }
-    public init(id: Int) {
-        this._id = id
-    }
-}
-```
-
-the `cjc` compiler could generate the following Java mirror for it:
-
-```java
-public final class Node {
-    /* Some glue code */
-    public Node(long id) {
-        /* Glue code constructing a Cangjie Node instance and associating
-         * it with the Java Node instance being constructed, i.e. 'this'.
-         */
-    }
-    public long getId() {
-        /* Glue code invoking the Cangjie 'id' property getter of the
-           associated Cangjie Node instance and returning the result.
-         */
-     }
-    /* More glue code */
-}
-```
-
-
-
-## Interop Classes
+### Interop Classes
 
 An _interop class_ is essentially a Cangjie class that is derived from one
-or more [mirror types](#mirror-types) and is usable from Java. All its
-constructors and non-inherited public member functions are exposed to Java
-code via a conjugate _wrapper class_, automatically generated by the `cjc`
-compiler. The wrapper class itself defines no other user-callable methods
-or constructors, but any methods it may have inherited from its supertypes
-may be called from both Java and Cangjie code.
+or more [mirror types](#mirror-types) and is usable from both Cangjie and Java.
+All its constructors and non-inherited `public` member functions are exposed
+to Java code via a _wrapper class_ automatically generated by the `cjc`
+compiler. The wrapper class itself defines no other user-callable
+methods or constructors, but any methods it may have inherited from its Java
+supertypes may be called from both Java and Cangjie code.
 
 For example, when compiling the following Java interop class:
 
@@ -205,7 +140,7 @@ public class BooleanNode <: Node {
         super.init(id)
         this.flag = flag
     }
-    public func getFlag(): Bool {
+    public func isFlagged(): Bool {
         flag
     }
 }
@@ -218,12 +153,12 @@ to the following:
 public class BooleanNode extends Node {
     /* glue code */
     public BooleanNode(int id, boolean flag) {
-        /* Glue code constructing a Java BooleanNode instance and associating
-         * it with the Cangjie instance being constructed, i.e. 'this'.
+        /* Glue code constructing a Cangjie BooleanNode instance and associating
+         * it with the Java BooleanNode instance being constructed, i.e. 'this'.
          */
     }
-    public boolean getFlag() {
-        /* Glue code invoking the 'getFlag' member function of the associated
+    public boolean isFlagged() {
+        /* Glue code invoking the 'isFlagged' member function of the associated
            Cangjie BooleanNode instance and returning the result.
          */
     }
@@ -231,8 +166,13 @@ public class BooleanNode extends Node {
 }
 ```
 
+Now both Java and Cangjie parts of the application code can instantiate the
+interop class `BooleanNode`, call its `public` instance member functions `id()`
+(inherited from the Java class `Node`) and `isFlagged()`, convert its instances
+respectively to the type `Node` and its mirror, etc.
 
-## Foreign Types
+
+### Foreign Types
 
 The [mirror types](#mirror-types) and [interop classes](interop-classes) are
 not perfectly native to the language in which they are defined. Extending the
@@ -241,7 +181,7 @@ respectively, so they are collectively called _foreign types_ throughout
 this document.
 
 
-## Java-Compatible Types
+### Java-Compatible Types
 
 The following Cangjie types are called _Java-compatible_:
 
@@ -251,1449 +191,52 @@ The following Cangjie types are called _Java-compatible_:
 * Types of the form `Option<`_`T`_`>` where _`T`_ is a [foreign type](#foreign-types)
   (see _[`null` Handling](null-handling)_ for reasoning)
 
-The special generic mirror type `JArray<T>` included in the
-[interop library](#interop-library-api-reference)
+The special generic mirror type [`JArray<T>`](#java-lang-array-t) included
+in the [interop library](#interop-library-api-reference)
 represents Java arrays. Its type variable `T` must be a Java-compatible type.
 
-For obvious reasons, the parameters and return values of public member functions
-of a foreign type may only have types compatible with the respective language.
+For obvious reasons, the parameters and return values of `public` member
+functions of a foreign type may only have Java-compatible types, and so do
+the parameters of its `public` constructors.
 
-The member variables of an interop class may have any types. Their public member
-variables that have Java-compatible types may be accessed from both Java and Cangjie.
+The member variables of an interop class may have any types, as they are not
+not exposed to Java even if they are `public`. `public` member properties are
+exposed, though:
 
 ```cangjie
 @JavaImpl
-class NamedNode <: Node {
-    public var jName: JString // resides in the conjugate wrapper class instance
-    public var cjName: String // resides in the interop class instance
-    init(name: JString) {
-        jName = name
-        cjName = name.toCangjieString()
+class WeightedNode <: Node {
+    public let weight: Float64      // Not exposed to Java
+    public init(weight: Float64) {
+        this.weight = weight
     }
 }
 ```
-
-
-## Interop Scenarios
-
-There are essentially two Java-Cangjie interoperation scenarios:
-
-* In one scenario,
-  [Cangjie types and functions are exposed to Java](#cangjie-to-java-mapping),
-  enabling the use of Cangjie APIs, libraries and application components
-  in Java code.
-
-* In the other scenario,
-  [Java classes and interfaces are exposed to Cangjie](#java-to-cangjie-mapping),
-  enabling Cangjie code to access Android APIs, third party Java libraries
-  and components of the application that remain in Java.
-
-The above scenarios are not mutually exclusive, one application may as well be
-utilizing both. Also, class inheritance and interface implementation
-are supported in both scenarios (a Java class may subclass a Cangjie class
-and vice versa). That enables seamless callbacks, so neither scenario is
-unidirectional. However, each scenario has its own feature set, limitations,
-tooling, etc., so they are described separately.
-
-
-# Using Cangjie in Java
-
-To enable access to a Cangjie library, API, or some other piece of code
-from Java, you need to generate Java [mirror types] for the Cangjie types
-that you want to expose. The `cjc` compiler can do that for you as described
-in [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference).
-
-**NOTE:** The type system of the Cangjie language is richer and more versatile
-than its Java counterpart. There are also some principal differences in the
-features shared by the two languages, most notably
-[generics](#generic-cangjie-types-mirroring).
-Expressing certain features of Cangjie in Java is therefore impossible, and
-other features can be difficult to express in a natural and compact manner.
-See [Cangjie to Java Mapping](#cangjie-to-java-mapping) for the exact list
-of supported features and associated restrictions.
-
-**Example:**
-
-Suppose you want to expose to Java a Cangjie struct `Vector` defined
-as follows:
 
 ```cangjie
-package cj
-
-public struct Vector {
-    private var x: Int32 = 0
-    private var y: Int32 = 0
-
-    public init(x: Int32, y: Int32) {
-        this.x = x
-        this.y = y
+@JavaImpl
+class ColoredNode <: Node {
+    private let _color: Int32
+    public prop color: Int32 {     // Exposed to Java as method 'int getColor()'
+        get() { _color }
     }
-
-    public func add(v: Vector): Vector {
-        Vector(x + v.x, y + v.y)
+    public init(color: Int32) {
+        _color = color
     }
 }
 ```
 
-When compiling `Vector.cj`, you would invoke the `cjc` compiler with two
-additional options: `--experimental --enable-interop-cjmapping=Java`.
-The compiler would then generate an extra file, `Vector.java`, similar
-to the following:
+For convenience, the Cangjie type `String` has limited compatibility with Java.
+See [Automatic String Conversion](#automatic-string-conversion) for details.
 
-```java
-package cj;
 
-public final class Vector {
-    // glue code
 
-    public Vector(int x, int y) { /* glue code */ }
+## Using Java in Cangjie
 
-    public Vector add(Vector v) { /* glue code */ }
+To enable interoperation between the Java and Cangjie parts of your Android
+application, you need to take the following steps:
 
-    // more glue code
-}
-```
-
-Now you can add `Vector.java` to your Android project under `src/main`
-and use the class `Vector` in your Java code as if it was a normal Java class:
-define variables of that type, create instances, pass them around, including
-to Cangjie code such as the method `Vector.add`, apply type comparison and
-type conversion operators, etc.
-
-
-## Limiting the Exposure
-
-The option `--enable-interop-cjmapping` instructs the `cjc` compiler
-to generate mirror types for _all_ `public` Cangjie types that it compiles,
-and expose _all_ `public` member functions and constructors of those types.
-Oftentimes, however, such total exposure is undesirable, as what you want
-to use in Java may be just a small percentage of the functionality provided
-by a Cangjie library or framework.
-
-You may precisely control the exposure of Cangjie types and their members
-by passing the pathname of a dedicated configuration file to `cjc` via the
-option `--import-interop-cj-package-config-path`. That file is a plain
-text file the contents of which must conform to the [TOML](https://toml.io)
-syntax.
-
-In the `[default]` section of that file, you can specify the default API
-exposure strategy for all Cangjie packages, and then modify it
-for particular packages in the respective `[[package]]` entries. For example:
-
-```toml
-[default]
-APIStrategy="None"       # Expose nothing by default
-
-[[packages]]
-name="com.example.pkg1"  # From this specific package,
-APIStrategy="Full"       # expose everything
-   .  .  .
-```
-
-Furthermore, for each package you can use either the `included_apis`
-or `excluded_apis` property to respectively expose or hide particular types
-and/or members:
-
-```toml
-   .  .  .
-[[packages]]
-name="com.example.pkg2"          # From this specific package,
-included_apis = [ "Vector",      # Only the type 'Vector'
-                  "Vector.add"   # and its member function 'add'
-                ]                # are exposed
-
-[[packages]]
-name="com.example.pkg3"          # From this specific package,
-APIStrategy="Full"               # everything
-excluded_apis = [ "TopSecret",   # but the type 'TopSecret' and
-                  "Auth.getPwd"  # member function 'Auth.getPwd'
-                ]                # are exposed
-```
-
-Refer
-to [Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-for more details.
-
-
-## Generic Cangjie Types Mirroring
-
-Many important Cangjie types are parameterized. Unfortunately, certain
-fundamental differences between Cangjie and Java generics preclude mirroring
-of the former into the latter. As a workaround, the Cangjie SDK supports
-_monomorphization_ of mirror types: it generates a separate _non-generic_
-Java mirror type for each supplied set of valid type arguments for the given
-parameterized Cangjie type.
-
-For instance, if you have a generic Cangjie class `p.Pair<T,U>`:
-
-```cangjie
-package p
-public class Pair<T,U> { . . . }
-```
-
-and want to manipulate instances of `Pair<Int, String>` and `Pair<Foo, Bar>`
-in your Java code, you would add a `generic_object_configuration` property
-to the `[[package]]` entry for `p` in the configuration file, with the
-following content:
-
-```toml
-#   .  .  .
-[[package]]
-name = "p"
-generic_object_configuration  = [
-    { name = "Pair",
-      type_arguments = [
-          "Int, String",
-          "Foo, Bar"
-      ] },
-#       .  .  .
-]
-```
-
-`cjc` would then generate two separate Java classes:
-
-```java
-public final class GIntString { . . . }
-
-public final class GFooBar { . . . }
-```
-
-representing those particular _instantiations_ of the type `Pair<T,U>`.
-
-**NOTE:** The current version only supports boolean and numeric types
-as type arguments of monomorphized generic types, so it cannot actually
-expose `Pair<Foo, Bar>`.
-
-Refer to [Generics Instantiations](#cangjie-mirror-generation-reference)
-for more details.
-
-
-# Cangjie to Java Mapping
-
-The current version of the `cjc` compiler uses Cangjie → Java mapping
-described in this chapter. See
-[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-for applicable `cjc` command-line options.
-
-
-## General Considerations {#cangjie-general-considerations}
-
-The Cangjie type system is much more versatile than that of the Java language.
-Many Cangjie types and their features do not have direct or even reasonably
-close equivalents in Java, so some Cangjie types have limited support in the
-current version and some are not supported at all.
-
-Consequently, if the type of a public member, function/constructor parameter,
-or function return type is not supported, the respective member, function
-or constructor cannot be mirrored. The compiler reports such usages as errors.
-However, if such a type is used in an unsupported _context_, e.g. as the
-type of a public member variable, the respective entity is simply not mirrored
-and no error is reported.
-
-
-### Type Aliases
-
-Type alias declarations are _not_ mirrored, any type alias usages are treated
-as if the aliased types were substituted.
-
-
-## Names {#cangjie-names}
-
-The original names of Cangjie packages, functions, types and type members
-are currently preserved, which means that some of them may clash
-with Java keywords, such as "`int`" or `final`, or contain characters that
-are not permitted in Java names.
-
-
-## Boolean and Numeric Types
-
-Cangjie Boolean and numeric types that have equivalents among Java primitive
-types are mirrored to those respective primitive types; those that don't
-are not supported, as well as the types `IntNative` and `UIntNative`:
-
-Cangjie Type  | Java Type
-------------- | ----------------
-`Bool`        | `boolean`
-`Int8`        | `byte`
-`Int16`       | `short`
-`Int32`       | `int`
-`Int64`       | `long`
-`IntNative`   | Not supported
-`UInt8`       | Not supported
-`UInt16`      | `char`
-`UInt32`      | Not supported
-`UInt64`      | Not supported
-`UIntNative`  | Not supported
-`Float16`     | Not supported
-`Float32`     | `float`
-`Float64`     | `double`
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Rune
-
-The type `Rune` is not supported.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## String
-
-The type `String` is not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Array
-
-Array types (`Array<T>` instantiations) are not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Tuple
-
-Cangjie tuple types are mirrored into `final` Java class
-definitions. Those definitions are generated automatically by the `cjc`
-compiler and contain glue code that transfers control and data between
-Java and Cangjie. They should not be modified manually.
-
-```cangjie
-package tuples
-
-import interoplib.interop
-
-public class SimpleTupleExample {
-    public static func z(): (Int, Int) {
-        (0, 0)
-    }
-}
-```
-
-```java
-// java-gen/SimpleTupleExample.java
-package tuples;
-// Glue code
-public class SimpleTupleExample {
-    // Glue code
-    public static native TupleOfInt64Int64 z();
-    // Glue code
-}
-```
-
-```java
-// java-gen/TupleOfInt64Int64.java
-package tuples;
-// Glue code
-final public class TupleOfInt64Int64 {
-    // Glue code
-    public TupleOfInt64Int64(long item0, long item1) {
-        // Glue code constructing a Cangjie (Int, Int) tuple and associating it
-        // with the Java object being constructed, i.e. 'this'.
-    }
-
-    public long item0() {
-        // Glue code retrieving the 0th element from the Cangjie (Int, Int)
-        // tuple associated with 'this' and returning it.
-    }
-
-    public long item1() {
-        // Glue code retrieving the 1th element from the Cangjie (Int, Int)
-        // tuple associated with 'this' and returning it.
-    }
-    // Glue Code
-}
-```
-
-A tuple type `(`_`T0`_`, `_`T1`_`,... `_`Tn`_`)` is mirrored into a `final`
-Java class with the following properties:
-
-- If any _`Ti`_ is a type alias, the tuple type is mirrored as if that `Ti`_
-  was the aliased type. For instance, `(Int, Int)` is processed as if it was
-  actually `(Int64, Int64)`.
-
-- The name of the mirror class is `TupleOf` _`T0T1`_`...`_`Tn`_ (that is, the
-  names of _Cangjie_ types of tuple elements are concatenated and prefixed
-  with `TupleOf`). For instance, the name of the Java mirror class for the
-  Cangjie tuple type `(Int, Int)`  will be `TupleOfInt64Int64` due to the
-  aforementioned alias replacement, as in the above example.
-
-  **NOTE:** Types that do not have their own simple names (_not_
-  [aliases](#type-aliases)) are not supported as tuple element types yet.
-  See [General Considerations](#cangjie-general-considerations)
-  for information about the handling of unsupported types.
-
-- The mirror class has a single `public` constructor with parameters of types
-  _`T0'`_, _`T1'`_, ... _`Tn'`_, where each _`Ti'`_ is the Java mirror type
-  for _`Ti`_. It creates a Cangjie tuple of the mirrored type, with values
-  of its elements derived from constructor arguments, and associates it
-  with the Java object that is being constructed, i.e. `this`.
-  See the example above.
-
-- For each element type _`Ti`_, the mirror class has a parameterless instance
-  method `public `_`Ti'`_` item`_`i`_`()`, which returns the mirror of the
-  _`i`_-th element of the Cangjie tuple associated with the receiver during
-  its construction. _`Ti'`_ is again the Java mirror type for _`Ti`_.
-
-The current implementation has the following limitations:
-
-- Support for tuple element types is limited to numeric and boolean types.
-  See [General Considerations](#cangjie-general-considerations)
-  for information about the handling of unsupported types.
-
-- The compiler does not mirror tuple types automatically as it encounters their
-  usages in the definitions of other mirrored entities. All such tuple types
-  must be listed explicitly
-  in the [configuration file](#cangjie-mirror-generation-configuration):
-
-    ```toml
-    #   .   .  .
-    [[package]]
-    name = "tuples"
-    tuple_configuration = [ "(Int, Int)" ]
-    #   .   .  .
-    ```
-
-  The compiler reports an error upon encountering a tuple type that must be
-  mirrored but is not listed in the `tuple_configuration` array for the
-  respective Cangjie package.
-
-- Cangjie tuple types are _structural_, that is, two tuple types are
-  compatible if they have the same number of elements and their respective
-  element types are the same. This is also true for [aliases](#type-aliases)
-  of tuple types. However, Java class types that mirror Cangjie tuples are not
-  in a subclass relationship and are therefore incompatible. This may lead
-  to a problem if essentially the same tuple type is cross-used among two
-  or more Cangjie packages exposed to Java.
-
-- Cangjie tuple types are value types, whereas their mirrors are Java reference
-  types. The consequences are two-fold:
-
-    * Multiple Java variables may refer to a single Cangjie tuple. That itself
-      should pose no problems because tuples are immutable.
-
-    * The comparison operators `==` and `!=`  have totally different semantics.
-      In Java, they test mirror class instances for referential equality,
-      whereas in Cangjie tuples are compared element by element.
-      In fact, two structurally identical Cangjie tuples may be uncomparable
-      if some of their element types do not support the respective operator.
-
-      Furthermore, in the current implementation the mirror classes for tuple
-      types do not implement the method `equals` (more precisely, the
-      generated overriding method throws an `UnsupportedOperationException`),
-      so there is no concise way to compare two tuples of the same type
-      on the Java side.
-
-
-## Range
-
-Range types are not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Special Types
-
-The type `Unit` is only supported as a function return type, mapped
-to Java `void`.
-
-The type `Nothing` cannot be supported.
-
-The type `Any` is not supported yet.
-
-See [General Considerations](#cangjie-general-considerations)
-for information about the handling of unsupported types.
-
-
-## Function Types
-
-Cangjie function types are mirrored into Java functional interface
-declarations:
-
-```cangjie
-package cjworld
-
-import interoplib.interop
-
-public class IntFuncBox {
-    private let _f: (Int) -> Int
-    public init(f: (Int) -> Int) {
-        _f = f
-    }
-    public func unbox(): (Int) -> Int {
-        _f
-    }
-}
-```
-
-```java
-package cjworld;
-// Glue code
-
-@FunctionalInterface
-public interface Int64ToInt64
-{
-// Glue code
-
-    public long call(long p1);
-
-// Glue code
-}
-```
-
-```java
-package cjworld;
-// Glue code
-
-public class IntFuncBox {
-// Glue code
-
-    public IntFuncBox(Int64ToInt64 f) {
-        // Glue code creating an instance of the Cangjie class IntFuncBox
-        // and associating it with the object being constructed, i.e. 'this'.
-    }
-
-    public Int64ToInt64 unbox() {
-        // Glue code calling the unbox() instance member function of the
-        // Cangjie object associated with 'this' and wrapping it into an
-        // instance of a helper class that implements Int64ToInt64.
-    }
-
-//  Glue code
-}
-```
-
-A function type `(`_`T1`_`, `_`T2`_`,... `_`Tn`_`) -> U` is mirrored into a
-Java functional interface with the following properties:
-
-- If any _`Ti`_ is a type alias, the function type is mirrored as if that _`Ti`_
-  was the aliased type. For instance, `(Int) -> Int` is processed as if it was
-  actually `(Int64) -> Int64`.
-
-
-- If any _`Ti`_ and/or _`U`_ is a type variable, the function type is mirrored
-  separately for each [monomorphization](#generic-cangjie-types-mirroring)
-  of the respective generic type or member. See the example
-  in [Generics Instantiations](#generics-instantiations).
-
-- The name of the mirror interface is _`T1T2`_`...`_`Tn`_`To`_`U`_ (that is, the
-  names of _Cangjie_ types of parameters are concatenated, followed by `To` and
-  then followed by the name of the result type). For instance, the name of the
-  Java mirror interface for the Cangjie function type `(Int, Bool) -> Int`  will
-  be `Int64BoolToInt64` due to the aforementioned alias replacement.
-
-  **NOTE:** Types that do not have their own simple names (_not_
-  [aliases](#type-aliases)) are not supported as function element types yet.
-  See [General Considerations](#cangjie-general-considerations)
-  for information about the handling of unsupported types.
-
-- The mirror interface has a single `public` instance method:
-
-  _U'_` call(`_`T1' p1`_`, `_`T2' p2`_`, ... `_`Tn'`_` p`_`n`_`) { ... }`
-
-  where each _`Ti'`_ is the Java mirror type for _`Ti`_ and _`U'`_ is
-  the Java mirror type for _`U`_, or `void` if _`U`_ is `Unit`. The parameters
-  are named automatically: `p1`, `p2`, ... `p`_`n`_.
-
-- The mirror interface type can be used to pass functions and lambda expressions
-  both ways:
-
-  * A value of that type transferred from Cangjie to Java, e.g. returned
-    from a mirrored Cangjie member function called from Java, is associated
-    with a value of a _Cangjie_ function type, e.g. a lambda. The method
-    `call()` invokes that Cangjie function, passing its arguments over as values
-    of the mirrored Cangjie types _`T1`_`, `_`T2`_`,... `_`Tn`_, and returns
-    a mirror of the value of type _`U`_ returned from that Cangjie function
-    (or nothing if that function returns `Unit`).
-
-  * The mirror type is a regular Java functional interface type in all aspects,
-    so not only a Java class may implement it, but lambda expressions
-    of a matching type are also compatible with it. When an instance of such
-    a Java class or a compatible lambda expression is passed over to Cangjie,
-    a value of the mirrored Cangjie function type,
-    `(`_`T1`_`, `_`T2`_`,... `_`Tn`_`) -> U`, gets synthesized and associated
-    with that Java lambda or class instance, and Cangjie code calling it ends
-    up calling the Java lambda or method.
-
-The current implementation has the following limitations:
-
-- Support for function parameter and return value types is limited to
-  [supported numeric types](#boolean-and-numeric-types), `Bool`, and `Unit`.
-  See [General Considerations](#cangjie-general-considerations)
-  for information about the handling of unsupported types.
-
-- The compiler does _not_ mirror function types automatically as it encounters
-  their usages in the definitions of other mirrored entities. All such types
-  must be listed explicitly
-  in the [configuration file](#cangjie-mirror-generation-configuration):
-
-    ```toml
-    #   .   .  .
-    [[package]]
-    name = "lambdas"
-    lambda_patterns = [
-        { signature = "(Int) -> Int" },
-        { signature = "(Float64) -> Bool" },
-    #   .   .  .
-    ]
-    ```
-
-  The compiler reports an error upon encountering a function type that must be
-  mirrored, but is not listed in the `lambda_patterns` array for the
-  respective Cangjie package.
-
-- Cangjie function types are _structural_, that is, two function types are
-  compatible if they have the same number of parameters, their respective
-  parameter types are the same, and their return types are the same. This is
-  also true for [aliases](#type-aliases) of function types. However, two Java
-  functional interface types that mirror essentially the same Cangjie function
-  type used in different packages are incompatible. This may lead to a problem
-  if such a function type is cross-used among two or more Cangjie packages
-  exposed to Java.
-
-- Cangjie function types are uncomparable, whereas their Java mirrors are.
-  That should pose no problems.
-
-
-
-## Struct Types
-
-Public Cangjie struct type definitions are mirrored into `final` Java class
-definitions. Those definitions are generated automatically by the `cjc`
-compiler and contain glue code that transfers control and data between
-Java and Cangjie. They should not be modified manually.
-
-```cangjie
-package cj
-
-import interoplib.interop.*
-
-public struct Vector {
-    private var x: Int32 = 0
-    private var y: Int32 = 0
-
-    public init(x: Int32, y: Int32) {
-        this.x = x
-        this.y = y
-    }
-
-    public func add(v: Vector): Vector {
-        let res = Vector(x + v.x, y + v.y)
-        print("cj: (${x}, ${y}) + (${v.x}, ${v.y}) = (${res.x}, ${res.y})\n", flush: true)
-        return res
-    }
-
-    public static func dump(v: Vector): Unit {
-        print("cj: Hello from static func in cj.Vector (${v.x}, ${v.y})\n", flush: true)
-    }
-}
-```
-
-```java
-package cj;
-
-// Glue code imports
-
-final public class Vector {
-    // Glue code
-
-    public Vector(int x, int y) {
-        // Glue code that constructs an instance of the Cangjie Vector struct
-        // and associates it with the Java object 'this'
-    }
-
-    public Vector add(Vector v) {
-        // Glue code that retrieves the associated Cangjie Vector struct
-        // instances associated with `this` and `v`, calls the add() instance
-        // member function of the Cangjie-this, passing the Cangjie-v to it
-        // as a parameter, and, finally, creates a new Java Vector instance
-        // and associates it with the result of the add() call.
-    }
-
-    public static void dump(Vector v) {
-        // Glue code that calls the dump() static member function of the
-        // Cangjie struct Vector, passing to it the instance associated
-        // with 'v'/
-    }
-
-    // More glue code
-}
-```
-
-Only public struct members and common constructors are mirrored.
-
-**Member functions** are mirrored into methods with the respective mirror
-types substituted for parameter types and return value type. Mirrors of
-member functions returning `Unit` are mirrored into `void` methods.
-The modifiers `public` and `static` are preserved.
-
-**Common constructors** are mirrored into constructors with the respective
-mirror types substituted for parameter types. _This includes the default
-constructor that might have been implicitly declared._ The modifier `public`
-is preserved.
-
-
-The current version imposes a number of severe limitations on the struct
-types that can be mirrored, to the extent that it may be fair to say
-that a struct type needs to be designed specifically for exposing it
-to Java:
-
-* Member variables are not mirrored and no means for accessing them
-  is provided. This limitation will be removed in a future version.
-  In the meantime, you may add getter functions as a workaround.
-
-* Mirroring of `mut` instance member functions is a work in progress.
-  They are mirrored, but incorrect glue code is generated in some
-  circumstances.
-
-* Mirroring of structs that implement interfaces other than `Any`
-  is not supported. An attempt to mirror a struct that explicitly
-  implements an interface results in a compile-time error.
-
-* Mirroring of generic structs is supported through monomorphization.
-  See [Generics](#cangjie-generics) for details.
-
-* Mirroring of structs that contain public member properties,
-  member operator functions, or primary constructors is not supported.
-  An attempt to mirror a struct containing an entity of one or those
-  kinds results in a compile-time error.
-
-* An attempt to mirror a struct member function or constructor with an
-  unsupported parameter type, or a member function with an unsupported
-  return type, results in a compile-time error.
-
-
-## Classes and Interfaces {#cangjie-classes-and-interfaces}
-
-Cangjie class and interface definitions are mirrored respectively into Java
-class and interface definitions. Those definitions contain automatically
-generated glue code and should not be altered in any way.
-
-```cangjie
-package cj
-
-import interoplib.interop.*
-
-public interface Valuable {
-    public func value(): Int
-}
-
-public open class Singleton <: Valuable {
-    private let _v: Int
-    public init(v: Int) {
-        _v = v
-    }
-    public func value(): Int {
-        _v
-    }
-}
-
-public class Zero <: Singleton {
-    public init() {
-        super(0)
-    }
-}
-```
-
-```java
-// Valuable.java
-package cj;
-
-// Glue code imports
-
-public interface Valuable {
-    public long value();
-}
-
-// Glue code
-```
-
-```java
-// Singleton.java
-package cj;
-
-// Glue code imports
-
-public class Singleton implements Valuable {
-    // Glue code
-
-    public Singleton(long v) {
-        // Glue code that constructs an instance of the Cangjie Singleton class
-        // and associates it with the Java object 'this'
-    }
-
-    public long value() {
-        // Glue code that retrieves the associated Cangjie Singleton class
-        // instance, calls its member function value() and returns the result
-    }
-
-    // Glue code
-}
-```
-
-```java
-package cj;
-
-// Glue code imports
-
-public final class Zero extends Singleton {
-    // Glue code
-
-    public Zero() {
-        // Glue code that constructs an instance of the Cangjie Zero class
-        // and associates it with the Java object 'this'
-    }
-
-    // Glue code
-}
-```
-
-Identifiers that serve as names of mirrored types and their members are
-currently preserved even if they clash with Java keywords such as `byte`.
-
-
-From the outside, the mirror types are normal Java classes and interfaces
-in all aspects: except for `final` classes, they can be extended/implemented,
-their methods can be overloaded with conventional Java methods in subtypes,
-their non-`final` methods can be overridden, types of their instances can
-be compared with `instanceof`, and so on.
-
-**Member functions** are mirrored into methods with the respective mirror
-types substituted for parameter types and return value type. Mirrors of
-member functions returning `Unit` are mirrored into `void` methods.
-Methods that mirror non-`open` member functions are modified with `final`.
-The modifiers `public` and `protected` (see below) are preserved. The modifier
-`static` is preserved for member functions of classes. Parameter names are
-preserved.
-**WARNING:** `static` interface member functions are currently mirrored
-into instance methods, but incorrect code is generated for mirrors of Cangjie
-classes that implement such interfaces.
-
-**Member properties** themselves are not mirrored into anything, but their
-getters and setters are mirrored into methods. The names of those methods
-start respectively with "`get`" or "`set`", followed by the property name
-with the first letter capitalized to maintain camel case. A method mirroring
-a property getter is parameterless and returns a value of the type mirroring
-the property type, whereas a property setter mirror method is `void` and
-takes a single parameter of that same mirror type. The modifiers `public`,
-`protected` (see below) and `static` are preserved.
-
-**Constructors** are mirrored into constructors with the respective
-mirror types substituted for parameter types. _This includes the default
-constructor that might have been implicitly declared._ The modifier `public`
-is preserved. Parameter names are preserved.
-
-Generally, only the following entities are subject to mirroring:
-
-* `public` constructors and members of the above listed kinds
-* `protected` `open` members of `open` classes (this includes `protected`
-  abstract member functions), as they can be overridden on the Java side.
-
-**Member variables** and **Member operator functions** are currently not
-mirrored.
-
-
-As Cangjie does not support type nesting, unlike Java, mirror types never
-have nested types (except maybe for `private` member types used by glue code).
-
-The current version imposes a number of severe limitations on the class
-and interface types that can be mirrored, to the extent that it may be
-fair to say that such types need to be designed specifically for exposing
-them to Cangjie:
-
-* `abstract` classes are not mirrored.
-
-* Member variables are not mirrored and no means for accessing them
-  is provided. This limitation will be removed in a future version.
-  In the meantime, you may add getter/setter functions to Cangjie
-  classes manually as a workaround.
-
-* Mirroring of generic classes is supported through monomorphization.
-  See [Generics](#cangjie-generics) for details.
-
-* Mirroring of member operator functions is not supported. An attempt to mirror
-  a class or interface containing such an entity results in a compile-time error.
-
-* An attempt to mirror a class member function or constructor with an
-  unsupported parameter type, or a member function with an unsupported
-  return type, results in a compile-time error.
-
-
-
-## Enums
-
-A Cangjie enum is mirrored into a `final` Java class without a `public`
-constructor.
-
-```cangjie
-public enum TimeUnit {
-    | Year(Int64)
-    | Month(Int64)
-    | Year
-    | Month
-}
-```
-
-```java
-public final class TimeUnit {
-    /* Glue code */
-
-    public static TimeUnit Year(long p1) {
-         // Glue code creating a Cangjie Year(p1) enum and associating it
-         // with a newly created Java TimeUnit instance
-    }
-
-    public static TimeUnit Month(long p1) {
-         // Glue code creating a Cangjie Month(p1) enum and associating it
-         // with a newly created Java TimeUnit instance
-    }
-
-    public static TimeUnit Year =
-        // Glue code creating a Cangjie Year enum and associating it
-        // with a newly created Java TimeUnit instance
-
-    public static TimeUnit Month =
-        // Glue code creating a Cangjie Year enum and associating it
-        // with a newly created Java TimeUnit instance
-
-    /* More glue code */
-}
-```
-
-**Enum constructors without parameters** are mirrored into `static`
-variables initialized with instances of the class associated with
-the respective constructors of the Cangjie enum.
-
-
-**Enum constructors with parameters** are mirrored into `static` factory
-methods with the same names and matching types and numbers of parameters;
-names of parameters are synthesized (`p1`, `p2`, ...).
-
-**Member functions** are mirrored into methods with the respective mirror
-types substituted for parameter types and return value type. Mirrors of
-member functions returning `Unit` are mirrored into `void` methods.
-The modifiers `public` and `static` are preserved.
-
-**Member properties** themselves are not mirrored into anything, but their
-getters (enums cannot have `mut` properties) are mirrored into methods.
-The names of those methods start with "`get`", followed by the property name
-with the first letter capitalized to maintain camel case. A method mirroring
-a property getter is parameterless and returns a value of the type mirroring
-the property type. The modifiers `public` and `static` are preserved.
-
-The current version imposes a number of limitations on the enum that can be
-mirrored:
-
-* Mirroring of enums that implement interfaces other than `Any`
-  is not supported. An attempt to mirror an enum that explicitly
-  implements an interface results in a compile-time error.
-
-* Mirroring of generic enums is supported through monomorphization.
-  See [Generics](#cangjie-generics) for details.
-
-* Mirroring of enums that contain member operator functions is not supported.
-  An attempt to mirror an enum containing such an entity results
-  in a compile-time error.
-
-* An attempt to mirror an enum member function or constructor with an
-  unsupported parameter type, or a member function with an unsupported
-  return type, results in a compile-time error.
-
-Members defined in enum extensions (`extend`) are currently mirrored as if they
-were members of the enum itself.
-
-
-Recursively defined enums are supported:
-
-```cangjie
-public enum Peano {
-    | Z
-    | S(Peano)
-
-    public func toInt(): Int {
-        match (this) {
-            case Z => 0
-            case S(x) => 1 + x.toInt()
-        }
-    }
-}
-```
-
-
-## Generics {#cangjie-generics}
-
-Java and Cangjie generics are fundamentally different, so the latter
-cannot be mirrored into the former. However, _specific instantiations_
-of parameterized Cangjie types, such as `G<Int64>`, are concrete types,
-and therefore can be mirrored into non-generic Java types.
-Such types are also called _monomorphized generics_.
-
-Use the respective
-[configuration file](#cangjie-mirror-generation-configuration)
-of the `cjc` compiler to specify which instantiations of which types
-to mirror. Refer to [Generics Instantiations](#generics-instantiations)
-for details.
-
-**Example:**
-
-When compiling the following Cangjie class definition:
-
-```cangjie
-public class G<T> {
-    private let t: T
-    public init(t: T) {
-        this.t = t
-    }
-    public func get(): T {
-        t
-    }
-}
-```
-
-with the following lines in the respective section of the configuration
-file:
-
-```toml
-       .  .  .
-    generic_object_configuration  = [
-        { name = "G", type_arguments = ["Bool", "Int"] },
-    ]
-       .  .  .
-```
-
-the compiler will generate Java mirror classes for `G<Bool>` and `G<Int>`,
-named respectively `GBool` and `GInt`.
-
-
-Refer to the
-[Cangjie Mirror Generation Reference](#cangjie-mirror-generation-reference)
-section for complete instructions.
-
-
-
-
-## `null` Handling {#cangjie-null-handling}
-
-As Cangjie has no null type, passing `null` as a parameter to a mirrored
-Cangjie method results in a run-time exception in glue code:
-
-```cangjie
-public class Node {
-    private let next: ?Node
-    public init() {
-        next = None
-    }
-    public init(next: Node) { /* Pure Cangjie */
-        this.next = Some(next)
-    }
-}
-```
-
-```java
-public final class Node {
-    Node() { /* glue code */ }
-    Node(Node next) { /* glue code */ }
-}
-   .  .  .
-     Node list = new Node(null);   /* NullPointerException */
-```
-
-Conversely, there is currently no way to return `null` from a `public` member
-function of a Java-compatible type.
-
-**NOTICE:** The current version supports automatic `Option<T>` (un)wrapping
-with `null` mapped to `None`, but only for Java reference types mirrored
-to Cangjie, not the other way round. See [`null` Handling](#java-null-handling)
-for details.
-
-
-
-# Cangjie Mirror Generation Reference
-
-There is no standalone mirror generator facilitating the exposure of Cangjie
-types to Java and Objective-C code in the Cangjie SDK. The `cjc` compiler
-itself is capable of generating Java/Objective-C mirror type definitions
-for Cangjie types right when it compiles the Cangjie source code of those
-types.
-
-
-## Command-line Syntax {#cjc-command-line-syntax}
-
-The following additional `cjc` options enable and control the generation
-of mirrors for Cangjie types during compilation:
-
-`--experimental`    _(mandatory)_
-
-This option must be specified as of the current version, since the whole
-interop feature is still in development, but will not be necessary
-in the future.
-
-`--enable-interop-cjmapping=Java` _or_  
-`--enable-interop-cjmapping=ObjC`        _(mandatory)_
-
-Enables the generation of mirror type definitions for Cangjie types
-respectively in the form of Java or Objective-C source code files.
-
-`--output-interop-cjmapping-dir` _`pathname`_     _(optional)_
-
-The _`pathname`_ must point to a directory into which the `cjc`
-compiler shall place its output Java or Objective-C source code files
-containing mirror type definitions. If _`pathname`_ does not point to
-an existing file system location, `cjc` attempts to create a directory there.
-If _`pathname`_ points to something other than a directory, `cjc`
-terminates with an error message.
-
-The default value of _`pathname`_ is either `./java-gen` or `./objc-gen`,
-depending on whether `--enable-interop-cjmapping` is set respectively
-to "`Java`" or "`ObjC`".
-
-`--import-interop-cj-package-config-path` _`pathname`_     _(optional)_
-
-The _`pathname`_ must point to a configuration file that defines which
-Cangjie types are exposed to Java or Objective-C as mirror types. See
-[Cangjie Mirror Generation Configuration](#cangjie-mirror-generation-configuration)
-for details.
-
-
-## Cangjie Mirror Generation Configuration
-
-A Cangjie mirror generation configuration file is a plain text file
-in the [TOML](https://toml.io) syntax. It specifies:
-
-  * Non-generic Cangjie types to mirror
-  * Specific instances of generic Cangjie types to mirror
-
-
-### Defaults
-
-The `[default]` table defines the default settings for packages for which
-either no [package-specific settings](#packages) are provided at all, or those
-settings don't override the defaults.
-
-**Properties:**
-
-`APIStrategy`    _(optional)_
-
-A string defining whether all public entities defined in a package shall be
-mirrored by default or not. Valid values:
-
-* `"Full"` _(default)_ - all public entities shall be mirrored by default
-* `"None"` - no public entities shall be mirrored by default
-
-`GenericTypeStrategy`    _(optional)_
-
-A string defining whether generic public entities shall be mirrored
-by default or not. Valid values:
-
-* `"Partial"` - instantiations explicitly listed in
-  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
-* `"None"` _(default)_- no generic public entities shall be mirrored by default
-
-
-### Packages
-
-Each entry in the `[[packages]]` array specifies the name of a separate
-source Cangjie package, and, optionally:
-
-* A filter that defines which types from that package to include in,
-  or exclude from, the set of mirrors
-* API mirroring strategy (if other than the [default](#defaults))
-* Generic type mirroring strategy (if other than the [default](#defaults))
-* Specific generic type instantiations to mirror
-
-**Properties:**
-
-`name`    _(mandatory)_
-
-A string containing the name of the _source_ Cangjie package to which
-the settings in this `[[packages]]` array entry apply.
-
-Example:
-
-```toml
-name = "com.example.VectorMath"
-```
-
-`APIStrategy`    _(optional)_
-
-A string defining whether all public entities of the given package shall
-be mirrored by default or not. Valid values:
-
-* `"Full"` - all public entities shall be mirrored by default
-* `"None"` - no public entities shall be mirrored by default
-
-If this property is absent, the [default](#defaults) value is used.
-
-`included_apis`    _(optional)_
-
-An array of strings each containing the name of a public entity that
-needs to be mirrored. If the array contains the qualified name of a type
-member, the type itself is also mirrored. Either `included_apis` or
-`excluded_apis` may be present in a given `[[packages]]` array entry,
-but not both.
-
-Example:
-
-```toml
-included_apis = [
-   "Vector.product", // Vector also exposed
-   "HiddenV"
-]
-```
-
-`excluded_apis`    _(optional)_
-
-An array of strings each containing the name of a public Cangjie entity
-defined in the given package that has to be _not_ mirrored.
-Either `included_apis` or `excluded_apis` may be present in a given
-`[[packages]]` array entry, but not both.
-
-
-Example:
-
-```toml
-excluded_apis = [
-   "Vector.product", // Even if Vector is exposed, product is not
-   "HiddenV"
-]
-```
-
-`GenericTypeStrategy`    _(optional)_
-
-A string defining whether generic public entities defined in this package
-shall be mirrored by default or not. Valid values:
-
-* `"Partial"` - instantiations explicitly listed in
-  [`generic_object_configuration`](#generics-instantiations) shall be mirrored
-* `"None"` - no generic public entities shall be mirrored by default
-
-If this property is absent, the [default](#defaults) value is used.
-
-`lambda-patterns`    _(optional)_
-
-A (possibly empty) array of tables, each describing a function type
-that is used by one or more of the exposed entities and therefore
-must be mirrored.
-
-Each entry of the array has the following  mandatory property:
-
-`signature`    _(mandatory)_
-
-A string containing a Cangjie function type, such as "(Int) -> Int".
-
-`types`
-
-An array of strings, each containing valid type arguments for the generic
-type the name of which is specified in the `name` property.
-
-Example:
-
-```toml
-tuple_configuration = [ { signature = "(Int) - > Int" },
-                        { signature = "(Float64, Float64) -> Float64" }
-                        ]
-```
-
-See [Function Types](#functio0n-types) for details.
-
-`tuple_configuration`    _(optional)_
-
-A list of strings, each containing a tuple type that is used by one
-or more of the exposed entities and therefore must be mirrored.
-
-Example:
-
-```toml
-tuple_configuration = [ "(Int, Bool)",
-                        "(Float64, Float64, Float64)"]
-```
-
-See [Tuple](#tuple) for details.
-
-
-`generic_object_configuration`    _(optional)_
-
-A list of tables defining the specific instantiations of generic entities
-to be mirrored. See [Generics Instantiations](#generics-instantiations)
-for details.
-
-
-#### Generics Instantiations
-
-The `generic_object_configuration` property of a `[[packages]]` array
-entry defines which specific instantiations of generic Cangjie entities
-will be mirrored.
-
-The value of the property is a (possibly empty) array of tables.
-Each entry of the array has the following two mandatory properties:
-
-`name`
-
-A string containing the name of a public generic Cangjie type defined
-in the current package.
-
-`type_arguments`
-
-An array of strings, each containing valid type arguments for the generic
-type the name of which is specified in the `name` property.
-
-**NOTE:** The current version only supports numeric types, `Bool`, and
-`Unit` as type arguments for monomorphization. Specifying any other type
-in a `types` array element results in a compile time error.
-
-> Simply put, "valid" means that the type/function can be instantiated
-> with the given string between the angle brackets `< >`.
->
-> Consider the following Cangjie class:
->
-> ```cangjie
-> public class G<T> {
->     public func f(t: T): Unit {}
->     public func f(b: Bool): Unit {}
-> }
-> ```
->
-> `G<Bool>` cannot be instantiated, so
->
-> ```toml
-> generic_object_configuration  = [
->     { name = "G", types = ["Bool"] }
-> ]
-> ```
-> would trigger a compiler error.
-
-**Examples:**
-
-1. Given the following Cangjie definitions
-
-   ```cangjie
-   public class G<T> { . . . }
-   public func f<T>(): Unit { . . . }
-   public struct S<T,U> { . . . }
-   ```
-
-   the property
-
-   ```toml
-   generic_object_configuration  = [
-       { name = "G", type_arguments = ["Int"] },
-       { name = "f", type_arguments = ["Int", "Bool"] },
-       { name = "S", type_arguments = ["Int, Bool"] }
-   ]
-   ```
-
-   instructs the `cjc` compiler to generate mirrors for the following
-   instantiations:
-
-   ```cangjie
-   G<Int>
-   f<Int>
-   f<Bool>
-   S<Int, Bool>
-   ```
-
-   and name them like `GInt`, `fInt`, and so on.
-
-
-2. Given this Cangjie source code file:
-
-   ```cangjie
-   package cjworld
-
-   import interoplib.interop.*
-
-   public class Composer<T, U, V> {
-       public static func compose(f: (T) -> U, g: (U) -> V): (T) -> V {
-           {t: T => g(f(t))}
-       }
-   }
-   ```
-
-   and the following [configuration file](#cangjie-mirror-generation-configuration):
-
-   ```toml
-   [[package]]
-   name = "cjworld"
-   APIStrategy = "Full"
-   GenericTypeStrategy = "Partial"
-
-   lambda_patterns = [
-     { signature = "(Int) -> Float64" },
-     { signature = "(Float64) -> Bool" }
-   ]
-
-   generic_object_configuration = [
-       { name = "Composer", type_arguments = ["Int64, Float64, Bool"] },
-       { name = "Composer<Int64, Float64, Bool>", symbols = ["compose"] },
-   ]
-   ```
-
-   the compiler will generate the following non-parameterized mirror types:
-
-   - Functional interface `Int64ToFloat64`:
-
-     ```java
-     // .  .  .
-     @FunctionalInterface
-     public interface Int64ToFloat64
-     {
-         public double call(long p1);
-         // .  .  .
-     }
-     ```
-
-   - Functional interface `Float64ToBool`
-
-     ```java
-     // .  .  .
-     @FunctionalInterface
-     public interface Float64ToBool
-     {
-         public boolean call(double p1);
-         // .  .  .
-     }
-     ```
-
-   - Class `ComposerInt64Float64Bool`:
-
-     ```java
-     // .  .  .
-     public class GenClass3Int64Float64Bool {
-         // .  .  .
-         public static Int64ToBool compose(Int64ToFloat64 f, Float64ToBool g) {
-             // .  .  .
-         }
-         // .  .  .
-     }
-     ```
-
-
-# Using Java in Cangjie
-
-In the first interoperation scenario, described
-in [Using Cangjie in Java](#using-cangjie-in-java), Cangjie types are mapped
-to Java types that behave just like any conventional Java classes
-and interfaces: non-`final` classes can be extended, interfaces implemented,
-instances created and passed around freely, and so on.
-
-In contrast, due to certain technical limitations imposed by the Android
-Runtime (JVM), any uses of Java types in Cangjie must be fully confined
-to the code of constructors and member functions
-of [interop classes](#interop-classes).
-Also, mirror type declarations for Java classes and interfaces are
-generated by a [standalone tool](#java-mirror-generator-reference),
-not the `cjc` compiler.
-
-The process of enabling this second scenario is therefore more involved. Here
-are the steps you need to take:
-
-1. Design the interoperability layer in terms of _Java_ classes and methods.
+1. Design the interoperability layer API in terms of _Java_ classes and methods.
 
    developer → `interop layer design` (Java _pseudo-code_)
 
@@ -1732,9 +275,9 @@ and [Calling Java From Cangjie](#calling-java-from-cangjie)
 describe the above process in detail with an end-to-end example.
 
 
-## Initial Interop Class Creation Workflow
+### Initial Interop Class Creation Workflow
 
-### Step 1: Design the interoperability layer
+#### Step 1: Design the interoperability layer
 
 On this step, you design the API of one or more interop classes
 _from the Java code perspective_, i.e. you need to decide, for each interop
@@ -1743,7 +286,7 @@ class:
 * To which Java package it will belong;
 * What Java class it will extend, if not the default `java.lang.Object`;
 * Which Java interface(s) it will implement, if any; and
-* What `public`/`protected` methods and/or constructors it will have.
+* What `public` methods and/or constructors it will have.
   You only need to know the types of parameters and, for methods, their names
   and return value types; the implementations you will write in Cangjie.
 
@@ -1777,18 +320,19 @@ public class Interop {
 ```
 
 
-### Step 2: Generate mirror type declarations
+#### Step 2: Generate mirror type declarations
 
 Now, you need [mirror type](#mirror-types) declarations for all Java reference
 types on which your interop classes depend: their supertypes, types of their
 method and constructor parameters, etc., and, possibly, the dependencies of
 those types.
 
-**NOTE:** Mirror classes for `java.lang.Object` and `java.lang.String` are
-provided in the interop library, as well as a generic mirror class representing
-Java arrays. Skip this step if the methods and constructors of your interop
-classes only pass to/receive from Cangjie values of primitive Java types,
-`java.lang.Object`, `java.lang.String`, and/or arrays of the foregoing.
+**NOTE:** Mirror classes for `java.lang.Object` and `java.lang.String`,
+as well as a generic mirror class representing Java arrays, are provided
+by the [interop library](#interop-library-api-reference). Skip this step
+if the methods and constructors of your interop classes only pass to/receive
+from Cangjie values of primitive Java types, `java.lang.Object`,
+`java.lang.String`, and/or arrays of the foregoing.
 
 Use the [Java mirror generator](#java-mirror-generator-reference) included
 in the Cangjie SDK to produce those mirror type declarations as follows:
@@ -1796,42 +340,46 @@ in the Cangjie SDK to produce those mirror type declarations as follows:
 **Command line:**
 
 ```bash
-java-mirror-gen \
-    --package-name <package-name> \
-    --class-path <full-application-classpath> \
-    --destination <output-directory> \
-    <names-of-mirrored-types>
+java -Dpackage.mode=true -Dpackage.name=package-name \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path path-to-android-jar \
+    --class-path full-application-classpath \
+    --d output-directory \
+    names-of-mirrored-types
 ```
 
 or
 
 ```bash
-/path/to/jdk/21/bin/java \
-java-mirror-gen \
-    --package-name <package-name> \
-    --class-path <full-application-classpath> \
-    --destination <output-directory> \
-    -jar <jar-file>
+java -Dpackage.mode=true -Dpackage.name=package-name -Djar.mode=true \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path path-to-android-jar \
+    --class-path full-application-classpath \
+    --d output-directory \
+    jar-file
 ```
 
-where
 
-* `<package-name>` is the desired name of the Cangjie package for all
+* `package-name` is the desired name of the Cangjie package for all
   mirrored types.
 
-* `<full-application-classpath>` is the complete classpath of the application
-  that is used during its build, including `android.jar`.
+* `path-to-android-jar` is the pathname of the `android.jar` file in the
+  Android SDK that you are using,
+  e.g. `${ANDROID_SDK}/platforms/android-35/android.jar`.
 
-* `<output directory>` is the pathname of the directory where the Cangjie source
+* `full-application-classpath` is the complete classpath of the application
+  that is used during its build, _including `android.jar`_ again.
+
+* `output directory` is the pathname of the directory where the Cangjie source
   files containing mirror type declarations will be placed, such as `./src/cj`.
 
-* `<names-of-mirrored-types>` are the _fully qualified names_ of the Java
-  reference types on which your interop class design depends,
+* `names-of-mirrored-types` are space-separated _fully qualified names_ of the
+  Java reference types on which your interop class design depends,
   other than `java.lang.Object`, `java.lang.String` or arrays.
 
-* `<jar-file>` is the pathname of a single jar file. All `public` classes and
-  interfaces, the `.class` files of which it contains, are mirrored, along
-  with any dependencies found along the `<full-application-classpath>`.
+* `jar-file` is the pathname of a single jar file. All `public` classes and
+  interfaces, the `.class` files of which that jar contains, are mirrored, along
+  with any dependencies found along the `full-application-classpath`.
 
 **Example:**
 
@@ -1850,18 +398,20 @@ to appear in the package `javaworld`.
 Mirror generator command line with a fictional application classpath:
 
 ```bash
-java-mirror-gen \
-    --package-name javaworld \
-    --class-path /home/user/Android/Sdk/platforms/android-35/android.jar:App.jar \
-    --destination ./src/cj \
+java -Dpackage.mode=true -Dpackage.name=javaworld \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path ${ANDROID_SDK}/platforms/android-35/android.jar \
+    --class-path ${ANDROID_SDK}/platforms/android-35/android.jar:./App.jar \
+    --d ./src/cj \
     com.example.a.A com.example.b.B
 ```
 
-This will generate files `src/cj/javaworld/src/A.cj` and `src/cj/javaworld/src/B.cj`,
-_plus_ mirror type declarations for any dependencies those two Java types may have.
+This will generate files `src/cj/javaworld/src/A.cj`
+and `src/cj/javaworld/src/B.cj`, _plus_ mirror type declarations for any
+dependencies those two Java types may have.
 
 
-### Step 3: Write Interop Classes
+#### Step 3: Write interop classes
 
 For each Java class skeleton you designed on step 1, write a new Cangjie class
 as follows:
@@ -1877,10 +427,11 @@ as follows:
 6. Use `JObject`, `JString` and `JArray<T>` in place of `java.lang.Object`,
    `java.lang.String` and Java array types respectively.
 
-Type mapping (`T'` is either the matching primitive type or the respective mirror type):
+Type mapping (`T'` is either the matching Cangjie value type or the respective
+mirror type):
 
 Java Type (`T`)  | Cangjie Type (`T'`)
----------------- | -----------------------------
+---------------- | --------------------------------------------------
 `boolean`        | `Bool`
 `byte`           | `Int8`
 `short`          | `Int16`
@@ -1889,14 +440,18 @@ Java Type (`T`)  | Cangjie Type (`T'`)
 `long`           | `Int64`
 `float`          | `Float32`
 `double`         | `Float64`
-`Object`         | `JObject` or `?JObject`
-`String`         | `JString` or `?JString`
-`class C`        | `C'` or `?C'`
-`interface I`    | `I'` or `?I'`
-`T[]`            | `JArray<T'>` or `?JArray<T'>`
+`Object`         | `JObject` or `?JObject`^\*^
+`String`         | `JString`, `?JString`, `String` or `?String`^\*†^
+`class C`        | `C'` or `?C'`^\*^
+`interface I`    | `I'` or `?I'`^\*^
+`T[]`            | `JArray<T'>` or `?JArray<T'>`^\*^
 
-Use `?<T'>` (`Option<T'>`) types for parameters, return values, and local variables
-of mirror and interop types that may receive/hold Java `null`.
+^\*^ Use `?<T'>` (`Option<T'>`) types for parameters, return values, and local
+variables of mirror and interop types that may receive/hold Java `null`.
+
+^†^ See [Automatic String Conversion](#automatic-string-conversion) for the
+details of using the Cangjie type `String` in the definitions of interop class
+members and constructors exposed to Java.
 
 Use `Unit` as a return type to represent a `void` Java method.
 
@@ -1905,8 +460,8 @@ See also
 
 **Example:**
 
-To continue the above example, the interop class for the function `m()` would look
-like this:
+To continue the above example, the interop class for the function `m()` would
+look like this:
 
 ```cangjie
 package cjworld
@@ -1918,7 +473,7 @@ import javaworld.*
 public class Interop {
     public static func m(a: ?A, s: ?JString, i: Int32): ?B {
         /* Just a dummy implementation for now */
-        B() // Assuming that B has an accessible parameterless constructor
+        B()    // Assuming that B has an accessible parameterless constructor
     }
 }
 ```
@@ -1927,23 +482,33 @@ If you don't need `m()` to ever return `null` to its Java caller, remove
 `?` from its return value type.
 
 
-### Step 4: Compile the Interop Class
+#### Step 4: Compile interop classes
+
+**NOTE:** Make sure you have the
+[Android NDK](https://developer.android.com/ndk) installed and the
+`ANDROID_NDK_HOME` environment variable points to it.
+
+Compile the mirror type declarations first, then the interop classes
+(assuming they are in different packages, e.g. `javaworld` and `cjworld`).
 
 Command line:
 
 ```bash
 cjc --output-type=dylib \
-    -p <source-directory> \
-    -ljava.lang -linteroplib.interop \
-    --output-javagen-dir=<java-output-directory>
+    --target=aarch64-linux-android31 \
+    -p source-directory \
+    -ljava.lang -ljava.internal \
+    --output-javagen-dir=java-output-directory \
+    --sysroot=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
+    -B ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
 ```
 
 where
 
-`<source-directory>` is the pathname of the directory containing the source code of
-interop classes and mirror type declarations.
+`source-directory` is the pathname of the directory containing the source code
+of interop classes and mirror type declarations.
 
-`<java-output-directory>` is the pathname of the directory to which the generated
+`java-output-directory` is the pathname of the directory to which the generated
 Java source files are placed.
 
 The output is a `.so` file with compiled Cangjie code for the interop classes
@@ -1953,15 +518,19 @@ and Java source files (`.java`) for their Java wrappers.
 
 ```bash
 cjc --output-type=dylib \
-    -p src/cj \
-    -ljava.lang -linteroplib.interop \
+    --target=aarch64-linux-android31 \
+    -p src/cjworld \
+    -ljava.lang -ljava.internal \
     --output-javagen-dir=src/java
+    --sysroot=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot \
+    -B ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
 ```
 
-The compiler will produce two files: `libcjworld.so` and `src/java/cjworld/Interop.java`.
+The compiler will produce two files: `libcjworld.so`
+and `src/java/cjworld/Interop.java`.
 
 
-### Step 5: Put it all together
+#### Step 5: Put it all together
 
 1. Add the following files to your Android project:
 
@@ -2023,7 +592,7 @@ to be passed to its Cangjie implementation in our interop class:
 ```
 
 
-## Calling Java from Cangjie
+### Calling Java from Cangjie
 
 Once you have designed, built and integrated the interoperability layer
 as described
@@ -2031,38 +600,39 @@ in the [previous section](#initial-interop-class-creation-workflow),
 you can add code that uses Java types to the member functions of
 your interop classes. The type mapping is the same:
 
-Cangjie Type (`T'`)           | Java Type (`T`) | Remark
------------------------------ | --------------- | ------
-`Bool`                        | `boolean`       |
-`Int8`                        | `byte`          |
-`Int16`                       | `short`         |
-`UInt16`                      | `char`          |
-`Int32`                       | `int`           |
-`Int64`                       | `long`          |
-`Float32`                     | `float`         |
-`Float64`                     | `double`        |
-`JObject` or `?JObject`       | `Object`        |
-`JString` or `?JString`       | `String`        |
-`T'` or `?T'`                 | `T`             | (\*)
-`JArray<T'>` or `?JArray<T'>` | `T[]`           | (\*\*)
+Cangjie Type (`T'`)           | Java Type (`T`)
+----------------------------- | ---------------
+`Bool`                        | `boolean`
+`Int8`                        | `byte`
+`Int16`                       | `short`
+`UInt16`                      | `char`
+`Int32`                       | `int`
+`Int64`                       | `long`
+`Float32`                     | `float`
+`Float64`                     | `double`
+`JObject` or `?JObject`       | `Object`
+`JString` or `?JString`       | `String`
+`T'` or `?T'`                 | `T`^\*^
+`JArray<T'>` or `?JArray<T'>` | `T[]`^†^
 
-**(\*)** `T'` must be either a mirror type for the Java type `T`
+^\*^ `T'` must be either a mirror type for the Java type `T`
 or an interop class, for which the source code of its Java wrapper
 class `T` was generated automatically by `cjc`.
 
-**(\*\*)** `T'` must be either a mirror type, an interop class,
+^†^ `T'` must be either a mirror type, an interop class,
 or one of the value types listed above, e.g. `Int32`.
-
-Use `Unit` as a return type to call a `void` Java method.
 
 **Limitations:**
 
-* Variable arity (varargs) methods and constructors are not supported.
+* A variable arity parameter that has the Java type `T` is mirrored into a
+  regular parameter of the type `?JArray<T'>`. In order to pass any arguments
+  to such a parameter Cangjie code must explicitly create and initalize
+  an instance of `JArray<T'>` before calling such a method or constructor.
 
 
-### Step 0: Build your Android application normally
+#### Step 0: Build your Android application normally
 
-### Step 1: Generate mirror type declarations
+#### Step 1: Generate mirror type declarations
 
 Skip this step if you only want to call member functions of interop classes,
 their superclasses and/or types for which you have already generated mirror
@@ -2071,22 +641,23 @@ declarations, such as the types of interop class parameters or return values.
 **Command line:**
 
 ```bash
-java-mirror-gen \
-    --package-name <package-name> \
-    --class-path <full-application-classpath> \
-    --destination <output-directory> \
-    <names-of-mirrored-types>
+java -Dpackage.mode=true -Dpackage.name=package-name \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path path-to-android-jar \
+    --class-path full-application-classpath \
+    --d output-directory \
+    names-of-mirrored-types
 ```
 
 or
 
 ```bash
-/path/to/jdk/21/bin/java \
-java-mirror-gen \
-    --package-name <package-name> \
-    --class-path <full-application-classpath> \
-    --destination <output-directory> \
-    -jar <jar-file>
+java -Dpackage.mode=true -Dpackage.name=package-name -Djar.mode=true \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path path-to-android-jar \
+    --class-path full-application-classpath \
+    --d output-directory \
+    jar-file
 ```
 
 where
@@ -2094,15 +665,19 @@ where
 * `<package-name>` is the desired name of the Cangjie package for all
   mirrored types.
 
+* `path-to-android-jar` is the pathname of the `android.jar` file in the
+  Android SDK that you are using,
+  e.g. `${ANDROID_SDK}/platforms/android-35/android.jar`.
+
 * `<full-application-classpath>` is the complete classpath of the application
   that is used during its build, including `android.jar`.
 
 * `<output directory>` is the pathname of the directory where the Cangjie source
   files containing mirror type declarations will be placed, such as `./src/cj`.
 
-* `<names-of-mirrored-types>` are the _fully qualified names_ of the Java
-  reference types on which your interop class design depends,
-  other than `java.lang.Object`, `java.lang.String` or arrays.
+* `<names-of-mirrored-types>` are space-separated _fully qualified names_
+  of _all_ Java reference types that want to use in the code of your interop
+  classes, besides `java.lang.Object`, `java.lang.String` and array types.
 
 * `<jar-file>` is the pathname of a single jar file. All `public` classes and
   interfaces, the `.class` files of which it contains, are mirrored, along
@@ -2114,7 +689,7 @@ Continuing the example from the
 [previous section](#initial-interop-class-creation-workflow),
 suppose we want our function `Interop.m()` to call the method
 `String g(A a, int i)` of a class `com.example.c.C`, where `A`
-is the type `com.example.a.A` that we've already mirrored:
+is the type `com.example.a.A` that we already mirrored before:
 
 ```java
 package com.example.c;
@@ -2129,13 +704,14 @@ public class C {
 ```
 
 We re-run the mirror generator, passing `com.example.c.C` as an extra
-argument:
+(not sole!) type name to mirror:
 
 ```bash
-java-mirror-gen \
-    --package-name javaworld \
+java -Dpackage.mode=true -Dpackage.name=javaworld \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path /home/user/Android/Sdk/platforms/android-35/android.jar \
     --class-path /home/user/Android/Sdk/platforms/android-35/android.jar:App.jar \
-    --destination ./src/cj \
+    --d ./src/cj \
     com.example.a.A com.example.b.B com.example.c.C
 ```
 
@@ -2145,7 +721,7 @@ for any dependencies that type may have that were not previously mirrored.
 
 The file `src/cj/javaworld/src/C.cj` would look like this:
 
-```java
+```cangjie
 package javaworld
 
 import java.lang.*
@@ -2157,7 +733,7 @@ public class C {
 ```
 
 
-### Step 2: Import the mirror type(s) and write code
+#### Step 2: Import the mirror type(s) and write code
 
 Make sure that all mirror type(s) involved are imported, then implement
 the constructors and member functions of your interop classes, manipulating
@@ -2183,12 +759,12 @@ public class Interop {
             case Some(aa) => C.g(aa, i) ?? JString("")
             case None => JString("")
         }
-        B(s1) // Assuming there is a B(String) constructor
+        B(s1)  // Assuming there is a B(String) constructor
     }
 }
 ```
 
-### Step 3: Recompile the Cangjie part
+#### Step 3: Recompile the Cangjie part
 
 See [Step 4](#step-4-compile-the-interop-class) of the interop class
 creation workflow for details and example.
@@ -2198,7 +774,7 @@ on the previous steps, you only need to update the `.so` file.
 The generated Java sources should be identical to previously generated ones.
 
 
-### Step 4: Update and re-build the Android project
+#### Step 4: Update and re-build the Android project
 
 Copy the `.so` file and, if applicable, `.java` files updated/generated
 on the previous step over to your Android project and re-build it.
@@ -2207,21 +783,22 @@ See [Step 5](#step-5-put-it-all-together) of the interop class
 creation workflow for details and example.
 
 
-## Features and Limitations of Interop Classes
+### Features And Limitations of Interop Classes
 
 1. An interop class _must_ be a direct subclass of a mirror class.
    By default, the interop class will inherit the mirror class
-   [`java.lang.JObject`](#java.lang.jobject), not `std.core.Object`.
+   [`java.lang.JObject`](#java-lang-jobject), not `std.core.Object`.
 
 2. An interop class _may_ implement one or more mirror interfaces, but never
-   a conventional Cangjie interface. Conversely, a conventional Cangjie type may not
-   implement or inherit a mirrored Java interface.
+   a conventional Cangjie interface. Conversely, a conventional Cangjie type may
+   not implement or inherit a mirrored Java interface.
 
-3. An interop class may not be declared as `open` or `abstract` and may not be
-   extended using `extend`.
+3. An interop class may not be declared as `open` or `abstract`, may not be
+   extended using `extend`, and may not be generic.
 
-4. An interop class may introduce new instance fields _of any Cangjie type_
-   and override the member functions of its mirrored superclass.
+4. An interop class may introduce new instance fields _of any Cangjie type_,
+   as they are not exposed to Java, and override the member functions of its
+   mirrored superclass.
 
 
 5. The constructors of an interop class may call superclass constructors
@@ -2234,62 +811,134 @@ creation workflow for details and example.
    superclass, and/or use `super.` to call the member functions of that
    superclass that the interop class overrides.
 
-7. The signatures of constructors and member functions of all mirror types
-   and interop classes can only use types that are (a) mirror types
-   or interop classes themselves, or (b) are 100% analogous to Java primitive
-   types. See the Type Mapping table
-   in [Calling Java from Cangjie](#calling-java-from-cangjie).
+7. The signatures of `public` constructors and member functions of interop
+   classes can only use types that are (a) mirror types or interop classes
+   themselves, (b) are 100% analogous to Java primitive types, or (c) the type
+   `String`. This limitation also applies to the types of `public` properties.
+   For details, see the Type Mapping table
+   in [Calling Java from Cangjie](#calling-java-from-cangjie) and
+   the [Automatic String Conversion](#automatic-string-conversion) subsection
+   below.
 
-8. Values of mirror types and interop classes:
+The following two limitations are Android/JVM specific:
 
-    * Must not escape to global or static Cangjie variables, nor to any
-      data structures to which such variables refer. The cjc compiler
-      does not enforce this restriction yet, so strict programming discipline
-      is required. Failure to comply with that discipline may lead to an abnormal
-      program termination.
+8. The Java counterparts of all mirror types and interop classes must all be
+   loaded by the same classloader.
 
-    * Must be explicitly disposed of when no longer needed. Best if at first
-      opportunity, but in any case before control returns to the JVM.
-      Failure to do so may result in memory leaks and the JVM throwing
-      an `OutOfMemoryError`.
-
-    See the section [Java Reference Management](#java-reference-management)
-    for details.
-
-The following three limitations are Android/JVM specific:
-
-9. Any Cangjie code that uses a mirror type or interop class type must be executed
-   in a thread registered in the Java VM. That may be a thread created in the Java
-   code or an O/S thread registered in (aka "attached to") the JVM using the Java
-   Invocation API. This is another requirement that must be met through programming
-   discipline and obedience in the current version, but may be enforced by the Cangjie
-   compiler in the future.
-
-10. The Java counterparts of all mirror types and interop classes must all be loaded
-    by the same classloader.
-
-11. Unlike Java and other JVM languages, Cangjie does not permit circular import
-    dependencies to exist between packages. That poses a challenge to the
-    mirror generation process. Refer to the
-    [Circular Import Dependencies Handling](#circular-import-dependencies-handling)
-    subsection for details.
+9. Unlike Java and other JVM languages, Cangjie does not permit circular import
+   dependencies to exist between packages. That poses a challenge to the
+   mirror generation process. Refer to the
+   [Circular Import Dependencies Handling](#circular-import-dependencies-handling)
+   subsection for details.
 
 
-# Java to Cangjie Mapping
+#### Automatic String Conversion
+
+Java and Cangjie string types, `java.lang.String` and `std.core.String`, are
+not binary compatible. A copying conversion is therefore required to enable the
+code written in one language to work with string data originating
+from the other. The built-in mirror type
+[`java.lang.JString`](#java-lang-jstring) facilitates such conversions
+by providing a special constructor that accepts a Cangjie string and uses its
+UTF-8 character data to construct a Java string containing the same characters
+in the UTF-16 encoding, and a member function `toString()` that does the reverse
+and returns a Cangjie string:
+
+```java
+public class J {
+    public static String s2s(String s) { ... }
+}
+```
+
+```cangjie
+@JavaMirror
+public class J {
+    public static func s2s(s: ?JString): ?JString
+}
+
+   .  .  .
+
+    let s: String = J.s2s(JString("Cangjie string")).getOrThrow().toString()
+```
+
+Any Cangjie code that passes Java string values over to regular Cangjie
+functions for further processing and/or transfers Cangjie strings to Java
+would certainly look cleaner and more compact without the calls of the form
+_`Java-string`_`.toString()` and `JString(`_`Cangjie-string`_`)`. However,
+converting _all_ Java string values automatically as they cross the
+inter-language border may lead to substantial CPU and memory overheads
+in certain scenarios. If Cangjie code does not actually manipulate a Java
+string, but merely passes it back to Java, or accesses it only in rare egde
+cases, or does not use it at all, the conversion is a waste of computational
+resources, which is undesirable in mobile applications.
+
+Instead, interop class writers may enable such automatic conversion selectively
+for specific constructor/member function parameters, member function return
+values and member properties that need to have the Java type `String` when they
+are exposed to Java. That is accomplished by permitting those entities to be
+declared as having the Cangjie type `String` instead of `JString`. The only
+limitation is that such member functions must not override methods of their
+mirrored Java supertypes (see note below). The generated Java wrappers use the
+Java `String` type in the respective places, and bridge code automatically
+converts string values between the two types when the methods and constructors
+of the wrapper class are invoked from Java.
+
+As usual, if support for receiving/returning `null` values is required, the type
+`?String` must be used instead of `String`.
+See [Null Handling](#java-null-handling) for details.
+
+
+**NOTES:**
+
+1. `String` and `JString` are distinct types that are not in a subtype
+   relationship. This means that member functions of interop classes that
+   override methods of their mirrored Java supertypes should use the same
+   parameter and return value type, `?JString` <!-- !!! and `?JArray<?JString>`, -->
+   for the `override` modifer to work as expected:
+
+   ```cangjie
+   @JavaMirror
+   public class J {
+       public func f(s: ?JString): Unit
+   }
+
+   @JavaImpl
+   public class CJ <: J {
+       override public func f(s: ?String): Unit {}   // Error
+       public func f(s: ?String): Unit {}            // Overloads, not overrides
+       override public func f(s: ?JString): Unit {}  // OK
+   }
+   ```
+
+   Although the manual replacement of `JString` with `String` in mirror type
+   declarations is also supported, that practice is discouraged for the above
+   reason, as the lack of subtyping may introduce unexpected, hard-to-diagnose
+   override/overload ambiguities if such replacement is not done 100%
+   consistently across all subtypes.
+
+2. `String` is not supported as the type argument
+   of [`java.lang.JArray<T>`](#java-lang-jarray-t),
+   so Java string arrays have to be mapped to `JArray<JString>`, or, more
+   likely, to `?JArray<?JString>`.
+
+
+
+## Java to Cangjie Mapping
 
 The current version of the mirror generator does the following Java
 → Cangjie conversions.
 
 
-## General Considerations {#java-general-considerations}
+### General Considerations {#java-general-considerations}
 
 The mirror generator takes Java _class_ files as input. Any information that
-the Java compiler does not propagate from Java source code to class files is
-therefore not available to the mirror generator. Most notably, this concerns
-[generics](#java-generics) and names of method parameters.
+the Java compiler does not propagate from Java source code to class files
+in the first place, or was removed afterwards, is therefore not available
+to the mirror generator. Most notably, this concerns [generics](#java-generics)
+and names of method parameters.
 
 
-## Names {#java-names}
+### Names {#java-names}
 
 The original names of Java types, fields and methods are preserved to the
 maximum possible extent. If the original name could not be preserved for
@@ -2305,7 +954,7 @@ via an annotation.
   ```
 
   ```cangjie
-  public static let `Int32`: Int64
+      public static let `Int32`: Int64
   ```
 
 * Java identifiers may contain characters that are not permitted in
@@ -2323,14 +972,14 @@ via an annotation.
   ```cangjie
   @JavaMirror["Outer"]
   public open class Outer {
-      public init() 
+      public init()
 
       public open func getInner(): ?Outer_Inner
   }
 
   @JavaMirror["Outer$Inner"]
   public open class Outer_Inner {
-      public init(p0: ?Outer) 
+      public init(p0: ?Outer)
   }
   ```
 
@@ -2392,7 +1041,7 @@ via an annotation.
   for details.
 
 
-## Primitive Types
+### Primitive Types
 
 Java primitive types are mirrored to the respective Cangjie value types:
 
@@ -2408,7 +1057,7 @@ Java Type        | Cangjie Type
 `double`         | `Float64`
 
 
-## Classes and Interfaces {#java-classes-and-interfaces}
+### Classes and Interfaces {#java-classes-and-interfaces}
 
 Java class and interface _definitions_ are mirrored respectively into Cangjie
 class and interface declarations annotated with `@JavaMirror`.
@@ -2428,10 +1077,11 @@ constructors, get wrapped in `Option<T>`
 Cangjie class/interface definitions in a few aspects:
 
 * The root of the Java mirror classes hierarchy is not `std.core.Object`,
-  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject)
+  but a built-in mirror class [`java.lang.JObject`](#java-lang-jobject),
+  which is an immediate subclass of `std.core.Object`.
 
 * The mirror for `java.lang.String` is also built-in, its name
-  is [`java.lang.JString`](#java.lang.jstring)
+  is [`java.lang.JString`](#java-lang-jstring).
 
 * Only the symbolic information is mirrored. Variable initializers
   and function/constructor bodies are omitted.
@@ -2460,11 +1110,11 @@ public open class Node {
 }
 ```
 
-Only public Java classes and interfaces are mirrored. Non-`final` classes
-are modified with `open`. The modifiers `sealed` and `non-sealed` are ignored,
-as well as the legacy modifier `strictfp`.
+Only `public` Java classes and interfaces are mirrored. Mirrors of non-`final`
+classes are modified with `open`. The modifiers `sealed` and `non-sealed` are
+ignored, as well as the legacy modifier `strictfp`.
 
-Private and package-private members and constructors, as well as static
+`private` and package-private members and constructors, as well as static
 and instance initializers, are not mirrored.
 
 If the names of a Java type member and its mirror differ for one of the
@@ -2477,8 +1127,8 @@ on the mirror member:
 ```
 
 ```cangjie
-@ForeignName["priceInUS$Per"]
-public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
+    @ForeignName["priceInUS$Per"]
+    public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
 ```
 
 > **NOTE:** The meaning of the access modifier `protected` is different
@@ -2503,16 +1153,18 @@ member variables. Variable initializers are omitted.
 **Methods** are mirrored into member functions with the respective mirror
 types substituted for parameter types and return value type. Mirrors of `void`
 methods have the `Unit` return type. Instance method names are preserved.
-Static method names are reserved as long as they don't [clash](#java-names)
+Static method names are preserved as long as they don't [clash](#java-names)
 with instance method names. The modifiers `public`, `protected` and `static`
 are preserved. The modifiers `native` and `synchronized` are ignored,
 as well as the legacy modifier `strictfp`. Mirrors of non-`final` methods
-are modified with `open`.
+are modified with `open`. The last parameter _`T`_`...`_`name`_ of a variable
+arity method is mirrored as if its type was _`T`_`[]`.
 
 **Constructors** are mirrored into `init` constructors with the respective
 mirror types substituted for parameter types. _This includes the default
 constructor that might have been implicitly declared._ The modifiers `public`
-and `protected` are preserved.
+and `protected` are preserved. The last parameter _`T`_`...`_`name`_
+of a variable arity constructor is mirrored as if its type was _`T`_`[]`.
 
 **NOTES:**
 
@@ -2555,19 +1207,19 @@ public class Outer {
 ```cangjie
 @JavaMirror["Outer"]
 public open class Outer {
-    public init() 
+    public init()
 
     public open func getInner(): ?Outer_Inner
 }
 
-@JavaMirror["Outer$Static"] // Original binary name is retained
-public open class Outer_Static { // '$' is replaced with '_'
-    public init() 
+@JavaMirror["Outer$Static"]       // Original binary name is retained
+public open class Outer_Static {  // '$' is replaced with '_'
+    public init()
 }
 
-@JavaMirror["Outer$Inner"] // Original binary name is retained
-public open class Outer_Inner { // '$' is replaced with '_'
-    public init(p0: ?Outer) // Extra parameter for enclosing instance
+@JavaMirror["Outer$Inner"]       // Original binary name is retained
+public open class Outer_Inner {  // '$' is replaced with '_'
+    public init(p0: ?Outer)      // Extra parameter for enclosing instance
 }
 ```
 
@@ -2589,7 +1241,7 @@ imposes the following syntax alterations:
   ```cangjie
   @JavaMirror["A"]
   public abstract class A {
-      public init() 
+      public init()
 
       public open func c(): Unit
 
@@ -2617,16 +1269,17 @@ imposes the following syntax alterations:
   }
   ```
 
-In methods with a variable number of parameters, `, ...` is ignored.
+In methods and constructors with a variable number of parameters, `, ...` is
+ignored.
 
 
-### Mirror Type Inheritance
+#### Mirror Type Inheritance
 
 Mirror classes and interfaces form separate subtype hierarchies, which
 means that:
 
-* The root of the Java mirror classes hierarchy is not `std.core.Object`,
-  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject).
+* The root of the Java mirror class hierarchy is not `std.core.Object`,
+  but a built-in mirror class [`java.lang.JObject`](#java-lang-jobject).
 
 * Mirror interfaces may inherit other mirror interfaces, reflecting
   the inheritance relationships between the original Java interfaces.
@@ -2643,20 +1296,41 @@ means that:
   interface `Any`. Regular Cangjie classes may not implement mirror
   interfaces.
 
+* Neither mirror classes may be extended using `extend`, nor any other type
+  may be interface-extended with a mirror interface.
 
-### Generics {#java-generics}
+* In Java, all interfaces are subtypes of the `java.lang.Object` class. That
+  works because only classes may implement interfaces in Java. The latter is not
+  the case in Cangjie, where all interfaces are subtypes of the built-in `Any`
+  interface, which is _not_ a subtype of `std.core.Object`. Hence, mirror
+  interfaces are _not_ subtypes of [`java.lang.JObject`](#java-lang-jobject)
+  and the below method `test()` may not be re-written in Cangjie:
 
-Java generics are erased during compilation, so the automatically
-generated mirror types are always non-parameterized and have type variables
-replaced with mirrors of their leftmost bounds.
+  ```java
+  public interface I {}
 
-It is not possible to declare a parameterized mirror type manually
-either.
+  public class C {
+      public static void accept(Object o) {}
+      static void test(I i) { accept(i); }     // Works in Java
+  }
+  ```
 
-The type `JArray<T>` (see [Arrays](#arrays)) is a special exception.
+
+#### Generics {#java-generics}
+
+Java generics are erased during compilation, and type arguments are not always
+present in class files anyway, so the automatically generated mirror types are
+non-parameterized, as if the raw types were mirrored. In particular, type
+variables are replaced with mirrors of their leftmost bounds.
+
+It is not possible to declare a parameterized mirror type manually either.
+The built-in type `JArray<T>` (see [Arrays](#arrays)) is a special exception.
+
+Mirror types may not be used as type arguments of conventional generic Cangjie
+types [other than `Option<T>`](#java-nil-handling).
 
 
-## Arrays
+### Arrays
 
 The special built-in type `java.lang.JArray<T>` is used to represent
 mirrors of Java arrays.
@@ -2675,7 +1349,7 @@ behind `Option<T>` wrapping.
 invariant, and the class `JArray<T>` is no exception.
 
 
-## Enum Classes
+### Enum Classes
 
 A Java enum class _`E`_ is mirrored into a Cangjie mirror class _`E'`_ that
 inherits the mirror of `java.lang.Enum` and is neither `open` nor `sealed`
@@ -2697,63 +1371,122 @@ The class _`E'`_ contains:
   enum class as if they were fields and methods of an [ordinary class](#java-classes-and-interfaces)
 
 
-## Special Considerations
+### Record Classes
 
+Java record classes are essentially syntactic sugar and are mirrored just
+like the equivalent regular classes
+(see [Classes And Interfaces](#java-classes-and-interfaces)).
 
+A Java record class definition effectively defines a regular Java class that:
 
-## `null` Handling {#java-null-handling}
+* Is `final`
+* Is not `abstract`
+* Is a direct subclass of `java.lang.Record`
+* Contains one or more component fields: `private` instance fields, each with
+  a matching accessor method
+* May contain `static` fields, but not instance fields other than component
+  fields
+* Contains a canonical constructor with parameters corresponding to component
+  fields
+* May contain other constructors
+* Overrides `java.lang.Object` methods `equals()`, `hashCode()` and `toString()`
+* Does not override other `java.lang.Object` methods
+
+**NOTE**: The methods `hashCode()` and `toString()` are renamed in the built-in
+mirror of `java.lang.Object`. See  [`java.lang.JObject`](#java-lang-jobject)
+for details.
+
+**Example:**
+
+```java
+public record Node (int value, Node next) {}
+```
+
+```cangjie
+@Java["Node"]
+public foreign class Node <: Record {
+    public init(value: Int32, next: ?Node)
+
+    public func toJString(): JString
+    public func hashCode32(): Int32
+    public func equals(o: ?JObject): Bool
+
+    public func value(): Int32
+    public func next(): ?Node
+}
+```
+
+### `null` Handling {#java-null-handling}
 
 Cangjie has no concept of null references and hence no equivalent for the Java
-null type. If the reference type of a Java method return value was mirrored
-direct to the respective mirror type, any `null` value returned from that
-method could lead to a segmentation fault. Conversely, there has to be a way
-to pass a `null` value from Cangjie to a Java method or constructor.
+null type. If Java reference types were mirrored direct to the respective
+mirror types, any `null` value returned to Cangjie from a Java method would
+result in a `NoneValueException`. That would also happens if Cangjie code
+accessed a member variable of such type mirroring a field containing `null`.
+Conversely, if Java called an [interop class](#interop-class) method and
+passed `null` as one of the parameters, the Java `NullPointerException` would
+gets thrown.
 
-Therefore, if the original Java type of a field, array element,
-method/constructor parameter or method return value is a reference type _`R`_,
-the mirror of that _entity_ will have the type `Option<`_`R'`_`>`, where _`R'`_
+Finally, there also has to be a way to pass a `null` value from Cangjie
+to a Java method or constructor designed to accept it.
+
+To enable safe passing of Java `null` values across the inter-language border
+and within Cangjie code, the mirroring rules for Java reference types are
+extended as follows:
+
+If the original Java type of a field, array element, method/constructor
+parameter or method return value is a reference type _`R`_, the automatically
+generated mirror of that _entity_ has the type `Option<`_`R'`_`>`, where _`R'`_
 is the mirror of the _type_ _`R`_. On the Cangjie side, `None` stands for the
 `null` value, and `Some(`_`r'`_`)` represents a (non-null) reference value
 _`r'`_ of the type _`R'`_. The `cjc` compiler recognizes `Option<T>`
-as a Java-compatible type if `T` is a mirror type or interop class and
-wraps/unwraps the values of `T` accordingly.
+as a [Java-compatible type](#java-compatible-types) if `T` is a mirror type
+and wraps/unwraps the values of `T` accordingly.
 
 For instance, consider the following Java interface:
 
 ```java
-interface Concatenator {
-    String concat(String[] ss);
+public interface I {
+    Object f(Object[] xs);
 }
 ```
 
-The `ss` parameter itself may be `null`, each element of the `ss` array may be
-`null` and the `concat` method may return `null`. Therefore, the _safe_ way
+The `xs` parameter itself may be `null`, each element of the `xs` array may be
+`null` and the `f` method may return `null`. Therefore, the _safe_ way
 to mirror that interface is as follows:
 
 ```cangjie
 @JavaMirror
-interface Concatenator {
-    func concat(ss: ?JArray<?JString>): ?JString
+public interface I {
+    func f(xs: ?JArray<?JObject>): ?JObject
 }
 ```
 
-For the same reason, you should use `Option<T>` wrapping when declaring
+`Option<T>` wrapping also fully applies to [interop classes](#interop-classes),
+as values of such types may be passed to/from Java. Furthermore, its application
+to the types of parameters of interop class member functions and constructors
+exposed to Java and to the types of return values of such member fuhctions is
+recommended.
+
+And for the same reason, you should use `Option<T>` wrapping when declaring
 a local variable of a foreign type in the code of an interop class, unless you
 are 100% sure that it won't be assigned `null`.
 
 ```cangjie
-// Suppose M is a Java mirror type
-let m: M = M() // If M() returns successfully, it is guaranteed
-// to have returned a new instance of M
+    // Suppose M is a Java mirror type
+    let m: M = M()     // If M() returns successfully, it is guaranteed
+                       // to have returned a new instance of M
 ```
 
-The `Option<T>` wrapping ensures that the code won't break if a `null` value
-sneaks into the Cangjie world from the Java one, but it does that at the cost
-of performance and memory footprint. The other disadvantage of this approach is
-the [loss of variance](#loss-of-variance).
+All in all, `Option<T>` wrapping ensures that the code won't break if a `null`
+value sneaks into the Cangjie world from the Java one, but it does that at the
+cost of performance and memory footprint. The other disadvantages of this
+approach are the [loss of variance](#loss-of-variance) and more cumbersome
+[type testing and conversion](#null-aware-type-testing-and-conversion).
 
 
-### Loss of Variance
+
+#### Loss of Variance
 
 One limitation imposed by the [`Option<T>` wrapping](#java-null-handling)
 of Java mirror types and interop classes is that such wrapped types follow
@@ -2808,11 +1541,11 @@ public interface C {
 
 @JavaMirror
 public interface D <: C {
-    public open override func get(): Bar // Return type covariance in action
+    public override open func get(): Bar       // Return type covariance in action
 }
 ```
 
-but if `get()` can possibly return `null`, an application crash is inevitable.
+but if `get()` can possibly return `null`, an exception is inevitable.
 
 `Option<T>` wrapping makes it safe, but the return types of all overriding
 methods have to be lowered to the return type of the original method:
@@ -2832,7 +1565,7 @@ public open interface C {
 @JavaMirror
 public open interface D <: C {
     // public open func get(): ?Bar    // Error, `Option<T>` is not covariant by T
-    public open func get(): ?Foo // OK, but the return type is lowered
+    public open func get(): ?Foo       // OK, but the return type is lowered
 }
 ```
 
@@ -2840,17 +1573,80 @@ Nullability annotations could partially alleviate the problem, but the current
 version of the Cangjie SDK does not support them.
 
 
-## Circular Import Dependencies Handling
+#### `null`-aware Type Testing And Conversion
+
+**IMPORTANT:** Nullable values of foreign types, represented using `Option<T>`
+wrapping, need to be null-tested and unwrapped before type testing and
+conversion, for two reasons:
+
+1. Cangjie generics are invariant with respect to their type arguments,
+   so _`e`_` is Option<`_`T`_`>` evaluates to `true` only if the type of the
+   expression _`e`_  is `Option<`_`T`_`>` specifically,
+   not some `Option<`_`U`_`>` where _`U`_` <: `_`T`_.
+
+   For the same reason, you cannot upcast or downcast `Option<T>`-wrapped
+   values:
+
+   ```cangjie
+   open class Foo {}
+   class Bar <: Foo {}
+      .  .  .
+       let bar: Bar = Bar()
+       let foo: Foo = bar                         // OK
+       let bar2: Bar = (foo as Bar).getOrThrow()  // OK
+
+
+       let maybeBar: ?Bar = Some(Bar())
+       let maybeFoo: ?Foo = maybeBar              // Error: mismatched types
+       let maybeBar2: ?Bar = (maybeFoo as Option<Bar>).getOrThrow()
+                                                  // Throws NoneValueException
+   ```
+
+   > **HINT:** Use the `Option` type member functions `.map()` and `.flatMap()`
+   > to write shorthands for upcasts and downcasts respectively:
+   >
+   > ```cangjie
+   >     // Upcast (from subtype to supertype):
+   >     // - Lambda return type is inferred from variable type, 'as' not needed
+   >     let maybeFoo: ?Foo = maybeBar.map{ bar => bar }
+   >
+   >     // Downcast (from supertype to subtype):
+   >     // - Lambda return type is inferred from lambda body
+   >     // - flatMap() removes excessive Option wrappers, unlike map()
+   >     let maybeBar2 = maybeFoo.flatMap{ foo => foo as Bar }
+   > ```
+
+2. In Java, `null instanceof `_`T`_ evaluates to `false` for any reference
+   type _`T`_. In Cangjie, _`e`_` is Option<`_`T`_`>` evaluates to `true`
+   if _`e`_ evaluates to `Option<`_`T`_`>.None`.
+
+   > **HINT:** The semantics of the Java type comparison operator `instanceof`
+   > may be replicated in Cangjie as follows:
+   >
+   > ```java
+   > // Java:
+   > void f(o: Object) {
+   >     if (o instanceof T) { ... }
+   > }
+   > ```
+   >
+   > ```cangjie
+   > // Cangjie:
+   > func f(o: ?JObject): Unit {
+   >     if (let Some(t) <- o && t is T) { ... }
+   > }
+   > ```
+
+
+
+
+### Circular Import Dependencies Handling
 
 Circular dependencies between packages are not only possible, but omnipresent
-in Java. For instance, the ubiquitous class `java.lang.String` depends on:
-
-* the interface `Serializable` from the `java.io` package,
-* the class `Charset` from  `java.nio.charset`, and
-* the class `Locale` from `java.util`,
-
-and all those three types of course depend on the class `Object`
-from `java.lang`!
+in Java. For instance, the ubiquitous class `java.lang.String` depends on
+the class `Charset` from the package `java.nio.charset` and the class `Locale`
+from `java.util`. And those two classes of course depend on the class `Object`
+from the package `java.lang`, to which `String` belongs!
 
 Compilation to separate `.class` files and late binding effectively circumvent
 this problem in Java. For a Cangjie import declaration to compile, however,
@@ -2862,7 +1658,7 @@ file. Hence circular import dependencies between packages are not possible
 in Cangjie code.
 
 
-### Single-Package Mode
+#### Single-Package Mode
 
 The above [difference](#circular-import-dependencies-handling) between the
 two languages precludes the preservation of Java package names during mirror
@@ -2876,7 +1672,7 @@ For instance, if you run the mirror generator with the following option:
 
 it will place all generated mirror type declarations in the `java.world`
 package and propagate the fully qualified names of the original Java types
-to the `cjc` compiler via arguments of the `@JavaMirror` annotations:
+to the `cjc` compiler as the arguments of `@JavaMirror` annotations:
 
 ```cangjie
 package java.world
@@ -2884,11 +1680,12 @@ package java.world
 import java.lang.*
 
 @JavaMirror["java.lang.Cloneable"]
-public interface Cloneable {}
+public interface Cloneable {
+}
 ```
 
 
-### Name Clashes
+#### Name Clashes
 
 Java types declared in different packages may have the same simple name,
 because their fully qualified names are different. For example, there is
@@ -2923,7 +1720,7 @@ public interface javax_naming_directory_Attribute <: Cloneable & Serializable {
 ```
 
 
-### Incremental Mirroring
+#### Incremental Mirroring
 
 Putting all Java mirror types into a single Cangjie package such
 as `java.world` not only leads to [name clashes](#name-clashes), but
@@ -2946,9 +1743,9 @@ segregated into three Cangjie packages, respectively code-named "`app`",
 
 Furthermore, the JDK API has been modularized since Java 9, and circular
 import dependencies may _not_ exist between Java modules. Therefore it is
-perfectly possible to replicate the structure of the JDK API _modules_
+perfectly possible to replicate the structure of JDK API _modules_
 during mirroring. For instance, the Cangjie package `java.base` would
-then contain mirrors of types from the packages exported from the
+then contain mirrors of types defined in the packages exported from the
 `java.base` JDK API module: `java.lang` and its subpackages,
 `java.io`, `java.math`, and so on.
 
@@ -2976,77 +1773,85 @@ they may have that are _not_ already on the list (2). Then it appends all
 newly established Java → Cangjie name mappings to the list (2).
 
 
-#### Command-line Syntax {#incremental-mirroring-command-line-syntax}
+##### Command-line Syntax {#incremental-mirroring-command-line-syntax}
 
 Incremental mirroring is only supported in the single-jar mode at present,
-which means that the second variant
-of the mirror generator [command-line syntax](#jmg-command-line-syntax)
-has to be used:
+which means that the [mirror generator command line](#jmg-command-line-syntax)
+must set system property `jar.mode` to `true` and pass the pathname of a
+jar file as an argument, not fully qualified type names:
 
-`java-mirror-gen [`_`options`_`] -jar `_`jar-file`_
-
-_`options`_ must include the following:
-
-`--package-name `_`target-package-name`_
-
-_`target-package-name`_ is the name of the target Cangjie package.
-The mirror generator will place _all_ mirror types into that package.
-
-**IMPORTANT: You must specify a new, previously unused target Cangjie
-package name every time you run the mirror generator in the incremental mode.
-If you mirror some types into, say, `my.java.libs` package in the first
-run of the mirror generator using `--package-name my.java.libs` and
-run it again against different input but without changing the value
-of `--package-name`, that would completely invalidate the results
-of mirroring, making them inconsistent.**
-
-> In a certain sense, a target Cangjie package is the minimal unit
-> of mirroring, just like a source Cangjie package is the minimal unit
-> of compilation when you develop in Cangjie: you cannot compile two
-> Cangjie source files belonging to the same package separately.
-
-`--package-list `_`pathname`_
-
-_`pathname`_ must point to a plain text file that contains a list
-of Java package names. Specifically, each line of that file must be
-a fully qualified package name, optionally followed by a wildcard `.*`:
-
-```
-com.example.model
-com.example.ui.*
-   .  .  .
+```shell
+java -Djar.mode=true \
+    system-properties \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    options \
+    jar-file
 ```
 
-**NOTICE:** If the wildcard is present, that entry matches all subpackages
-of the named package _and_ that package itself. This is different from
-the semantics of the wildcard in Java and Cangjie import statements.
+_`system-properties`_ must include the following:
 
-The generator will emit mirrors for _all_ non-anonymous non-private types
-defined in the listed packages _and_ all their dependencies _except_
-for the dependencies that are already present in the import mappings file,
-if any. All those mirror types will be placed in a single Cangjie package
-specified using the `--package-name` option (see above).
+* `-Dpackage.mode=true`
 
-This option may only be used in the single-jar mode.
+* `-Dpackage.name=`_`target-package-name`_
 
-`--import-mappings `_`import-mappings-file`_
+  _`target-package-name`_ is the name of the target Cangjie package.
+  The mirror generator will place _all_ mirror types into that package.
 
-_`import-mappings-file`_ is the pathname of the _import mappings file_,
-a plain text file that accumulates a set of Java to Cangjie fully qualified
-name mappings for all mirror types as they are generated. The mirror generator
-reads that file at startup and does _not_ mirror the Java types for which
-mappings already exist, assuming that they were mirrored on its prior
-invocation(s). If mirroring completes without errors, the mirror generator
-adds the mappings for all mirrors it has just generated to the set and writes
-it out to the `./imports_config.txt` file before termination.
+  **IMPORTANT: You must specify a new, previously unused target Cangjie
+  package name every time you run the mirror generator in the incremental mode.
+  If you mirror some types into, say, `my.java.libs` package in the first
+  run of the mirror generator using `-Dpackage.name=my.java.libs` and
+  run it again against different input but without changing the value
+  of `package.name`, that would completely invalidate the results
+  of mirroring, making them inconsistent.**
 
-**NOTE:** If _`import-mappings-file`_ is set to `./imports_config.txt`, that
-file will get overwritten. Make a copy after each incremental run of the mirror
-generator if you want to keep the intermediate sets of mappings,
-e.g. for debugging purposes.
+  > In a certain sense, a target Cangjie package is the minimal unit
+  > of mirroring, just like a source Cangjie package is the minimal unit
+  > of compilation when you develop in Cangjie: you cannot compile two
+  > Cangjie source files belonging to the same package separately.
+
+* `-Djar.mode.packages=`_`pathname`_
+
+  _`pathname`_ must point to a plain text file that contains a list
+  of Java package names. Specifically, each line of that file must be
+  a fully qualified package name, optionally followed by a wildcard `.*`:
+
+  ```text
+  com.example.model
+  com.example.ui.*
+     .  .  .
+  ```
+
+  **NOTICE:** If the wildcard is present, that entry matches all subpackages
+  of the named package _and_ that package itself. This is different from
+  the semantics of the wildcard in Java and Cangjie import statements.
+
+  The generator will emit mirrors for _all_ non-anonymous non-private types
+  defined in the listed packages _and_ all their dependencies _except_
+  for the dependencies that are already present in the import mappings file,
+  if any. All those mirror types will be placed in a single Cangjie package
+  specified using the `--package-name` option (see above).
+
+  This option may only be used in the single-jar mode.
+
+* `-Dimports.config=`_`import-mappings-file`_
+
+  _`import-mappings-file`_ is the pathname of the _import mappings file_,
+  a plain text file that accumulates a set of Java to Cangjie fully qualified
+  name mappings for all mirror types as they are generated. The mirror generator
+  reads that file at startup and does _not_ mirror the Java types for which
+  mappings already exist, assuming that they were mirrored on its prior
+  invocation(s). If mirroring completes without errors, the mirror generator
+  adds the mappings for all mirrors it has just generated to the set and writes
+  it out to the `./imports_config.txt` file before termination.
+
+  **NOTE:** If _`import-mappings-file`_ is set to `./imports_config.txt`, that
+  file will get overwritten. Make a copy after each incremental run of the mirror
+  generator if you want to keep the intermediate sets of mappings,
+  e.g. for debugging purposes.
 
 
-### Example: JDK API Mirroring
+#### Example: JDK API Mirroring
 
 As mentioned [above](#incremental-mirroring), the JDK API is modularized,
 so one could look at the
@@ -3055,20 +1860,21 @@ and their dependency graphs, collect lists of exported packages, and run the
 mirror generator using the following command line template:
 
 ```bash
-java-mirror-gen \
-    --android-jar /path/to/android.jar \
-    --package-name java.base \
-    --package-list ./java.base.txt \
-    --import-mappings ./imports_config.txt \
-    --destination src/cj \
-    --class-path /path/to/android/SDK/platform/files/directory \
-    -jar /path/to/android.jar
+java \
+    -Dpackage.name=java.base \
+    -Djar.mode.packages=./java.base.txt \
+    -Dimports.config=./imports_config.txt \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path /path/to/android.jar \
+    --d src/cj \
+    --class-path /path/to/android.jar:/path/to/android/SDK/platform/files/directory \
+    /path/to/android.jar
 ```
 
 The file `./java.base.txt` should contain the list of packages exported
 from the `java.base` JDK API module _for public use_:
 
-```
+```text
 java.io
 java.lang
 java.lang.annotation
@@ -3106,7 +1912,7 @@ only the values of two options:
   containing the list of packages exported from the `java.xml` JDK API
   module:
 
-  ```
+  ```text
   javax.xml.*
   org.w3c.dom
      .  .  .
@@ -3119,14 +1925,15 @@ that package _and_ all its subpackages at once. In the above excerpt,
 and so on.
 
 ```bash
-java-mirror-gen \
-    --android-jar /path/to/android.jar \
-    --package-name java.xml \
-    --package-list ./java.xml.txt \
-    --import-mappings ./imports_config.txt \
-    --destination src/cj \
-    --class-path /path/to/android/SDK/platform/files/directory \
-    -jar /path/to/android.jar
+java \
+    -Dpackage.name=java.xml \
+    -Djar.mode.packages=./java.xml.txt \
+    -Dimports.config=./imports_config.txt \
+    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path /path/to/android.jar \
+    --d src/cj \
+    --class-path /path/to/android.jar:/path/to/android/SDK/platform/files/directory \
+    /path/to/android.jar
 ```
 
 `./src/cj/java/xml/src` should now contain mirror declarations for all
@@ -3139,7 +1946,7 @@ itself.
 
 
 
-### Using Incremental Mirroring
+#### Using Incremental Mirroring
 
 You can use [incremental mirroring](#incremental-mirroring) to segregate
 arbitrary components of the application code that need to be used
@@ -3165,7 +1972,7 @@ between them. Then use the incremental mirroring process described above:
    package name_.
 
 
-## Closure Depth Limiting
+### Closure Depth Limiting
 
 In addition to numerous
 [circular import dependencies between packages](#circular-import-dependencies-handling),
@@ -3182,7 +1989,7 @@ public enum E {}
 makes it also generate mirrors for `java.lang.Enum` _and all its dependencies_
 from the standard Java library, about 300 mirror types total:
 
-```
+```text
 AbstractInterruptibleChannel.cj
 AbstractStringBuilder.cj
 AccessControlContext.cj
@@ -3207,7 +2014,7 @@ six mirror types in addition to the mirror of the type `E` itself: the enum
 base class `java.lang.Enum`, three interfaces that it implements, and the
 return types of two of its methods:
 
-```
+```text
 Class.cj
 Comparable.cj
 Constable.cj
@@ -3357,10 +2164,10 @@ Here is how depth limiting works exactly:
   include mirrors of the class `C` and the method `A.f(C)` in its output.
 
 
-# Java Mirror Generator Reference
 
+## Java Mirror Generator Reference
 
-## Prerequisites
+### Prerequisites
 
 The Java mirror generator requires a copy of JDK 17 to run.
 If you do not have JDK 17 installed and added to your executable search `PATH`
@@ -3373,22 +2180,30 @@ includes the Android standard library jar as well as the jars that will appear
 on the classpath when your application launches.
 
 
-## Command-line Syntax {#jmg-command-line-syntax}
+### Command-line Syntax {#jmg-command-line-syntax}
 
 The Java mirror generator can be run in two ways:
 
-`java-mirror-gen [`_`options`_`] [`_`type-names`_`]`
+`java [ `_`system-properties`_` ] \`\
+`    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \`\
+`    [ `_`options`_` ] `_`type-names`_`                                  `_(default mode)_
 
 to generate mirrors for one or more Java classes and/or interfaces _and_ all
 their dependencies, _or_
 
-`java-mirror-gen [`_`options`_`] -jar `_`jar-file`_     _(single-jar mode)_
+`java -Djar.mode=true [ `_`system-properties`_` ] \`\
+`    -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \`\
+`    [ `_`options`_` ] `_`jar-file`_`                                    `_(single-jar mode)_
 
 to generate mirrors for all types the `.class` files of which the given
 _`jar-file`_ contains _and_ all their dependencies residing elsewhere
 on the supplied class path, if any,
 
 where
+
+* _`system-properties`_ are certain Java system properties that the
+  mirror generator recognizes, set using the `-D` option of the `java`
+  launcher.
 
 * _`options`_ are the [command-line options](#command-line-options)
   of the mirror generator.
@@ -3405,17 +2220,15 @@ set of mirrored types and/or their members during each invocation
 of the mirror generator.
 
 
-## Command-line Options
+### Command-line Options
 
-* `-a `_`pathname`_, `-android-jar `_`pathname`_   _(mandatory)_
+* `--boot-class-path `_`pathname`_   _(mandatory)_
 
     _`pathname`_ must point to the `android.jar` file from the Android SDK
     used to build the Java part of the application. This option must always
-    be present and point to an existing file, otherwise the script shall
-    fail with an error message.
+    be present and point to an existing file.
 
-
-* `-d `_`directory`_, `--destination `_`directory`_
+* `-d `_`directory`_
 
     _`directory`_ is the pathname of the directory into which the mirror
     generator shall place its output Cangjie source code files containing
@@ -3423,56 +2236,14 @@ of the mirror generator.
     conforming to CJPM requirements.
     If this option is not specified, the current directory is assumed.
 
-
-* `-cp `_`path`_, `--class-path `_`path`_
+* `-cp `_`path`_, `--class-path `_`path`_    _(mandatory)_
 
     _`path`_ is a list of pathnames of directories, jar files and zip files,
     separated with semicolons `;` on Windows and colons `:` on all other
     platforms. The mirror generator shall go through those directories and
     archives when looking for the class files of the Java types specified
     on the command line (_`type-names`_) _and_ their dependencies.
-
-
-* `-p `_`name`_, `--package-name `_`name`_   _(mandatory?)_
-
-    _`name`_ is the name of the Cangjie package into which all generated
-    mirror types will be placed.
-    See [Single-Package Mode](#single-package-mode) for details.
-
-
-* `-c `_`number`_, `--closure-depth-limit `_`number`_
-
-    _`number`_ is a non-negative decimal integer limiting the depth
-    of dependency graph scanning when determining the set of types
-    and their members that will be mirrored.
-
-    See [Closure Depth Limiting](#closure-depth-limiting) for details.
-
-
-* `-jar `_`jar-file`_
-
-    _`jar-file`_ is the pathname of the jar file to be processed in the
-    "single-jar" mode (see [Command-Line Syntax](#jmg-command-line-syntax)
-    above).
-
-
-* `-l `_`pathname`_, `--package-list `_`pathname`_
-
-    _`pathname`_ is the pathname of a plain text file containing a list
-    of package names. Only the class files that belong to the listed
-    packages _and_ their dependencies will be mirrored. Requires `-jar`.
-    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
-    in the [Incremental Mirroring](#incremental-mirroring) section for details.
-
-
-* `-i `_`pathname`_, `--imports `_`pathname`_
-
-    _`pathname`_ is the pathname of a plain text file containing
-    mirror type mappings accumulated during previous mirror generator
-    runs. Requires `-l` and `-jar`.
-    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
-    in the [Incremental Mirroring](#incremental-mirroring) section for details.
-
+    _`path`_ must begin with the pathname of the `android.jar` file.
 
 * `-h`, `-?`, `--help`
 
@@ -3480,37 +2251,72 @@ of the mirror generator.
     and all options and exits.
 
 
-* `-v`, `--verbose`
+### System Properties
 
-    Instructs the mirror generator to emit messages about what it is doing.
+* `-Dpackage.mode=true`   _(mandatory)_
 
+    Must always be specified in the current version.
 
+* `-Dpackage.name=`_`name`_   _(mandatory)_
 
-## Examples
+    _`name`_ is the name of the Cangjie package into which all generated
+    mirror types will be placed.
+    See [Single-Package Mode](#single-package-mode) for details.
 
-```sh
-java-mirror-gen \
-    -android-jar $ANDROID_SDK/platforms/android-35/android.jar \
-    -class-path ./classes \
-    -destination ./mirrors \
-    -p com.example \
+* `-Dgen.closure.depth=`_`number`_
+
+    _`number`_ is a non-negative decimal integer limiting the depth
+    of dependency graph scanning when determining the set of types
+    and their members that will be mirrored.
+
+    See [Closure Depth Limiting](#closure-depth-limiting) for details.
+
+* `-Djar.mode=true`
+
+    Single-jar mode of operation
+    (see [Command-Line Syntax](#jmg-command-line-syntax) above).
+
+* `-Djar.mode.packages=`_`pathname`_
+
+    _`pathname`_ is the pathname of a plain text file containing a list
+    of package names. Only the class files that belong to the listed
+    packages _and_ their dependencies will be mirrored. Requires single-jar mode.
+    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
+    in the [Incremental Mirroring](#incremental-mirroring) section for details.
+
+* `-Dimports.config=`_`pathname`_
+
+    _`pathname`_ is the pathname of a plain text file containing
+    mirror type mappings accumulated during previous mirror generator
+    runs. Requires single-jar mode and `-Djar.mode.packages`.
+    See [Command-Line Syntax](#incremental-mirroring-command-line-syntax)
+    in the [Incremental Mirroring](#incremental-mirroring) section for details.
+
+### Examples
+
+```shell
+java -Dpackage.mode=true -Dpackage.name=com.example \
+     -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path ${ANDROID_SDK}/platforms/android-35/android.jar \
+    --class-path ${ANDROID_SDK}/platforms/android-35/android.jar:App.jar \
+    -d ./mirrors \
     com.example.subpkg1.A com.example.subpkg2.B
 ```
 
-```sh
-java-mirror-gen \
-    -a $ANDROID_SDK/platforms/android-35/android.jar \
-    -cp ./lib \
+```shell
+java -Djar.mode=true -Dpackage.mode=true -Dpackage.name=com.example \
+     -jar ${CANGJIE_HOME}/tools/bin/java-mirror-gen.jar \
+    --boot-class-path ${ANDROID_SDK}/platforms/android-35/android.jar \
+    --class-path ${ANDROID_SDK}/platforms/android-35/android.jar:./Lib.jar \
     -d ./mirrors \
-    -p javaworld \
-    -jar App.jar
+    App.jar
 ```
 
 For a more complex example, see
 [Example: JDK API Mirroring](#example-jdk-api-mirroring).
 
 
-# Interop Library API Reference
+## Interop Library API Reference
 
 The Android interop library includes enhanced versions of mirror types
 for two fundamental Java classes, `java.lang.Object` and `java.lang.String`,
@@ -3524,7 +2330,7 @@ They also have some methods renamed and new methods added to enhance
 interoperability.
 
 
-## `java.lang.JObject`
+### `java.lang.JObject`
 
 `java.lang.JObject` is the root of the hierarchy of Java mirror classes
 and interop classes. It is itself a mirror of the `java.lang.Object`
@@ -3543,12 +2349,10 @@ open class JObject {
     public open func equals(obj: ?JObject): Bool
 
     public func hashCode(): Int64
-
     @ForeignName["hashCode"]
     public open func hashCode32(): Int32
 
     public func toString(): String
-
     @ForeignName["toString"]
     public open func toJString(): JString
 
@@ -3608,7 +2412,7 @@ An implementation of Java `toString` is very unlikely to return `null`, hence
 the return type is `JString`, not `?JString`.
 
 
-## `java.lang.JString`
+### `java.lang.JString`
 
 ```cangjie
 package java.lang
@@ -3633,12 +2437,12 @@ and return values of non-private member functions and constructors of mirror
 types and interop classes. This is only possible because the `cjc` compiler
 has dedicated support for `JString`.
 
-Members inherited from [`JObject`](#java.lang.jobject):
+Members inherited from [`JObject`](#java-lang-jobject):
 `equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
 methods.
 
 
-## `java.lang.JArray<T>`
+### `java.lang.JArray<T>`
 
 `JArray<T>` is a special built-in generic mirror type that mirrors all Java array
 types. `T` must be either a value type mapped to a primitive Java type, such as
@@ -3679,8 +2483,173 @@ public operator func [](index: Int32, value!: T): Unit
 
 The element access operator `[]`.
 
-Members inherited from [`JObject`](#java.lang.jobject):
+Members inherited from [`JObject`](#java-lang-jobject):
 `equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
 methods.
+
+
+## Execution
+
+### Java Class Loaders
+
+The Java counterparts of all mirror types _and_ interop classes must be
+loaded by the same class loader.
+
+
+### Initialization
+
+All Cangjie global variables are initilaized and the static initializers of all
+Cangjie types are called when control first reaches Cangjie code, that is, when
+any [interop class](#interop-class) is used in Java code for the first time.
+
+If all that Cangjie initialization code uses any mirror types or interop classes
+other than the one that has triggered initialization and its supertypes, the
+respective Java types also get initialized, with a cascading effect on their
+supertypes.
+
+In other words, a considerable number of Java classes and interfaces may get
+loaded and initialized all at once when control first reaches Cangjie code
+in the interop scenario. If that happens at application startup, it will take
+longer and the _initial_ memory footprint of the application will be higher than
+if the same application logic was coded entirely in Java or some other JVM
+language. The relative order of Java classes and interfaces initialization may
+also be different. All that is expected behavior.
+
+> Java classes and interfaces are initialized on first use, which can be one of:
+> class instantiation, `static` method invocation, assignment to a `static`
+> field, retrieval of the value of a `static` field that is not a constant
+> variable, subclass initialization, implementing class initialization (only if
+> the interface declares default methods), or the invocation of certain
+> reflective methods.
+
+
+### Finalization
+
+#### Java Finalizers
+
+Interop classes may not implement the `finalize()` method of `java.lang.Object`.
+The built-in mirror of that class, [`java.lang.JObject`](#java-lang-jobject),
+does not even declare that method.
+
+> An attempt to define a Java finalizer in an interop class:
+>
+> ```cangjie
+> @JavaImpl
+> public class C {
+>        .  .  .
+>     public func finalize(): Unit {
+>            .  .  .
+>     }
+>
+> }
+> ```
+>
+> would actually result in a name clash and compile-time error, because the
+> interop-enabling code uses Java finalizers for its own purposes.
+
+
+#### Cangjie Finalizers
+
+A mirror class declaration cannot contain a Cangjie finalizer (`~init()`).
+
+It is **TBD** whether an [interop class](#interop-classes) can contain
+a finalizer.
+
+
+### Exceptions
+
+Both Java and Cangjie feature exceptions - events that interrupt the normal
+control flow of the program, usually to signal that a non-fatal execution error
+has occurred and needs to be handled.
+
+In the bidirectional interop scenario supported by CJMP, control may pass
+between methods/functions written in different languages multiple times
+in a chain of nested calls. As a result, there may be a number of Java and
+Cangjie frames interspersed on the thread stack when an exception gets thrown
+in either Java or Cangjie code. That in turn means that the stack unwinding
+process may need to cross a language boundary. Here is how that works:
+
+If the call of a Java constructor of method from Cangjie code completes abruptly
+due to an uncaught Java exception, a Cangjie exception with the following
+characteristics is thrown immediately:
+
+* If the Java exception is an `Error` (i.e. its type is `java.lang.Error`
+  or its subclass), the Cangjie exception is also an `Error`, otherwise it is
+  an `Exception`.
+
+* The value of the `message` property _contains_ the message returned by the
+ `getMessage()` method of the Java exception.
+
+* The elements of the array returned by `getStackTrace()` are **TBD**.
+
+If that new Cangjie exception in turn does not get caught before the stack
+unwinding process reaches a Java frame again, the original Java exception
+gets re-thrown and the whole process is repeated. (There may be no such Java
+frame if the thread was created by Cangjie `spawn`, in which case **TBD**.)
+
+If an exception gets thrown somewhere within Cangjie code, that is, _not_ as
+a result of an abrupt completion of a cross-language call from Cangjie to Java
+as described in the preceding paragraphs, and the stack unwinding process
+in turn reaches a Java frame, a Java exception (`java.lang.Exception`) with the
+following characteristics gets thrown:
+
+* The string that its `getMessage()` method returns contains the value of the
+  `message` property of the Cangjie exception.
+
+* The elements of the array returned by `getStackTrace()` are **TBD**.
+
+That Java exception does _not_ retain any intformation about the original
+Cangjie exception other than the message associated with the latter, and is
+processed further as if it was a Java exception in the first place
+(see above for details).
+
+There is no way to `throw` a Java exception in Cangjie code or vice versa.
+
+
+### Memory Management
+
+Java and Cangjie objects reside in separate heaps. The respective language
+runtime manages each of the two heaps. The interop library and bridge code
+ensure that objects in one language heap do not get garbage collected
+if references to them still exist in variables and data structures of the other
+language.
+
+**IMPORTANT: The mechanism that ensures the consistency of both heaps in the
+presence of cross-language references has two significant limitations that must
+be understood and remembered at all times when using the interop facilities:**
+
+1. The Android VM imposes hard limits on the number of Java heap objects
+   references to which may exist simultaneously _outside_ the VM, in particular
+   in Cangjie variables and data structures. It is therefore recommended
+   to avoid storing such references in global Cangjie variables and long-lived
+   data structures as much as practically possible. **NOTE:** This includes
+   instances of both mirror types and interop classes.
+
+   Moreover, the efficiency and timing of release of those references when
+   they are no longer needed on the Cangjie side depends entirely on the Cangjie
+   garbage collector. Even if a reference is short-lived from the application
+   developer perspective, that does not mean it gets released immediately when
+   e.g. the last Cangjie variable holding it gets assigned a new value.
+   Traversing a large Java array or collection in Cangjie code in a loop could
+   create thousands of such references. That may cause the application to hit
+   the aforementioned hard limit of the Android VM before the Cangjie garbage
+   collector is invoked. The application would then terminate abnormally as if
+   it has run out of memory.
+
+
+2. As Java and Cangjie garbage collectors each operate solely within their
+   respective managed environments, inter-language circular references may lead
+   to memory leaks. The creation of such references must be either avoided
+   altogether, or accompanied with logic that would break such cycles before the
+   objects forming the cycles become unreachable from both Java and Cangjie
+   parts of the application code.
+
+
+### Threads
+
+A thread created by Cangjie `spawn` gets attached to the JVM automatically
+as a daemon thread when it first crosses the border between two
+languages: instantiates a mirror/interop class, calls its `static` method that
+is not (re)defined in Cangjie, etc.
 
 
