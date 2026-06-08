@@ -28,7 +28,7 @@ import std.io.*
 
 如果构造一个 `BufferedInputStream`，只需要在构造函数中传入另一个输入流。如果需要指定缓冲区的大小，也可以额外传入 `capacity` 参数进行指定。
 
-BufferedInputStream 构造示例：
+`BufferedInputStream` 构造示例：
 
 <!-- run -->
 
@@ -48,7 +48,7 @@ main(): Unit {
 }
 ```
 
-`BufferedOutputStream` 的作用是为另一个输出流添加缓冲的功能。BufferedOutputStream 也是通过一个内部缓冲数组实现的。
+`BufferedOutputStream` 的作用是为另一个输出流添加缓冲的功能。`BufferedOutputStream` 也是通过一个内部缓冲数组实现的。
 
 当通过 `BufferedOutputStream` 来向输出流写入数据时，`write` 的数据会先写入内部缓冲数组中；当缓冲区中的数据被填满之后，`BufferedOutputStream` 会将缓冲区的数据一次性写入输出流中，然后清空缓冲区再次被写入；如此反复，直到写完所有的数据。
 
@@ -56,7 +56,7 @@ main(): Unit {
 
 如果构造一个 `BufferedOutputStream`，只需要在构造函数中传入另一个输出流。如果需要指定缓冲区的大小，也可以额外传入 `capacity` 参数指定。
 
-BufferedOutputStream 构造示例：
+`BufferedOutputStream` 构造示例：
 
 <!-- run -->
 
@@ -99,7 +99,7 @@ import std.io.*
 
 如果构造 `StringReader`，传入另一个输入流即可。
 
-StringReader 使用示例：
+`StringReader` 使用示例：
 
 <!-- run -->
 
@@ -122,7 +122,7 @@ main(): Unit {
 
 如果构造 `StringWriter`，传入另一个输出流即可。
 
-StringWriter 使用示例：
+`StringWriter` 使用示例：
 
 <!-- run -->
 
