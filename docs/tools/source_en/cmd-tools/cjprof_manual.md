@@ -158,7 +158,7 @@ Specifies the heap memory data file to analyze. The default is `cjprof.data`.
 Specifies the filename of the exported heap memory data. The default is `cjprof.data`.
 
 `--show-reference[=<objnames>]`
-Displays object reference relationships in the analysis report. `objnames` are the names of objects to display, separated by `;` for multiple objects. When not specified, all objects are displayed by default. If the object is a root node of the heap, the root node category of the heap it belongs to will also be displayed.
+Displays object reference relationships in the analysis report. `objnames` are the names of objects to display, which must be fully qualified names, separated by `;` for multiple objects. When not specified, all objects are displayed by default. If the object is a root node of the heap, the root node category of the heap it belongs to will also be displayed.
 
 `--incoming-reference`
 Displays referenced-by relationships of objects instead of reference relationships. Must be used together with `--show-reference`.
@@ -189,6 +189,10 @@ cjprof heap -d 12345 -o heap.data
 # Parse and analyze the heap memory data file heap.data in the current directory, start an HTTP report server on port 9090, and access http://localhost:9090 in a web browser to view the visual analysis report.
 cjprof heap -i heap.data --dump-report=9090
 ```
+
+> **Note:**
+>
+> If a proxy is configured, the web page may not be accessible. You need to remove the proxy before accessing it through a web browser.
 
 The visual analysis report provides a dominance tree view, displaying the dominance relationships of heap objects. It supports two visualization modes: sunburst chart and tree chart. Objects can be displayed at two granularity levels: by object or by type. Objects whose proportion falls below the threshold are merged into summary nodes. A Top 10 ranking is provided, showing the top 10 objects by retained heap size.
 
