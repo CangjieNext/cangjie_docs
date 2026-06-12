@@ -1922,6 +1922,17 @@ It is resumed, a = 9
 > - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
 > - 使用 Effect Handler 需引入 `stdx.effect` 库。<!--DelEnd-->
 
+
+### `--lto-staticlib-format=[native|bitcode]`
+平台限制：适用于 macOS（主要面向 iOS 开发场景）
+前置要求：需与 --experimental 选项配合使用
+
+| 取值        | 输出格式                 | 行为说明                                                                      |
+| :-------- | :------------------- | :------------------------------------------------------------------------ |
+| `bitcode` | LLVM Bitcode (`.bc`) | 与旧命令 `cjc test.cj -o test.bc --output-type=staticlib` 行为一致，输出 LLVM IR 中间码 |
+| `native`  | 原生静态库 (`.a`)         | 经过 LTO 优化的静态库格式；可配合 `--static-std` 移除未使用的标准库代码，减小体积                       |
+
+
 ### `--experimental` <sup>[frontend]</sup>
 
 启用实验性功能，允许在命令行使用其他实验性功能选项。
