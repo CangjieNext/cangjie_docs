@@ -502,7 +502,7 @@ cjc --scan-dependency pkgA.cjo
 
 **值得注意的是：**
 
-1. `Windows` 以及 `macOS` 平台不支持该功能；
+1. `Windows` 和 `macOS` 平台（不含 `iOS`）不支持该功能，`ios` 平台需使用 `--experimental` 启用该功能。
 2. 当使能并指定 `LTO` （`Link Time Optimization` 链接时优化）优化编译模式时，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
 `LTO` 优化支持两种编译模式：
@@ -563,8 +563,8 @@ cjc --scan-dependency pkgA.cjo
 
 - 仅在开启 `--lto` 时有效，否则将报错
 - 不能与 `--compile-as-exe` 同时使用，否则将报错
-- 仅在编译动态库（`--output-type=dylib`）时有效，否则会告警
-- Windows 和 macOS 平台不支持 LTO 功能，因此该选项在这些平台无效
+- 仅在 Linux 平台中编译动态库（`--output-type=dylib`）， iOS 平台中编译静态库（`output-type=staticlib`）时有效，否则会告警
+- `Windows` 平台和 `macOS` （不含`iOS`）不支持该功能，`ios` 平台需使用 `--experimental` 启用该功能。
 
 **使用示例：**
 
@@ -1921,6 +1921,23 @@ It is resumed, a = 9
 >
 > - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
 > - 使用 Effect Handler 需引入 `stdx.effect` 库。<!--DelEnd-->
+
+### `--lto-staticlib-format=[native|bitcode]`
+
+平台限制：目前仅适用于 iOS 开发场景
+
+前置要求：需与 `--experimental` 、`--lto` 选项配合使用
+
+| 取值        | 输出格式                 | 行为说明                                                                      |
+| :-------- | :------------------- | :------------------------------------------------------------------------ |
+| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode |
+| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，并可配合 `--static-std` 移除未使用的标准库代码，以减小体积                       |
+
+用法如下：
+
+``` shell
+cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
+```
 
 ### `--experimental` <sup>[frontend]</sup>
 
