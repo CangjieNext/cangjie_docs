@@ -162,7 +162,7 @@ main() {
 - `<-` ：模式匹配操作符。
 - `expression` ：表达式，该表达式求值后，再和模式进行匹配。`expression` 表达式的优先级不能低于 `..` 运算符，但是可以用 `()` 改变优先级。运算符优先级请参见[操作符](../Appendix/operator.md)。
 
-此处介绍“条件”是两个 “let pattern” 进行逻辑与或逻辑或操作以及 “let pattern” 与其他表达式进行逻辑与或逻辑或操作的示例。
+本节展示两类条件示例：一是两个 `let pattern` 进行逻辑与/逻辑或操作；二是 `let pattern` 与其他表达式进行逻辑与/逻辑或操作。
 
 <!-- run -expression_example5 -->
 

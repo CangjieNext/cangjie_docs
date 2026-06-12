@@ -285,7 +285,7 @@ main(): Int64 {
 }
 ```
 
-在编译使用宏的文件时，在选项中，增加 `--debug-macro`，即使用仓颉宏的 _debug_ 模式。
+编译包含宏的文件时，在编译选项中添加 `--debug-macro`，即可使用仓颉宏的 _debug_ 模式。
 
 ```shell
 cjc --debug-macro demo.cj --import-path ./target
@@ -328,7 +328,7 @@ class Demo {
   @M{} - 2 // macro M return 2
 
   // after expansion
-  // ===== Emmitted my Macro M at line 1 ===
+  // ===== Emitted my Macro M at line 1 ===
   2
   // ===== End of the Emit =====
   - 2

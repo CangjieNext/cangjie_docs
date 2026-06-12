@@ -1,6 +1,6 @@
 # 定义 struct 类型
 
-`struct` 类型的定义以关键字 `struct` 开头，后跟 `struct` 的名字，接着是定义在一对花括号中的 `struct` 定义体。`struct` 定义体中可以定义一系列的成员变量、成员属性（参见[属性](../class_and_interface/prop.md)）、静态初始化器、构造函数和成员函数。
+`struct` 类型的定义以关键字 `struct` 开头，后跟结构体名称，随后是一对花括号包裹的结构体定义体。定义体中可声明成员变量、成员属性（参见[属性](../class_and_interface/prop.md)）、静态初始化器、构造函数以及成员函数。
 
 <!-- compile -->
 
@@ -28,7 +28,7 @@ struct Rectangle {
 
 ## struct 成员变量
 
-`struct` 成员变量分为实例成员变量和静态成员变量（使用 `static` 修饰符修饰），二者访问上的区别在于实例成员变量只能通过 `struct` 实例（说 `a` 是 `T` 类型的实例，指的是 `a` 是一个 `T` 类型的值）访问，静态成员变量只能通过 `struct` 类型名访问。
+`struct` 成员变量分为实例成员变量和静态成员变量（由 `static` 修饰符修饰）。二者在访问方式上的区别是：实例成员变量只能通过 `struct` 实例访问（若 `a` 是 `T` 类型的实例，即表示 `a` 是一个 `T` 类型的值），而静态成员变量只能通过 `struct` 类型名访问。
 
 实例成员变量定义时可以不设置初值（但必须标注类型，如上例中的 `width` 和 `height`），也可以设置初值，例如：
 
@@ -198,10 +198,10 @@ struct Rectangle {
 
 `struct` 的成员包括成员变量、成员属性、构造函数、成员函数、操作符函数（详见[操作符重载](../function/operator_overloading.md)），这些成员可使用四种访问修饰符：`private`、`internal`、`protected` 和 `public`，缺省的修饰符是 `internal`。
 
-- `private` 表示在 `struct` 定义内可见。
-- `internal` 表示仅当前包及子包（包括子包的子包，详见[包](../package/toplevel_access.md)章节）内可见。
-- `protected` 表示当前模块（详见[包](../package/toplevel_access.md)章节）可见。
-- `public` 表示模块内外均可见。
+- `private`：仅在当前 `struct` 定义范围内可见。
+- `internal`：仅当前包及其所有子包（含子包的子包）内可见（详见[包](../package/toplevel_access.md)）。
+- `protected`：仅当前模块内可见（详见[包](../package/toplevel_access.md)）。
+- `public`：模块内部与外部均可访问。
 
 下面的例子中，`width` 是 `public` 修饰的成员，在类外可以访问，`height` 是缺省访问修饰符的成员，仅在当前包及子包可见，其他包无法访问。
 
