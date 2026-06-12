@@ -71,7 +71,7 @@ main(): Int32 {
 }
 ```
 
-具体的编译介绍，详情请参见[附录](../Appendix/compile_options.md)。下面为该用例对应的编译命令：
+以下为本用例对应的编译命令，更多编译说明请参见[附录](../Appendix/compile_options.md)。
 
 ```shell
 cjc -L . -lcProg ./main.cj

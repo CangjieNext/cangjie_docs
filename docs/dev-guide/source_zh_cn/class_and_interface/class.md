@@ -367,12 +367,12 @@ class Rectangle {
 
 ### class 成员的访问修饰符
 
-对于 `class` 的成员（包括成员变量、成员属性、构造函数、成员函数），可以使用的访问修饰符有 4 种访问修饰符修饰：`private`、`internal`、`protected` 和 `public`，缺省的含义是 `internal`。
+`class` 的成员（包括成员变量、成员属性、构造函数、成员函数）支持四种访问修饰符：`private`、`internal`、`protected` 和 `public`，缺省的含义是 `internal`。
 
-- `private` 表示在 `class` 定义内可见。
-- `internal` 表示仅当前包及子包（包括子包的子包，详见[包](../package/toplevel_access.md)）内可见。
-- `protected` 表示当前模块（详见[包](../package/toplevel_access.md)）及当前类的子类可见。
-- `public` 表示模块内外均可见。
+- `private`：仅在当前 `class` 定义内可见。
+- `internal`：仅在当前包及其子包（包括子包的子包）内可见（详见[包](../package/toplevel_access.md)）。
+- `protected`：在当前模块内，以及当前类的子类中可见（详见[包](../package/toplevel_access.md)）。
+- `public`：在模块内部和外部均可见。
 
 <!-- compile.error -error-->
 
@@ -634,7 +634,11 @@ let b: B = A() // Error, superclass objects can not be assigned to subclass vari
 class A <: A {}  // Error, 'A' inherits itself
 ```
 
-抽象类可以使用 `sealed` 修饰符，表示被修饰的类定义只能在本定义所在的包内被其他类继承。`sealed` 已经蕴含了 `public`/`open` 的语义，因此定义 sealed abstract class 时若提供 `public`/`open` 修饰符，编译器将会告警。`sealed` 的子类可以不是 `sealed` 类，仍可被 `open`/`sealed` 修饰，或不使用任何继承性修饰符。若 `sealed` 类的子类被 `open` 修饰，则其子类可在包外被继承。`sealed` 的子类可以不被 `public` 修饰。
+抽象类可使用 `sealed` 修饰符，用于限定该类仅能被所在包内的其他类继承。`sealed` 本身已隐含 `public`/`open` 语义，因此在定义 `sealed abstract class` 时，若额外指定 `public`/`open` 修饰符，编译器会发出警告。
+
+`sealed` 类的子类可以不是 `sealed` 类，，仍可使用 `open`/`sealed` 修饰，也可不添加任何继承性修饰符。
+
+若 `sealed` 类的子类被 `open` 修饰，则该子类可在包外被继承；`sealed` 类的子类也可以不使用 `public` 修饰。
 
 <!-- compile -->
 
