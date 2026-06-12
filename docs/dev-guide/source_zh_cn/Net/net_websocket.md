@@ -6,7 +6,7 @@
 
 WebSocket 是一个独立的协议，它与 HTTP 的关联在于，它的握手被 HTTP 服务端解释为一个升级请求。因此，仓颉将 WebSocket 包含在 http 包中。
 
-仓颉将 WebSocket 协议通信机制抽象为 WebSocket 类，提供方法将一个 http/1.1 或 http/2.0 服务端句柄升级到 WebSocket 协议实例，通过返回的 WebSocket 实例进行 WebSocket 通信，例如数据报文的读写。
+仓颉将 WebSocket 协议通信机制抽象为 WebSocket 类，提供方法将一个 HTTP/1.1 或 HTTP/2 服务端句柄升级到 WebSocket 协议实例，通过返回的 WebSocket 实例进行 WebSocket 通信，例如数据报文的读写。
 
 在仓颉中，WebSocket 所传输的数据基本单元称为帧，帧分为两类，一类为传输控制信息的帧，即 Close Frame 用于关闭连接， Ping Frame 用于实现 Keep-Alive ， Pong Frame 是 Ping Frame 的响应类型，另一类是传输应用数据的帧，应用数据帧支持分段传输。
 

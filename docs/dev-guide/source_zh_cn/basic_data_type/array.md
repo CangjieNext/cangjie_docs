@@ -23,7 +23,7 @@ var b: Array<String> = ["a1", "a2", "a3"] // Array whose element type is String
 b = a // Type mismatch
 ```
 
-可以轻松使用字面量来初始化一个 Array，只需要使用方括号将逗号分隔的值列表括起来即可。
+可以使用字面量来初始化一个 Array，只需要使用方括号将逗号分隔的值列表括起来即可。
 
 编译器会根据上下文自动推断 Array 字面量的类型。
 

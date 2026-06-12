@@ -8,7 +8,7 @@
 import std.collection.*
 ```
 
-可以使用 HashMap 类型来构造元素为键值对的 Collection。
+可以使用 HashMap 类型来构造元素为键值对的集合。
 
 HashMap 是一种哈希表，提供对其包含的元素的快速访问。表中的每个元素都使用其键作为标识，可以使用键来访问相应的值。
 

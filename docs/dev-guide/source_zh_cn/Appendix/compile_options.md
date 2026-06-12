@@ -244,11 +244,11 @@ Hello World
 >
 > Windows 版本暂不支持输出带颜色渲染的错误信息。
 
-指定错误信息的输出格式，默认为 `default` 。
+指定错误信息的输出格式，默认为 `default`。
 
 - `default` 错误信息默认格式输出（带颜色）
 - `noColor` 错误信息默认格式输出（无颜色）
-- `json` 错误信息`json`格式输出
+- `json` 错误信息 `json` 格式输出
 
 ### `--verbose`, `-V` <sup>[frontend]</sup>
 
@@ -404,7 +404,7 @@ cjc --scan-dependency pkgA.cjo
 
 表明当前编译包没有子包。
 
-开启该选项后，编译器可以进一步缩减 code size 大小。
+开启该选项后，编译器可以进一步缩减 code size。
 
 ### `--warn-off`, `-Woff <value>` <sup>[frontend]</sup>
 
@@ -446,7 +446,7 @@ cjc --scan-dependency pkgA.cjo
 
 **值得注意的是：**
 
-`--static` 选项适用于 Linux Windows MacOS 平台。
+`--static` 选项适用于 Linux、Windows 和 macOS 平台。
 
 ### `--static-std`
 
@@ -470,7 +470,7 @@ cjc --scan-dependency pkgA.cjo
 2. 当编译可执行程序时链接了仓颉动态库（即通过 `--output-type=dylib` 选项编译的产物），必须显式指定 `--dy-std` 选项动态链接标准库，否则可能导致程序集中出现多份标准库，最终可能会导致运行时问题。
 3. 各个平台支持能力如下：
 
-| 目标平台 | 产物是否支持 --static-std | 产物是否支持--dy-std |
+| 目标平台 | 产物是否支持 --static-std | 产物是否支持 --dy-std |
 |:-------------------:|:--------------:|:----------:|
 | Linux         |       支持        |     支持      |
 | macOS        |       支持        |     支持      |
@@ -638,7 +638,7 @@ $ ./test
 
 > **注意：**
 >
-> `--pgo-instr-use` 编译选项仅支持格式为 `profdata` 的配置文件。可使用 `llvm-profdata` 工具可将 `profraw` 配置文件转换为 `profdata` 配置文件。
+> `--pgo-instr-use` 编译选项仅支持格式为 `profdata` 的配置文件。可使用 `llvm-profdata` 工具将 `profraw` 配置文件转换为 `profdata` 配置文件。
 
 ```shell
 # 将 `profraw` 文件转换为 `profdata` 文件。
@@ -677,11 +677,11 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 
 ### `--target-cpu <value>`
 
+指定编译目标的 CPU 类型。
+
 > **注意：**
 >
 > 该选项为实验性功能，使用该功能生成的二进制可能存在潜在的运行时问题，请注意使用该选项的风险。此选项必须配合 `--experimental` 选项一同使用。
-
-指定编译目标的 CPU 类型。
 
 指定编译目标的 CPU 类型时，编译器在生成二进制时会尝试使用该 CPU 类型特有的扩展指令集，并尝试应用适用于该 CPU 类型的优化。为某个特定 CPU 类型生成的二进制通常会失去可移植性，该二进制可能无法在其他（拥有相同架构指令集的）CPU 上运行。
 
@@ -923,7 +923,7 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 指定链接器选项。
 
-`cjc` 会将该选项的多个参数透传给链接器, 参数之间用空格分隔。可用的参数会因（系统或指定的）链接器的不同而不同。可以多次使用 `--link-options` 指定多个链接器选项。
+`cjc` 会将该选项的多个参数透传给链接器，参数之间用空格分隔。可用的参数会因（系统或指定的）链接器的不同而不同。可以多次使用 `--link-options` 指定多个链接器选项。
 
 <sup>1</sup> 上标表示链接器透传选项可能会因为链接器的不同而不同，具体支持的选项请查阅链接器文档。
 
@@ -943,7 +943,7 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof 与该文件同级。
 
-### `--sanitize==[address|thread|hwsaddress]` <sup>[frontend]</sup>
+### `--sanitize=[address|thread|hwsaddress]` <sup>[frontend]</sup>
 
 用于开启 sanitizer 编译期间插桩功能，运行时检测程序中的各种错误。并链接对应 sanitizer 的库。使用该选项前需下载支持 sanitizer 功能的专属 SDK 包（如 cangjie-sdk-linux-aarch64-sanitizer.tar.gz），并确保 SDK 已正确部署。
 
@@ -1812,7 +1812,7 @@ bool *__cj_sancov_bool_flag_ctor(uint64_t edgeCount) {
 
 开启该编译选项后，由于仓颉无法获取 SP 指针的值，因此只能在每个函数入口处插入调用 `__updateSancovStackDepth`，在 C 侧实现该函数即可获得 SP 指针。
 
-一个标准的 `updateSancovStackDepth` 实现如下：
+一个标准的 `__updateSancovStackDepth` 实现如下：
 
 ```cpp
 thread_local void* __sancov_lowest_stack;
@@ -1907,7 +1907,7 @@ main() {
 
 - 在 `main` 函数中，使用 `try-handle` 结构来处理该效应。
 - 在 `try` 块中，首先打印一行提示信息（`"About to perform"`），然后使用 `perform GetNumber()` 执行效应，`perform` 表达式的返回值会被赋给变量 `a`，执行一个效应会将执行流跳转到捕获这个效应的 `handle` 块。
-- 在 `handle` 块中，捕获并处理 `GetNumber` 效应，先打印一条信息（`"It is performed"`），然后使用 `resume with 9` 将常数 `9` 注入回原始调用点，然后恢复 `perform`  之后的执行流，打印（`"It is resumed, a = 9"`）。
+- 在 `handle` 块中，捕获并处理 `GetNumber` 效应，先打印一条信息（`"It is performed"`），然后使用 `resume with 9` 将常数 `9` 注入回原始调用点，然后恢复 `perform` 之后的执行流，打印（`"It is resumed, a = 9"`）。
 
 输出结果如下：
 
