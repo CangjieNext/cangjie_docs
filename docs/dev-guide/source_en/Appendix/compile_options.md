@@ -1808,6 +1808,22 @@ It is resumed, a = 9
 > - Effect Handlers are currently experimental. This option may change in future versions; use with caution.
 > - Using Effect Handlers requires importing the `stdx.effect` library.<!--DelEnd-->
 
+### --lto-staticlib-format=[native|bitcode]
+
+Platform restriction: primarily designed for iOS development scenarios
+Prerequisite: Must be used together with the `--experimental` `--lto` option
+
+| Value     | Output Format                | Description                                                                                                                                   |
+| :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bitcode` | LLVM Bitcode (`.bc`)         | Equivalent to the legacy behavior of `--output-type=staticlib` with LTO; outputs LLVM IR bitcode                                  |
+| `native`  | Native static library (`.a`) | outputs static library format with LTO optimization; can be combined with `--static-std` to strip unused standard library code and reduce binary size |
+
+Example:
+
+``` shell
+cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native
+```
+
 ### `--experimental` <sup>[frontend]</sup>
 
 Enables experimental features, allowing the use of other experimental options on the command line.
