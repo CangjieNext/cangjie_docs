@@ -14,9 +14,9 @@
 
 /docs/dev-guide/source_zh_cn/Appendix/cangjie_package_compatibility.md @Timi3 @wuying211
 /docs/dev-guide/source_zh_cn/Appendix/cjo_artifacts.md @Augus_Jan @Timi3 @wuying211
-/docs/dev-guide/source_zh_cn/Appendix/compile_options.md @neilliuistaken @ozzy_young @wuying211
+/docs/dev-guide/source_zh_cn/Appendix/compile_options.md @neilliuistaken @wuying211
 /docs/dev-guide/source_zh_cn/Appendix/keyword.md @kkkkkkkbbbbbbb @Timi3 @wuying211
-/docs/dev-guide/source_zh_cn/Appendix/linux_toolchain_install.md @neilliuistaken @ozzy_young @wuying211
+/docs/dev-guide/source_zh_cn/Appendix/linux_toolchain_install.md @neilliuistaken @wuying211
 /docs/dev-guide/source_zh_cn/Appendix/operator_function.md @kkkkkkkbbbbbbb @Timi3 @wuying211
 /docs/dev-guide/source_zh_cn/Appendix/operator.md @kkkkkkkbbbbbbb @Timi3 @wuying211
 /docs/dev-guide/source_zh_cn/Appendix/runtime_env.md @lrb @DawnJee @wuying211
@@ -26,10 +26,10 @@
 /docs/dev-guide/source_zh_cn/basic_programming_concepts/ @kkkkkkkbbbbbbb @Timi3 @wuying211
 /docs/dev-guide/source_zh_cn/class_and_interface/ @Mr_Kang_Yi @Timi3 @wuying211
 /docs/dev-guide/source_zh_cn/collections/ @EMROF @chaosjohn @wuying211
-/docs/dev-guide/source_zh_cn/compile_and_build/cjc_usage.md @neilliuistaken @ozzy_young @wuying211
+/docs/dev-guide/source_zh_cn/compile_and_build/cjc_usage.md @neilliuistaken @wuying211
 /docs/dev-guide/source_zh_cn/compile_and_build/cjpm_usage.md @zjdd @wuying211
 /docs/dev-guide/source_zh_cn/compile_and_build/conditional_compilation.md @xiaoxuheng @mini-tang @wuying211
-/docs/dev-guide/source_zh_cn/compile_and_build/cross_compilation.md @neilliuistaken @ozzy_young @wuying211
+/docs/dev-guide/source_zh_cn/compile_and_build/cross_compilation.md @neilliuistaken @wuying211
 /docs/dev-guide/source_zh_cn/concurrency/ @cocoix @chaosjohn @wuying211
 /docs/dev-guide/source_zh_cn/deploy_and_run/ @lrb @DawnJee @wuying211
 /docs/dev-guide/source_zh_cn/enum_and_pattern_match/ @Tadddy @Timi3 @wuying211
@@ -48,9 +48,9 @@
 
 /docs/dev-guide/source_en/Appendix/cangjie_package_compatibility.md @Timi3 @guoyuqing
 /docs/dev-guide/source_en/Appendix/cjo_artifacts.md @Augus_Jan @Timi3 @guoyuqing
-/docs/dev-guide/source_en/Appendix/compile_options.md @neilliuistaken @ozzy_young @guoyuqing
+/docs/dev-guide/source_en/Appendix/compile_options.md @neilliuistaken @guoyuqing
 /docs/dev-guide/source_en/Appendix/keyword.md @kkkkkkkbbbbbbb @Timi3 @guoyuqing
-/docs/dev-guide/source_en/Appendix/linux_toolchain_install.md @neilliuistaken @ozzy_young @guoyuqing
+/docs/dev-guide/source_en/Appendix/linux_toolchain_install.md @neilliuistaken @guoyuqing
 /docs/dev-guide/source_en/Appendix/operator_function.md @kkkkkkkbbbbbbb @Timi3 @guoyuqing
 /docs/dev-guide/source_en/Appendix/operator.md @kkkkkkkbbbbbbb @Timi3 @guoyuqing
 /docs/dev-guide/source_en/Appendix/runtime_env.md @lrb @DawnJee @guoyuqing
@@ -60,10 +60,10 @@
 /docs/dev-guide/source_en/basic_programming_concepts/ @kkkkkkkbbbbbbb @Timi3 @guoyuqing
 /docs/dev-guide/source_en/class_and_interface/ @Mr_Kang_Yi @Timi3 @guoyuqing
 /docs/dev-guide/source_en/collections/ @renyi43 @chaosjohn @guoyuqing
-/docs/dev-guide/source_en/compile_and_build/cjc_usage.md @neilliuistaken @ozzy_young @guoyuqing
+/docs/dev-guide/source_en/compile_and_build/cjc_usage.md @neilliuistaken @guoyuqing
 /docs/dev-guide/source_en/compile_and_build/cjpm_usage.md @zjdd @guoyuqing
 /docs/dev-guide/source_en/compile_and_build/conditional_compilation.md @xiaoxuheng @mini-tang @guoyuqing
-/docs/dev-guide/source_en/compile_and_build/cross_compilation.md @neilliuistaken @ozzy_young @guoyuqing
+/docs/dev-guide/source_en/compile_and_build/cross_compilation.md @neilliuistaken @guoyuqing
 /docs/dev-guide/source_en/concurrency/ @cocoix @chaosjohn @guoyuqing
 /docs/dev-guide/source_en/deploy_and_run/ @lrb @DawnJee @guoyuqing
 /docs/dev-guide/source_en/enum_and_pattern_match/ @Tadddy @Timi3 @guoyuqing
