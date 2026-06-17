@@ -636,7 +636,7 @@ class A <: A {}  // Error, 'A' inherits itself
 
 抽象类可使用 `sealed` 修饰符，用于限定该类仅能被所在包内的其他类继承。`sealed` 本身已隐含 `public`/`open` 语义，因此在定义 `sealed abstract class` 时，若额外指定 `public`/`open` 修饰符，编译器会发出警告。
 
-`sealed` 类的子类可以不是 `sealed` 类，，仍可使用 `open`/`sealed` 修饰，也可不添加任何继承性修饰符。
+`sealed` 类的子类可以不是 `sealed` 类，仍可使用 `open`/`sealed` 修饰，也可不添加任何继承性修饰符。
 
 若 `sealed` 类的子类被 `open` 修饰，则该子类可在包外被继承；`sealed` 类的子类也可以不使用 `public` 修饰。
 

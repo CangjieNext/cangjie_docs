@@ -14,7 +14,7 @@ func id<T>(a: T) {
 
 约束大致分为接口约束与 class 类型约束。在函数或类型的声明体之前，可以使用 `where` 关键字来声明泛型约束。对于声明的泛型形参 `T1, T2`，可以使用 `where T1 <: Interface, T2 <: Class` 这样的方式来声明泛型约束。如果同一个类型变元的多个约束，可以使用 `&` 连接，例如，`where T1 <: Interface1 & Interface2`。
 
-仓颉中的 `println` 函数能接受类型为字符串的参数。如果需要把一个泛型类型的变量转为字符串后打印在命令行上，可以对这个泛型类型变元加以约束，这个约束是 `core`包中定义的 `ToString` 接口，显然它是一个接口约束：
+仓颉中的 `println` 函数能接受类型为字符串的参数。如果需要把一个泛型类型的变量转为字符串后打印在命令行上，可以对这个泛型类型变元加以约束，这个约束是 `core` 包中定义的 `ToString` 接口，显然它是一个接口约束：
 
 ```cangjie
 package std.core // `ToString` is defined in core.
