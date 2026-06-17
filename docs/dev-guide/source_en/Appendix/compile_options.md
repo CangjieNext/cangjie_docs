@@ -516,7 +516,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 
 **Important Notes:**
 
-1. This feature is not supported on `Windows` or `macOS`. It is supported on `iOS`, where it requires the `--experimental` flag..
+1. This feature is not supported on `Windows` or `macOS`. It is supported on `iOS`, where it requires the `--experimental` flag.
 2. When `LTO` is enabled, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
 
 `LTO` supports two compilation modes:
@@ -577,7 +577,7 @@ Specifies package names whose symbol visibility is preserved in LTO mode. Symbol
 
 - Only effective when --lto is enabled, otherwise an error will be reported
 - Cannot be used together with --compile-as-exe, otherwise an error will be reported
-- Only effective when compiling dynamic libraries (--output-type=dylib) on Linux, or static libraries (--output-type=staticlib) on iOS, otherwise a warning will be issued
+- Only effective when compiling dynamic libraries (--output-type=dylib) on Linux, Android, OpenHarmony, or static libraries (--output-type=staticlib) on iOS; otherwise a warning will be issued
 -  LTO is not supported on `Windows` or `macOS` platforms. On `Apple` platforms, LTO support is limited to `iOS` only, and must be used with the `--experimental` flag.
 
 **Usage Example:**

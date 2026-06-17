@@ -563,7 +563,7 @@ cjc --scan-dependency pkgA.cjo
 
 - 仅在开启 `--lto` 时有效，否则将报错
 - 不能与 `--compile-as-exe` 同时使用，否则将报错
-- 仅在 Linux 平台中编译动态库（`--output-type=dylib`）， iOS 平台中编译静态库（`output-type=staticlib`）时有效，否则会告警
+- 仅在 Linux 、Android 、OpenHarmony 平台中编译动态库（`--output-type=dylib`）有效， iOS 平台中编译静态库（`output-type=staticlib`）时有效，否则会告警
 - `Windows` 平台和 `macOS` （不含`iOS`）不支持该功能，`ios` 平台需使用 `--experimental` 启用该功能。
 
 **使用示例：**
