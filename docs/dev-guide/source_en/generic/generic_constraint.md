@@ -14,6 +14,14 @@ The only thing the developer can do is return the function parameter `a`, but ca
 
 Constraints are broadly divided into interface constraints and class type constraints. Before the declaration body of a function or type, the `where` keyword can be used to declare generic constraints. For declared generic type parameters `T1, T2`, constraints can be specified using syntax like `where T1 <: Interface, T2 <: Class`. If multiple constraints apply to the same type parameter, they can be connected with `&`, e.g., `where T1 <: Interface1 & Interface2`.
 
+In other words, `,` separates constraints for different type parameters, while `&` connects multiple constraints that the same type parameter must satisfy. For example, the following declaration requires both `A` and `B` to implement the `ToString` interface:
+
+```cangjie
+open class Node<A, B> where A <: ToString, B <: ToString {}
+```
+
+Writing `where A <: ToString & B <: ToString` treats the expression as a compound constraint on the same type parameter `A`. It does not declare separate constraints for `A` and `B`.
+
 In Cangjie, the `println` function can accept parameters of type string. If you need to print a generic type variable as a string on the command line, you can constrain this generic type parameter with the `ToString` interface defined in `core`, which is clearly an interface constraint:
 
 ```cangjie
