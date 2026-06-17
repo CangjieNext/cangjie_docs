@@ -20,7 +20,7 @@ open class Node<K, V> where K <: Hashable & Equatable<K> {
 }
 ```
 
-由于键与值的类型有可能不相同，且可以为任意满足条件的类型，所以 `Node` 需要两个类型形参 `K` 与 `V` ，`K <: Hashable, K <: Equatable<K>` 是对于键类型的约束，意为 `K` 要实现 `Hashable` 与 `Equatable<K>` 接口，也就是 `K` 需要满足的条件。对于泛型约束，详见[泛型约束](./generic_constraint.md)章节。
+由于键与值的类型有可能不相同，且可以为任意满足条件的类型，所以 `Node` 需要两个类型形参 `K` 与 `V` ，`K <: Hashable & Equatable<K>` 是对于键类型的约束，意为 `K` 要实现 `Hashable` 与 `Equatable<K>` 接口，也就是 `K` 需要满足的条件。其中 `Equatable` 是泛型接口，作为约束使用时需要带上类型实参，写作 `Equatable<K>`。对于泛型约束，详见[泛型约束](./generic_constraint.md)章节。
 
 由于泛型类的静态成员变量的内存是共享的，因此，静态成员变量或属性的类型声明和表达式中不能引用类型参数或包含未实例化泛型类型表达式。另外，静态变量或属性初始化表达式中不能调用泛型类的静态成员函数或属性。
 
