@@ -20,7 +20,7 @@ open class Node<K, V> where K <: Hashable & Equatable<K> {
 }
 ```
 
-Since the types of keys and values may differ and can be any type that meets certain conditions, the `Node` class requires two type parameters `K` and `V`. The constraint `K <: Hashable, K <: Equatable<K>` specifies that the key type `K` must implement both the `Hashable` and `Equatable<K>` interfaces, which are the conditions `K` must satisfy. For more details on generic constraints, refer to the [Generic Constraints](./generic_constraint.md) section.
+Since the types of keys and values may differ and can be any type that meets certain conditions, the `Node` class requires two type parameters `K` and `V`. The constraint `K <: Hashable & Equatable<K>` specifies that the key type `K` must implement both the `Hashable` and `Equatable<K>` interfaces, which are the conditions `K` must satisfy. `Equatable` is a generic interface, so when it is used as a constraint, it must include a type argument and be written as `Equatable<K>`. For more details on generic constraints, refer to the [Generic Constraints](./generic_constraint.md) section.
 
 Because static member variables of generic classes share memory, the type declarations and expressions of static member variables or properties cannot reference type parameters or contain uninstantiated generic type expressions. Additionally, static variable or property initialization expressions cannot call static member functions or properties of generic classes.
 
