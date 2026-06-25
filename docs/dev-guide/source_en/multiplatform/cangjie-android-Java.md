@@ -49,6 +49,41 @@ Objective-C and other languages. And just like with JNI, CJMP takes care
 about the cumbersome parts.
 
 
+## Android Versions Support
+
+**IMPORTANT: The Cangjie SDK for Android generally supports Android 6 and above
+(API level 23 and up). However, all Java 8+ language features and APIs used
+in Cangjie code must be _directly_ supported at the _minimum_ Android API level
+specified in the application build script. Details below.**
+
+The Android toolchain supports new Java language features and APIs on legacy
+versions of Android via bytecode transformations called _desugaring_. The D8
+compiler performs those transformations when converting Java class files
+into DEX code that runs on Android devices.
+See [https://developer.android.com/studio/write/java8-support](https://developer.android.com/studio/write/java8-support)
+for details.
+However, those newer features and APIs are _not_ available to Cangjie code
+at run time if they are desugared.
+
+In particular, `static` and `default` methods in interfaces are not supported
+on Android 6 (API level 23). Therefore, Cangjie code must not use such methods
+if `minSdk` is set to `23` in the main Gradle build script of the application.
+
+Similarly, the newer Java platform APIs are unavailable unless you target only
+those versions of Android that support them out-of-the-box, without desugaring.
+An attempt to use a desugared API from Cangjie code will result in a run-time
+error _on any version of Android_.
+
+For instance, the Cangjie SDK for Android does not support Java 8+ platform APIs
+such as the Stream API and `java.util.Optional` on Android 6 to 8.1 (API levels
+23-27). If your Cangjie code uses those APIs, `minSdk` must be set to `28`
+or above in your Gradle build script.
+
+Refer to the official Android developer documentation for detailed information
+about the availability of specific Java 8+ features and APIs in the versions
+of Android that you are targeting.
+
+
 ## Key Concepts
 
 ### Mirror Types
@@ -191,7 +226,7 @@ The following Cangjie types are called _Java-compatible_:
 * Types of the form `Option<`_`T`_`>` where _`T`_ is a [foreign type](#foreign-types)
   (see _[`null` Handling](#null-handling)_ for reasoning)
 
-The special generic mirror type [`JArray<T>`](#java-lang-array-t) included
+The special generic mirror type [`JArray<T>`](#java.lang.jarrayt) included
 in the [interop library](#interop-library-api-reference)
 represents Java arrays. Its type variable `T` must be a Java-compatible type.
 
@@ -766,7 +801,7 @@ public class Interop {
 
 #### Step 3: Recompile the Cangjie part
 
-See [Step 4](#step-4-compile-the-interop-class) of the interop class
+See [Step 4](#step-4-compile-interop-classes) of the interop class
 creation workflow for details and example.
 
 As long as you have not changed the public interface of the interop class(es)
@@ -787,7 +822,7 @@ creation workflow for details and example.
 
 1. An interop class _must_ be a direct subclass of a mirror class.
    By default, the interop class will inherit the mirror class
-   [`java.lang.JObject`](#java-lang-jobject), not `std.core.Object`.
+   [`java.lang.JObject`](#java.lang.jobject), not `std.core.Object`.
 
 2. An interop class _may_ implement one or more mirror interfaces, but never
    a conventional Cangjie interface. Conversely, a conventional Cangjie type may
@@ -838,7 +873,7 @@ Java and Cangjie string types, `java.lang.String` and `std.core.String`, are
 not binary compatible. A copying conversion is therefore required to enable the
 code written in one language to work with string data originating
 from the other. The built-in mirror type
-[`java.lang.JString`](#java-lang-jstring) facilitates such conversions
+[`java.lang.JString`](#java.lang.jstring) facilitates such conversions
 by providing a special constructor that accepts a Cangjie string and uses its
 UTF-8 character data to construct a Java string containing the same characters
 in the UTF-16 encoding, and a member function `toString()` that does the reverse
@@ -885,7 +920,7 @@ of the wrapper class are invoked from Java.
 
 As usual, if support for receiving/returning `null` values is required, the type
 `?String` must be used instead of `String`.
-See [Null Handling](#java-null-handling) for details.
+See [Null Handling](#null-handling) for details.
 
 
 **NOTES:**
@@ -917,7 +952,7 @@ See [Null Handling](#java-null-handling) for details.
    consistently across all subtypes.
 
 2. `String` is not supported as the type argument
-   of [`java.lang.JArray<T>`](#java-lang-jarray-t),
+   of [`java.lang.JArray<T>`](#java.lang.jarrayt),
    so Java string arrays have to be mapped to `JArray<JString>`, or, more
    likely, to `?JArray<?JString>`.
 
@@ -1071,17 +1106,17 @@ of the respective type being a nested type, are replaced with underscores `_`.
 _Uses_ of Java class and interface types as types of mirrored fields,
 and/or as types of parameters and return values of mirrored methods and
 constructors, get wrapped in `Option<T>`
-(see [Null Handling](#java-null-handling) for details.)
+(see [Null Handling](#null-handling) for details.)
 
 `@JavaMirror`-annotated declarations differ from conventional
 Cangjie class/interface definitions in a few aspects:
 
 * The root of the Java mirror classes hierarchy is not `std.core.Object`,
-  but a built-in mirror class [`java.lang.JObject`](#java-lang-jobject),
+  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject),
   which is an immediate subclass of `std.core.Object`.
 
 * The mirror for `java.lang.String` is also built-in, its name
-  is [`java.lang.JString`](#java-lang-jstring).
+  is [`java.lang.JString`](#java.lang.jstring).
 
 * Only the symbolic information is mirrored. Variable initializers
   and function/constructor bodies are omitted.
@@ -1155,10 +1190,15 @@ types substituted for parameter types and return value type. Mirrors of `void`
 methods have the `Unit` return type. Instance method names are preserved.
 Static method names are preserved as long as they don't [clash](#java-names)
 with instance method names. The modifiers `public`, `protected` and `static`
-are preserved. The modifiers `native` and `synchronized` are ignored,
-as well as the legacy modifier `strictfp`. Mirrors of non-`final` methods
-are modified with `open`. The last parameter _`T`_`...`_`name`_ of a variable
-arity method is mirrored as if its type was _`T`_`[]`.
+are preserved. The modifier `default` is replaced with the annotation
+`@JavaHasDefault` (see below). The modifiers `native` and `synchronized` are
+ignored, as well as the legacy modifier `strictfp`. Mirrors of non-`final`
+methods are modified with `open`. The last parameter _`T`_`...`_`name`_
+of a variable arity method is mirrored as if its type was _`T`_`[]`.
+
+**NOTE:** `default` and `static` interface methods are not supported when
+target O/S versions include Android 6 (`minSdk` set to 23).
+See [Android Versions Support](#android-versions-support) for details.
 
 **Constructors** are mirrored into `init` constructors with the respective
 mirror types substituted for parameter types. _This includes the default
@@ -1279,12 +1319,12 @@ Mirror classes and interfaces form separate subtype hierarchies, which
 means that:
 
 * The root of the Java mirror class hierarchy is not `std.core.Object`,
-  but a built-in mirror class [`java.lang.JObject`](#java-lang-jobject).
+  but a built-in mirror class [`java.lang.JObject`](#java.lang.jobject).
 
 * Mirror interfaces may inherit other mirror interfaces, reflecting
   the inheritance relationships between the original Java interfaces.
-  Mirror interfaces may not inherit regular Cangjie interfaces and
-  vice versa.
+  Mirror interfaces may not inherit regular Cangjie interfaces other than
+  the implicitly inherited `Any` and vice versa.
 
 * Mirror classes may inherit other mirror classes, reflecting
   the inheritance relationships between the original Java classes.
@@ -1292,9 +1332,9 @@ means that:
   vice versa.
 
 * Mirror classes may implement mirror interfaces, but not regular
-  Cangjie interfaces. In particular, they do not implement the
-  interface `Any`. Regular Cangjie classes may not implement mirror
-  interfaces.
+  Cangjie interfaces. The interface `Any` is an exception; all mirror
+  classes implement it implicitly. Regular Cangjie classes may not implement
+  mirror interfaces.
 
 * Neither mirror classes may be extended using `extend`, nor any other type
   may be interface-extended with a mirror interface.
@@ -1303,7 +1343,7 @@ means that:
   works because only classes may implement interfaces in Java. The latter is not
   the case in Cangjie, where all interfaces are subtypes of the built-in `Any`
   interface, which is _not_ a subtype of `std.core.Object`. Hence, mirror
-  interfaces are _not_ subtypes of [`java.lang.JObject`](#java-lang-jobject)
+  interfaces are _not_ subtypes of [`java.lang.JObject`](#java.lang.jobject)
   and the below method `test()` may not be re-written in Cangjie:
 
   ```java
@@ -1327,7 +1367,7 @@ It is not possible to declare a parameterized mirror type manually either.
 The built-in type `JArray<T>` (see [Arrays](#arrays)) is a special exception.
 
 Mirror types may not be used as type arguments of conventional generic Cangjie
-types [other than `Option<T>`](#java-nil-handling).
+types [other than `Option<T>`](#null-handling).
 
 
 ### Arrays
@@ -1342,7 +1382,7 @@ A Java array of type _`T`_ (_`T`_`[]`), is generally mirrored into:
 * `?JArray<`_`?T'`_`>`, if _`T`_ is a reference type
 
 where _`T'`_ is the mirror of _`T`_.
-Refer to [Null Handling](#java-null-handling) for the reasoning
+Refer to [Null Handling](#null-handling) for the reasoning
 behind `Option<T>` wrapping.
 
 **NOTE:** Java arrays are covariant, whereas Cangjie generics are
@@ -1393,7 +1433,7 @@ A Java record class definition effectively defines a regular Java class that:
 * Does not override other `java.lang.Object` methods
 
 **NOTE**: The methods `hashCode()` and `toString()` are renamed in the built-in
-mirror of `java.lang.Object`. See  [`java.lang.JObject`](#java-lang-jobject)
+mirror of `java.lang.Object`. See  [`java.lang.JObject`](#java.lang.jobject)
 for details.
 
 **Example:**
@@ -1416,14 +1456,14 @@ public foreign class Node <: Record {
 }
 ```
 
-### `null` Handling {#java-null-handling}
+### `null` Handling
 
 Cangjie has no concept of null references and hence no equivalent for the Java
 null type. If Java reference types were mirrored direct to the respective
 mirror types, any `null` value returned to Cangjie from a Java method would
 result in a `NoneValueException`. That would also happens if Cangjie code
 accessed a member variable of such type mirroring a field containing `null`.
-Conversely, if Java called an [interop class](#interop-class) method and
+Conversely, if Java called an [interop class](#interop-classes) method and
 passed `null` as one of the parameters, the Java `NullPointerException` would
 gets thrown.
 
@@ -1488,7 +1528,7 @@ approach are the [loss of variance](#loss-of-variance) and more cumbersome
 
 #### Loss of Variance
 
-One limitation imposed by the [`Option<T>` wrapping](#java-null-handling)
+One limitation imposed by the [`Option<T>` wrapping](#null-handling)
 of Java mirror types and interop classes is that such wrapped types follow
 the semantics of Cangjie in all other respects. In particular, `Option<T>` is
 _invariant by its type parameter `T`_: `Option<U>` is not a subtype
@@ -1637,6 +1677,48 @@ conversion, for two reasons:
    > }
    > ```
 
+
+
+### Foreign Types Conversion And Testing
+
+The Cangjie operators `is` and `as` are supported for all
+[foreign types](#foreign-types), as well as the type pattern _`v`_`: `_`T`_
+in match expressions (but not in if-let and while-let expressions yet).
+Note, however, that their semantics matches that of the Java type comparison
+operator `instanceof` and cast expressions, and in the general case the actual
+type testing and conversion is conducted in the JVM.
+
+
+**IMPORTANT:** Nullable values of mirror types and interop classes, represented
+using `Option<T>` wrapping as described
+in [`null` Handling](#null-handling), need to be null-tested and unwrapped
+before type testing, for two reasons:
+
+1. Cangjie generics are invariant with respect to their type arguments,
+   so _`e`_` is ?`_`T`_ evaluates to `true` only if the type of _`e`_
+   is `Option<`_`T`_`>` specifically, not some `Option<`_`U`_`>` where
+   _`U`_` <: `_`T`_.
+
+2. In Java, `null instanceof `_`T`_ evaluates to `false` for any reference
+   type _`T`_. In Cangjie, _`v`_` is ?`_`T`_ evaluates to `true` if _`v`_
+   equals `Option<`_`T`_`>.None`.
+
+> The semantics of the Java type comparison operator `instanceof` may be
+> replicated in Cangjie as follows:
+>
+> ```java
+> // Java:
+> void f(o: Object) {
+>     if (o instanceof T) { ... }
+> }
+> ```
+>
+> ```cangjie
+> // Cangjie:
+> func f(x: ?JObject): Unit {
+>     if (let Some(t) <- o && t is T) { ... }
+> }
+> ```
 
 
 
@@ -2437,7 +2519,7 @@ and return values of non-private member functions and constructors of mirror
 types and interop classes. This is only possible because the `cjc` compiler
 has dedicated support for `JString`.
 
-Members inherited from [`JObject`](#java-lang-jobject):
+Members inherited from [`JObject`](#java.lang.jobject):
 `equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
 methods.
 
@@ -2483,7 +2565,7 @@ public operator func [](index: Int32, value!: T): Unit
 
 The element access operator `[]`.
 
-Members inherited from [`JObject`](#java-lang-jobject):
+Members inherited from [`JObject`](#java.lang.jobject):
 `equals`, `hashCode`, `hashCode32`, `toString`, `toJString`, `wait/notify`
 methods.
 
@@ -2498,22 +2580,10 @@ loaded by the same class loader.
 
 ### Initialization
 
-All Cangjie global variables are initilaized and the static initializers of all
-Cangjie types are called when control first reaches Cangjie code, that is, when
-any [interop class](#interop-class) is used in Java code for the first time.
-
-If all that Cangjie initialization code uses any mirror types or interop classes
-other than the one that has triggered initialization and its supertypes, the
-respective Java types also get initialized, with a cascading effect on their
-supertypes.
-
-In other words, a considerable number of Java classes and interfaces may get
-loaded and initialized all at once when control first reaches Cangjie code
-in the interop scenario. If that happens at application startup, it will take
-longer and the _initial_ memory footprint of the application will be higher than
-if the same application logic was coded entirely in Java or some other JVM
-language. The relative order of Java classes and interfaces initialization may
-also be different. All that is expected behavior.
+When control first reaches Cangjie code, all global and `static` Cangjie
+variables are initialized, and the static initializers of all Cangjie types are
+called. That happens when the very first [interop class](#interop-classes)
+wrapper gets initialized.
 
 > Java classes and interfaces are initialized on first use, which can be one of:
 > class instantiation, `static` method invocation, assignment to a `static`
@@ -2522,13 +2592,24 @@ also be different. All that is expected behavior.
 > the interface declares default methods), or the invocation of certain
 > reflective methods.
 
+**IMPORTANT: All that Cangjie initialization code must _not_ use any mirror
+types or interop classes in any manner whatsoever. A deadlock is imminent if
+this rule is violated.**
+
+If Cangjie initialization consumes a considerable amount of computing resources
+and occurs at application startup, the latter may take longer and the _initial_
+memory footprint of the application may be higher than if the same application
+logic was coded entirely in Java or some other JVM language. That is expected
+behavior.
+
+
 
 ### Finalization
 
 #### Java Finalizers
 
 Interop classes may not implement the `finalize()` method of `java.lang.Object`.
-The built-in mirror of that class, [`java.lang.JObject`](#java-lang-jobject),
+The built-in mirror of that class, [`java.lang.JObject`](#java.lang.jobject),
 does not even declare that method.
 
 > An attempt to define a Java finalizer in an interop class:
@@ -2651,5 +2732,25 @@ A thread created by Cangjie `spawn` gets attached to the JVM automatically
 as a daemon thread when it first crosses the border between two
 languages: instantiates a mirror/interop class, calls its `static` method that
 is not (re)defined in Cangjie, etc.
+
+**IMPORTANT:** In the current version, any interop uses that may occur
+in threads created _not_ by the Java VM must be wrapped in `exclusiveScope<T>`.
+For example, the code
+
+```
+let x = SomeJavaClass()
+return x.foo().bar() + 1    // Suppose bar() returns an Int32
+```
+
+must be rewritten as
+
+```
+return exclusiveScope<Int32> {
+   let x = SomeJavaClass()
+   return x.foo().bar() + 1
+}
+```
+
+if it may execute in a non-Java thread.
 
 
