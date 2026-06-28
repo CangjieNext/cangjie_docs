@@ -1629,7 +1629,7 @@ Enabling this option inserts a function call `__sanitizer_cov_trace_pc_guard(uin
 
 **Notably**, this feature differs from gcc/llvm implementations: it does not insert `void __sanitizer_cov_trace_pc_guard_init(uint32_t *start, uint32_t *stop)` in the constructor. Instead, it inserts a function call `uint32_t *__cj_sancov_pc_guard_ctor(uint64_t edgeCount)` during package initialization.
 
-The `__cj_sancov_pc_guard_ctor` callback function must be implemented by the developer. Packages with SanCov enabled will call this callback as early as possible. The input parameter is the number of Edges in the Package, and the return value is typically a memory region created by calloc.
+The `__cj_sancov_8bit_counters_ctor` callback function must be implemented by the developer. Packages with SanCov enabled will call this callback as early as possible. The input parameter is the number of Edges in the Package, and the return value is typically a memory region created by calloc.
 
 If `__sanitizer_cov_trace_pc_guard_init` needs to be called, it is recommended to call it within `__cj_sancov_pc_guard_ctor`, using dynamically created buffers to compute the function's input parameters and return value.
 
