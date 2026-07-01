@@ -540,7 +540,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 2. Compile a static library (`.bc` file) required for `LTO` mode and use it to compile an executable file:
 
     ```shell
-    # Generate a static library as a .bc file
+    # Generate bitcode file
     $ cjc pkg.cj --lto=full --output-type=staticlib -o libpkg.bc
     # Compile the executable file with the .bc file and source file
     $ cjc test.cj libpkg.bc --lto=full
@@ -558,6 +558,24 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
     # Dynamic linking: Dynamic library is used for linking; standard library code does not participate in LTO optimization
     $ cjc test.cj --lto=full --dy-std
     ```
+4. Currently on iOS, enabling `LTO` only supports building static libraries and does not yet support enabling code obfuscation at the same time.
+
+### --lto-staticlib-format=[native|bitcode]
+
+Platform restriction: primarily designed for iOS development scenarios
+
+Prerequisite: Must be used together with the `--experimental` 、`--lto` option
+
+| Value     | Output Format                | Description                                                                                                                                   |
+| :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bitcode` | LLVM Bitcode (`.bc`)         | Equivalent to the legacy behavior of `--output-type=staticlib` with LTO; outputs LLVM IR bitcode                                  |
+| `native`  | Native static library (`.a`) | outputs static library format with LTO optimization; In `native` mode, standard library bc files are automatically linked to participate in LTO   |
+
+Example:
+
+``` shell
+cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
+```
 
 ### `--compile-as-exe`
 
@@ -1807,23 +1825,6 @@ It is resumed, a = 9
 >
 > - Effect Handlers are currently experimental. This option may change in future versions; use with caution.
 > - Using Effect Handlers requires importing the `stdx.effect` library.<!--DelEnd-->
-
-### --lto-staticlib-format=[native|bitcode]
-
-Platform restriction: primarily designed for iOS development scenarios
-
-Prerequisite: Must be used together with the `--experimental` 、`--lto` option
-
-| Value     | Output Format                | Description                                                                                                                                   |
-| :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bitcode` | LLVM Bitcode (`.bc`)         | Equivalent to the legacy behavior of `--output-type=staticlib` with LTO; outputs LLVM IR bitcode                                  |
-| `native`  | Native static library (`.a`) | outputs static library format with LTO optimization; In `native` mode, standard library bc files are automatically linked to participate in LTO   |
-
-Example:
-
-``` shell
-cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
-```
 
 ### `--experimental` <sup>[frontend]</sup>
 
