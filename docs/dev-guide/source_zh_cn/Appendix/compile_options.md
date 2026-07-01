@@ -544,6 +544,28 @@ cjc --scan-dependency pkgA.cjo
     # 动态链接，依旧使用动态库参与链接，标准库代码不会参与 LTO 优化
     $ cjc test.cj --lto=full --dy-std
     ```
+4. 目前在 iOS 平台中，开启 `LTO` 仅支持编译静态库，暂不支持同时启用代码混淆功能。
+
+### `--lto-staticlib-format=[native|bitcode]`
+
+平台限制：目前仅适用于 iOS 开发场景
+
+前置要求：需与 `--experimental` 、`--lto` 选项配合使用
+
+| 取值        | 输出格式                 | 行为说明                                                                      |
+| :-------- | :------------------- | :------------------------------------------------------------------------ |
+| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode |
+| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，自动链接标准库 bc 文件参与 LTO                      |
+
+用法如下：
+
+``` shell
+cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
+```
+
+> **注意：**
+>
+> `LTO` 模式下的静态库（`.bc` 文件）输入时需要将该文件的路径输入仓颉编译器。
 
 ### `--compile-as-exe`
 
@@ -1921,23 +1943,6 @@ It is resumed, a = 9
 >
 > - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
 > - 使用 Effect Handler 需引入 `stdx.effect` 库。<!--DelEnd-->
-
-### `--lto-staticlib-format=[native|bitcode]`
-
-平台限制：目前仅适用于 iOS 开发场景
-
-前置要求：需与 `--experimental` 、`--lto` 选项配合使用
-
-| 取值        | 输出格式                 | 行为说明                                                                      |
-| :-------- | :------------------- | :------------------------------------------------------------------------ |
-| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode |
-| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，自动链接标准库 bc 文件参与 LTO                      |
-
-用法如下：
-
-``` shell
-cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
-```
 
 ### `--experimental` <sup>[frontend]</sup>
 
