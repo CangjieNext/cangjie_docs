@@ -4,7 +4,7 @@
 
 ## 安装仓颉工具链
 
-请参阅[仓颉 SDK 安装指南](https://gitcode.com/Cangjie/cangjie_docs/blob/dev/docs/dev-guide/source_zh_cn/first_understanding/install.md)安装并验证本地仓颉环境。
+请参阅[仓颉 SDK 安装指南](../../../dev-guide/source_zh_cn/first_understanding/install.md)安装并验证本地仓颉环境。
 
 ## 仓库配置
 
