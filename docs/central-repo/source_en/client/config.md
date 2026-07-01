@@ -4,7 +4,7 @@ The Cangjie Project Manager `cjpm` integrates the central repository client func
 
 ## Install Cangjie Toolchain
 
-Please refer to the [Cangjie SDK Installation Guide](https://gitcode.com/Cangjie/cangjie_docs/blob/dev/docs/dev-guide/source_en/first_understanding/install.md) to install and verify your local Cangjie environment.
+Please refer to the [Cangjie SDK Installation Guide](../../../dev-guide/source_en/first_understanding/install.md) to install and verify your local Cangjie environment.
 
 ## Repository Configuration
 
