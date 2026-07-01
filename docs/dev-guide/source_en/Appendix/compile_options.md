@@ -516,8 +516,9 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 
 **Important Notes:**
 
-1. This feature is not supported on `Windows` or `macOS`. It is supported on `iOS`, where it requires the `--experimental` flag.
-2. When `LTO` is enabled, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
+1. This feature is not supported on `Windows` or `macOS` (excluding `iOS`).
+2. Currently on `iOS`, this feature requires the `--experimental` flag. Enabling `LTO` only supports building static libraries (see `--lto-staticlib-format` option), and does not yet support enabling code obfuscation at the same time.
+3. When `LTO` is enabled and specified, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
 
 `LTO` supports two compilation modes:
 
@@ -540,7 +541,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 2. Compile a static library (`.bc` file) required for `LTO` mode and use it to compile an executable file:
 
     ```shell
-    # Generate a static library as a .bc file
+    # Generate bitcode file
     $ cjc pkg.cj --lto=full --output-type=staticlib -o libpkg.bc
     # Compile the executable file with the .bc file and source file
     $ cjc test.cj libpkg.bc --lto=full
@@ -548,7 +549,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 
     > **Note:**
     >
-    > In `LTO` mode, the path to the static library (`.bc` file) must be provided to the Cangjie compiler.
+    > In `LTO` mode, `--output-type=staticlib` produces a bitcode file.
 
 3. In `LTO` mode, when statically linking the standard library (`--static-std` & `--static-libs`), the standard library code participates in `LTO` optimization and is statically linked into the executable. When dynamically linking the standard library (`--dy-std` & `--dy-libs`), the dynamic library of the standard library is used for linking even in `LTO` mode.
 
@@ -558,6 +559,32 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
     # Dynamic linking: Dynamic library is used for linking; standard library code does not participate in LTO optimization
     $ cjc test.cj --lto=full --dy-std
     ```
+
+### --lto-staticlib-format=[native|bitcode]
+
+Specifies the output artifact format when compiling static libraries in LTO mode:
+- `bitcode`: outputs LLVM IR bitcode (`.bc` file)
+- `native`: outputs an LTO-optimized static library (`.a` file)
+
+Platform restriction: primarily designed for iOS development scenarios
+
+Prerequisite: Must be used together with the `--experimental` 、`--lto` option
+
+| Value     | Output Format                | Description                                                                                                                                   |
+| :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bitcode` | LLVM Bitcode (`.bc`)         | Equivalent to the legacy behavior of `--output-type=staticlib` with LTO; outputs LLVM IR bitcode                                  |
+| `native`  | Native static library (`.a`) | outputs static library format with LTO optimization; In `native` mode, standard library bc files are automatically linked to participate in LTO   |
+
+Example:
+
+``` shell
+cjc test.cj --output-type=staticlib --target=aarch64-apple-ios17.5 --lto=full -o libtest.bc
+cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
+```
+
+> **Note:**
+>
+> When `--lto-staticlib-format` is not enabled, bitcode files are output by default.
 
 ### `--compile-as-exe`
 
@@ -577,8 +604,7 @@ Specifies package names whose symbol visibility is preserved in LTO mode. Symbol
 >
 > - Only effective when --lto is enabled, otherwise an error will be reported.
 > - Cannot be used together with --compile-as-exe, otherwise an error will be reported.
-> - Only effective when compiling dynamic libraries (--output-type=dylib) on Linux, Android, OpenHarmony, or static libraries (--output-type=staticlib) on iOS; otherwise a warning will be issued.
-> -  LTO is not supported on `Windows` or `macOS` platforms. On `Apple` platforms, LTO support is limited to `iOS` only, and must be used with the `--experimental` flag.
+> - Only effective when compiling dynamic libraries on Linux, Android, OpenHarmony, or static libraries on iOS; otherwise a warning will be issued.
 
 **Usage Example:**
 
@@ -1807,23 +1833,6 @@ It is resumed, a = 9
 >
 > - Effect Handlers are currently experimental. This option may change in future versions; use with caution.
 > - Using Effect Handlers requires importing the `stdx.effect` library.<!--DelEnd-->
-
-### --lto-staticlib-format=[native|bitcode]
-
-Platform restriction: primarily designed for iOS development scenarios
-
-Prerequisite: Must be used together with the `--experimental` 、`--lto` option
-
-| Value     | Output Format                | Description                                                                                                                                   |
-| :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bitcode` | LLVM Bitcode (`.bc`)         | Equivalent to the legacy behavior of `--output-type=staticlib` with LTO; outputs LLVM IR bitcode                                  |
-| `native`  | Native static library (`.a`) | outputs static library format with LTO optimization; In `native` mode, standard library bc files are automatically linked to participate in LTO   |
-
-Example:
-
-``` shell
-cjc main.cj --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
-```
 
 ### `--experimental` <sup>[frontend]</sup>
 
