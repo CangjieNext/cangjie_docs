@@ -754,6 +754,8 @@ Example configuration:
   src-dir = "" # Source directory (optional)
   target-dir = "" # Output directory (optional)
   package-configuration = {} # Per-package configuration (optional)
+  include = ["src"] # Bundle scope (gitignore-style glob), optional
+  exclude = ["*.txt"] # Bundle exclusion scope (gitignore-style glob), optional
 
 [workspace] # Workspace configuration (cannot coexist with package)
   members = [] # Workspace member modules (required)
@@ -957,6 +959,89 @@ Output: target/release/bin
 |-- demo.aoo
 |-- demo.boo
 `-- demo
+```
+
+### "include", "exclude"
+ 	 
+These fields are used by the `bundle` command to specify the file scope for packaging. Both `include` and `exclude` are string arrays, where each string represents a matching rule.
+ 	 
+Matching rules use **gitignore-style glob syntax** (`*`, `?`, `**`, leading `/` anchoring, trailing `/` directory matching, etc.). Rules are matched relative to the project root directory. Prefer conventional forms such as `src`, `*.txt`, and `src/**`. **Do not** use a `./` prefix or redundant path forms such as `.//`.
+ 	 
+Supported glob syntax:
+
+- `*`: matches any character except `/` (within a single path segment)
+- `?`: matches a single character other than `/`
+- `**`: matches directories at any depth
+- `[abc]`: matches any one character inside the brackets
+- Leading `/`: matches only paths under the project root (e.g., `/src` matches only the root-level `src` directory)
+- Trailing `/`: matches the directory and all files under it (e.g., `src/`)
+- Rules without `/`: may match at any directory level (e.g., `*.txt`)
+
+Before matching, rules are path-normalized: redundant `/` and `/./` segments are collapsed, and `..` segments are resolved. Rules starting with `./` have that prefix removed. The rules `./` or `././` match all files in the project (equivalent to matching every relative path).
+
+Differences from `.gitignore` files:
+
+- `!` negation rules are not supported
+- Hidden files and directories (names starting with `.`) are never bundled
+- Some rules that are invalid in `.gitignore` (e.g., `./src/**`) work in `bundle`, but standard forms are recommended
+
+The `bundle` command only inspects and packages files under the current project directory. The final packaging scope is determined as follows:
+
+- Always bundled regardless of configuration: `cjpm.toml`, `README.md`, and `README_zh.md` in the project root
+- Never bundled regardless of configuration:
+    - `cjpm.lock` and `cangjie-repo.toml` in the project root
+    - Build output directories and build-script cache directories
+    - All binary files
+    - All hidden files and directories (names starting with `.`)
+- For all other files:
+    - A file is bundled if it matches any `include` rule and does not match any `exclude` rule
+    - If `include` is not configured, all files that do not match any `exclude` rule are bundled
+
+For example, given the following module `demo` to be packaged:
+
+```text
+demo
+├── src
+│    ├── demo.cj
+│    ├── demo-config.txt
+│    └── aoo
+│         ├── aoo.cj
+│         └── aoo-config.txt
+├── test
+│    ├── test.cj
+│    └── test-config.txt
+├── README.md
+└── cjpm.toml
+```
+
+The packaging scope for different configurations is as follows:
+
+```toml
+[package]
+  include = []
+  exclude = []
+# Result: bundle all files listed above
+```
+
+```toml
+[package]
+  include = ["src"]
+  exclude = []
+# Result: bundle cjpm.toml, README.md, and the src directory
+```
+
+```toml
+[package]
+  include = []
+  exclude = ["*.txt"]
+# Result: exclude all .txt files; bundle the rest
+```
+
+```toml
+[package]
+  include = ["src"]
+  exclude = ["*.txt"]
+# Result: bundle cjpm.toml, README.md, and files under src except .txt files
 ```
 
 ### "workspace"
