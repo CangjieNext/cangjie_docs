@@ -874,8 +874,6 @@ public open class G/*<T>*/ <: NSObject {
 
     * 仓颉类中的构造函数不会被继承，而 Objective-C 中并没有专门的“构造方法”，而只有名为 `init` 的方法，而所有方法都可以被继承。
 
-    详情请参见 [Objective-C 类](#objective-c-类) 章节。
-
 * 泛型 Objective-C 类将被镜像为非泛型仓颉类，详情请参见 [Objective-C 泛型](#objective-c-泛型) 章节。
 
 * 对 `@protocol` 的镜像支持尚未完全支持。
