@@ -130,12 +130,6 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 * `CString`
 * 作为函数返回值类型的 `Unit`
 
-## 前置步骤
-
-当前版本的 iOS 版仓颉 SDK 需要开发者手动从仓颉开源仓库获取 `Cangjie.h` 头文件，该文件位于 Cangjie/cangjie_runtime 仓库的 `src/Cangjie.h` 路径下。
-
-然后将此头文件集成进 XCode 项目中，本文档后续将阐述的 Objective-C 互操作功能依赖此文件。
-
 ## 在仓颉侧使用 Objective-C
 
 通过以下步骤来实现 iOS 应用中 Objective-C 与仓颉的互操作：
