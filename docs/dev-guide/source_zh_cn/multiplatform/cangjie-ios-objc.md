@@ -190,9 +190,9 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 
 在 Objective-C 源码的视角下，互操作层所提供的 Objective-C 类与普通的 Objective-C 类在外观和使用上不存在任何区别，唯一区别在于后者的 `@implementation` 是用户自己手写的，而前者的 `@implementation` 则是用户手写仓颉 `ObjCImpl class` 后，由 cjc 编译之自动生成的。因此，开发者要做的是用伪代码来描述 Objective-C 侧的 `@interface`，然后使用仓颉来照着这个 `@interface` 来依次实现各个方法，详情请参考[步骤三](#步骤三实现互操作类)。
 
-**支持的形参类型：** 任何[被映射](#将-objective-c-类型镜像为仓颉类型) 的 Objective-C 类型。
+**支持的形参类型：** 任何被镜像的 Objective-C 类型。
 
-**支持的返回类型：** 任何[被映射](#将-objective-c-类型镜像为仓颉类型) 的 Objective-C 类型或 `void` 类型。
+**支持的返回类型：** 任何被镜像的 Objective-C 类型或 `void` 类型。
 
 **支持的继承与实现关系：** 互操作类只能继承 Objective-C 类的镜像类 `@ObjCMirror class`，不能继承其他互操作类，且只能实现 Objective-C 协议的镜像接口 `@ObjCMirror interface`。
 
@@ -856,7 +856,7 @@ public open class G/*<T>*/ <: NSObject {
 
 * 如果 Objective-C 的 `struct` 中存在类型非 `CType` 兼容的字段，则该 `struct` 无法被镜像。
 
-* 匿名 C 枚举声明将被忽略，具名 C 枚举声明则将被镜像为 `abstract sealed class`。详情请参见 [Objective-C 枚举](#objective-c-枚举类型) 小节。
+* 匿名 C 枚举声明将被忽略，具名 C 枚举声明则将被镜像为 `abstract sealed class`。
 
 * 不支持对变长参数，但拥有变长参数的方法依然也支持镜像，不过变长参数的方法中的 `...` 将被忽略。
 
@@ -1188,7 +1188,7 @@ arguments-append = [
 
 ​		输出文件将置于 `./cj-mirrors/objc/foundation` 目录下。
 
-- `filters` （必选）：一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。详情请参见[名称过滤器](#名称过滤器)。
+- `filters` （必选）：一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。
 
   **示例：**
 
