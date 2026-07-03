@@ -65,6 +65,7 @@ public class Node {
 
 其对应的 Java 镜像类型定义可能如下：
 
+<!-- compile -->
 ```cangjie
 @JavaMirror
 public open class Node {
@@ -82,6 +83,7 @@ public open class Node {
 
 接下来将举例说明，当使用 cjc 编译以下互操作类时：
 
+<!-- compile -->
 ```cangjie
 @JavaImpl
 public class BooleanNode <: Node {
@@ -131,6 +133,7 @@ public class BooleanNode extends Node {
 
 显然，外部类型定义中可见性为 `public` 成员函数的形参类型和返回类型必须是 Java 兼容类型，否则将导致 cjc 编译报错；可见性为 `public` 的构造函数同理。
 
+<!-- compile -->
 ```cangjie
 @JavaImpl
 class WeightedNode <: Node {
@@ -141,6 +144,7 @@ class WeightedNode <: Node {
 }
 ```
 
+<!-- compile -->
 ```cangjie
 @JavaImpl
 class ColoredNode <: Node {
@@ -297,6 +301,7 @@ Java 侧返回类型为 `void` 的方法，在仓颉侧的对应函数返回类�
 
 延续之前的例子，实现的互操作类类似如下：
 
+<!-- compile -->
 ```cangjie
 package cjworld
 
@@ -482,6 +487,7 @@ java -Dpackage.mode=true -Dpackage.name=javaworld \
 
 新生成的文件 `src/cj/javaworld/src/C.cj` 的内容如下：
 
+<!-- compile -->
 ```cangjie
 package javaworld
 
@@ -499,6 +505,7 @@ public class C {
 
 延续之前的例子，这时开发者就可以在 `cjworld.Interop.m` 函数体中使用 `javaworld.C` 了：
 
+<!-- compile -->
 ```cangjie
 package cjworld
 
@@ -570,6 +577,7 @@ public class Interop {
     public static final long Int32 = 0xffff_ffff;
     ```
 
+    <!-- compile -->
     ```cangjie
     public static let `Int32`: Int64
     ```
@@ -583,6 +591,7 @@ public class Interop {
     }
     ```
 
+    <!-- compile -->
     ```cangjie
     @JavaMirror["Outer"]
     public open class Outer {
@@ -614,6 +623,7 @@ public class Interop {
 
     将被镜像为：
 
+    <!-- compile -->
     ```cangjie
     public open class Node {
         @ForeignName["id"]
@@ -677,6 +687,7 @@ public class Node {
 
 其镜像得到的 `@JavaMirror` 类可能如下：
 
+<!-- compile -->
 ```cangjie
 @JavaMirror["Node"]
 public open class Node {
@@ -702,6 +713,7 @@ public open class Node {
     CurrencyAmount priceInUS$Per(WeightUnit wu) { ... }
 ```
 
+<!-- compile -->
 ```cangjie
     @ForeignName["priceInUS$Per"]
     public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
@@ -739,6 +751,7 @@ public class Outer {
 }
 ```
 
+<!-- compile -->
 ```cangjie
 @JavaMirror["Outer"]
 public open class Outer {
@@ -769,6 +782,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     }
     ```
 
+    <!-- compile -->
     ```cangjie
     @JavaMirror["A"]
     public abstract class A {
@@ -789,6 +803,7 @@ public open class Outer_Inner {  // '$' is replaced with '_'
     }
     ```
 
+    <!-- compile -->
     ```cangjie
     @JavaMirror["I"]
     public interface I {
@@ -871,6 +886,7 @@ interface Concatenator {
 
 对于以上的 Java `interface`，形参 `ss` 本身可能为 `null`，`ss` 作为数组，其中每个元素都有可能为 `null`，`concat` 方法的返回值也同样可能为 `null`。因此，对于该 `interface` 来说最保险的镜像的方式如下：
 
+<!-- compile -->
 ```cangjie
 @JavaMirror
 interface Concatenator {
@@ -880,6 +896,7 @@ interface Concatenator {
 
 同理，当开发者在互操作类中定义具有外部类型 `T` 的局部变量时，也应该使用 `Option<T>` 而不是直接 `T`，除非开发者能百分之百确定该局部变量不会被赋 `null` 值。
 
+<!-- compile -->
 ```cangjie
 // 假设M是 Java 镜像类型
 let m: M = M() // 如果M()能够成功返回，开发者能够保证一定返回 M 实例而不是空引用
@@ -918,6 +935,7 @@ public interface D extends C {
 
 假设不进行 `Option<T>` 的装包，上述 Java 类型定义将被镜像为以下仓颉类型定义：
 
+<!-- compile -->
 ```cangjie
 @JavaMirror
 public open class Foo {}
@@ -940,6 +958,7 @@ public interface D <: C {
 
 如果进行 `Option<T>` 装包，就可以解决 `null` 的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
 
+<!-- compile -->
 ```cangjie
 @JavaMirror
 public open class Foo {}
@@ -983,6 +1002,7 @@ public open interface D <: C {
 
 镜像生成器将把生成的仓颉类型放在 `java.world` 包中，而原 Java 包名则通过 `@JavaMirror` 注解的参数得以传递至仓颉侧：
 
+<!-- compile -->
 ```cangjie
 package java.world
 
@@ -997,6 +1017,7 @@ public interface Cloneable {
 
 不同 Java 包中可能定义有完全限定名不同，但拥有相同简单名称的类型。例如，JDK 的 `javax.management` 包中存在 `Attribute` 类，`javax.naming.directory` 包中存在 `Attribute` 接口。显然，如果它们生成的镜像类型的简单名称不改名，同为 `Attribute`，那么这两个类型的镜像类型无法同时存在在一个仓颉包中。因此，镜像生成器在 [单包模式](#单包模式) 下，将自动检测命名冲突，对所有存在冲突的类型名称进行修饰。具体而言，存在冲突的镜像类型的名称会采用原 Java 类型的完全限定名，其中的点 `.` 均替换为下划线 `_`。
 
+<!-- compile -->
 ```cangjie
 // src/java/world/src/javax_management_Attribute.cj
 package java.world
@@ -1009,6 +1030,7 @@ public open class javax_management_Attribute <: Serializable {
 }
 ```
 
+<!-- compile -->
 ```cangjie
 // src/java/world/src/javax_naming_directory_Attribute.cj
 package java.world
@@ -1127,6 +1149,7 @@ java -Djar.mode=true -Dpackage.mode=true -Dpackage.name=com.example \
 >
 > 被删除的成员函数是 `clone()`、`finalize()` 和 `getClass()`。由于 `JObject` 是所有镜像类的根类，这些被删除的成员函数在所有其他镜像类中自然也不可用。
 
+<!-- compile -->
 ```cangjie
 package java.lang
 
@@ -1154,12 +1177,14 @@ open class JObject {
 
  Java 的 `java.lang.Object` 的 `hashCode` 方法的返回类型是 `int`，对应仓颉 `Int32`，而仓颉标准库中的 `hashCode` 成员函数的返回类型则是 `Int64`。因此，`java.lang.JObject` 内置了两个不同的 `hashCode` 成员函数来解决这个差异：
 
+<!-- compile -->
 ```cangjie
 public func hashCode(): Int64
 ```
 
 该实例成员函数将调用 Java 实例方法 `hashCode`，并将 Java 侧的 32 位的 `int` 返回值强制类型转换为 `Int64`，从而更符合仓颉开发者的习惯预期。而另一个实例成员函数：
 
+<!-- compile -->
 ```cangjie
 @ForeignName["hashCode"]
 public open func hashCode32(): Int32
@@ -1167,6 +1192,7 @@ public open func hashCode32(): Int32
 
 则是原本的 Java 方法 `hashCode` 的镜像，为避免名称冲突而重命名为 `hashCode32`。
 
+<!-- compile -->
 ```cangjie
 public func toString(): String
 ```
@@ -1177,6 +1203,7 @@ public func toString(): String
 >
 > 该成员函数的返回类型是仓颉 `String` 类型，这明显违反了规格，因为规格要求镜像类的所有 `public` 成员函数的形参类型和返回类型必须是 Java 兼容类型。之所以可行是因为 cjc 针对该成员函数有专门的支持。
 
+<!-- compile -->
 ```cangjie
 @ForeignName["toString"]
 public open func toJString(): JString
@@ -1188,6 +1215,7 @@ public open func toJString(): JString
 
 ### `java.lang.JString`
 
+<!-- compile -->
 ```cangjie
 package java.lang
 
@@ -1199,6 +1227,7 @@ open class JString {
 }
 ```
 
+<!-- compile -->
 ```cangjie
 public init(cjString: String)
 ```
@@ -1223,18 +1252,21 @@ public init(cjString: String)
 
 `JArray<T>` 所提供的 API 相对仓颉标准库类型 `Array<T>` 来说相对受限，除 `JArray<T>` 构造函数外，仅提供了用于获取数组长度的 `length` 实例成员属性、数组元素访问的操作符重载函数，以及由 `java.lang.JObject` 继承而来的若干成员函数。
 
+<!-- compile -->
 ```cangjie
 public init(length: Int32)
 ```
 
 实例化一个长度为 `length` 的 Java 数组。
 
+<!-- compile -->
 ```cangjie
 public prop length: Int32
 ```
 
 获取 Java 数组的元素个数。
 
+<!-- compile -->
 ```cangjie
 public operator func [](index: Int32): T
 public operator func [](index: Int32, value!: T): Unit

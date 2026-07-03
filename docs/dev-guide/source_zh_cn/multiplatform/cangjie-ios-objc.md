@@ -50,6 +50,7 @@ cjc 在编译过程中会将所有仓颉源码中用到的 Objective-C 镜像类
 
 其对应的 Objective-C 镜像类型定义可能如下：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class Node <: NSObject {
@@ -69,6 +70,7 @@ Objective-C 和仓颉均支持全局函数，全局函数不是任何类型的�
 
 接下来将举例说明，当使用 cjc 编译以下互操作类时：
 
+<!-- compile -->
 ```cangjie
 @ObjCImpl
 public class BooleanNode <: Node {
@@ -419,6 +421,7 @@ arguments-append = [
 
 继续上述的例子，开发者可能会如下实现互操作类 `A`：
 
+<!-- compile -->
 ```cangjie
 package cjworld           // Same package name
 
@@ -607,6 +610,7 @@ Objective-C 源码中，被标记为 `unavailable` 的声明将被忽略。
 
     上述 Objective-C 类型将被镜像为：
 
+    <!-- compile -->
     ```cangjie
     @ObjCMirror
     public open class A <: ObjCId {
@@ -671,6 +675,7 @@ struct A {
 
 上述类型将被镜像为：
 
+<!-- compile -->
 ```cangjie
 @C
 public struct A {
@@ -715,6 +720,7 @@ Objective-C 方法的完整名称，即选择器，中可能包含有 `:`，而�
 
 将被镜像为：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class A {
@@ -805,6 +811,7 @@ Objective-C 块指针类型将被镜像为 `ObjCBlock<F>`（该类型名为暂�
 
 以上类型将被镜像为：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class G/*<T>*/ <: NSObject {
@@ -899,6 +906,7 @@ public open class G/*<T>*/ <: NSObject {
 
 镜像生成结果如下：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class MyContainer <: NSObject {
@@ -948,6 +956,7 @@ Objective-C 类 `D` 继承 `C`，其中重写了方法 `get`，返回类型换�
 
 假设不存在 `Option<T>` 装包，上述所有类型将被镜像为：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class Foo <: NSObject {}
@@ -970,6 +979,7 @@ public open class D <: C {
 
 如果进行 `Option<T>` 装包，就可以解决 `nil` 的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class Foo <: NSObject {}
@@ -1019,6 +1029,7 @@ XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与�
 
 镜像生成器将不对 `nonnull` 实体进行 `Option<T>` 装包：（注意，以下代码出于简洁考虑省略了 `@ForeignName` 注解）
 
+<!-- compile -->
 ```cangjie
 @ObjCMirror
 public open class MyContainer <: NSObject {
