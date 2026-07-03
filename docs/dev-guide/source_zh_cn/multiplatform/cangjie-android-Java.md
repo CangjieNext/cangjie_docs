@@ -149,7 +149,7 @@ class WeightedNode <: Node {
 @JavaImpl
 class ColoredNode <: Node {
     private let _color: Int32
-    public prop color: Int32 {     // Exposed to Java as method 'int getColor()'
+    public prop color: Int32 {     // 该实例成员属性将以方法 'int getColor()' 的形式暴露给 Java 侧
         get() { _color }
     }
     public init(color: Int32) {
@@ -169,18 +169,21 @@ class ColoredNode <: Node {
 3. 使用仓颉语言编写实现互操作层，在仓颉代码中按需使用 @JavaMirror 镜像类型，例如创建镜像类型的实例、调用其成员函数等。即开发者依据互操作胶水层设计和 .cj 镜像类型定义，完成 .cj 互操作层实现代码的编写。
 
 4. 将 @JavaMirror 镜像类型定义和第 3 步中仓颉实现的互操作层代码一并使用 cjc 编译器进行编译，编译产物包括：
-  - 包含互操作层逻辑的动态库（.so 文件）。
-  - 若干 Java 侧可用的镜像类型定义源文件（.java 文件）。
-即：.cj 源文件（镜像类型定义 + 互操作层实现）经 cjc 编译后，生成 .so 动态库和 .java 胶水层镜像类型定义。
+
+    * 包含互操作层逻辑的动态库（.so 文件）。
+    * 若干 Java 侧可用的镜像类型定义源文件（.java 文件）。
+
+    即：.cj 源文件（镜像类型定义 + 互操作层实现）经 cjc 编译后，生成 .so 动态库和 .java 胶水层镜像类型定义。
 
 5. 将以下中间产物添加进 Android Studio 工程：
-  - 第 4 步中由 cjc 编译产生的若干 .java 源文件，其中包含后续 Java 侧可能用到的互操作胶水层代码。
-  - 第 4 步中由 cjc 编译得到的 .so 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-  - 仓颉 SDK 中所有必要的运行时库，包括 .so 和 .jar 等。
+
+    * 第 4 步中由 cjc 编译产生的若干 .java 源文件，其中包含后续 Java 侧可能用到的互操作胶水层代码。
+    * 第 4 步中由 cjc 编译得到的 .so 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
+    * 仓颉 SDK 中所有必要的运行时库，包括 .so 和 .jar 等。
 
 以下将通过一个端到端的例子来详细说明上述流程。
 
-#### 第一步：设计互操作胶水层
+### 第一步：设计互操作胶水层
 
 在这一步，开发者需要从 Java 源码的视角，来设计一到若干个互操作类。互操作类由仓颉编写实现，但最终会由 cjc 编译生成镜像类型以便 Java 侧使用，因此在 Java 侧看来，并不关心互操作类的具体实现，而只需要关心 Java 侧需要哪些功能。因此，对每个互操作类，开发者只需要考虑以下要点：
 
@@ -195,13 +198,13 @@ class ColoredNode <: Node {
 
 假设，开发者希望在 Java 侧通过调用一个静态方法来将控制流从 Java 侧切换到仓颉侧，这个静态方法的名称为 `m`，接收 3 个形参，形参类型分别为 `com.example.a.A`、`java.lang.String` 和 `int`，并返回类型为 `com.example.b.B` 的值。开发者还希望这个静态方法属于一个叫做 `Interop` 的类，且该类位于名为 `cjworld` 的 Java 包中，不继承任何 Java 类，也就是说，默认继承 `java.lang.Object`，也不实现任何接口。
 
-根据上述描述，事实上已经确定了，未来在步骤四中通过 cjc 为互操作类生成的镜像类型定义的框架如下：
+根据上述描述，步骤四中 cjc 将为互操作类生成的镜像类型定义大致如下：
 
 ```java
-// Java 包名为`cjworld`
+// Java 包名为 `cjworld`
 package cjworld;
 
-// 为定义静态方法`m`，需要依赖以下两个其他包中定义的类型
+// 为定义静态方法 `m`，需要依赖以下两个其他包中定义的类型
 import com.example.a.A;
 import com.example.b.B;
 
@@ -215,7 +218,7 @@ public class Interop {
 }
 ```
 
-#### 第二步：生成镜像类型声明
+### 第二步：生成镜像类型声明
 
 现在，切换到仓颉侧源码的视角，开发者需要获得在仓颉侧编写互操作类所依赖的所有 Java 类型的镜像类型，根据上一步可知具体依赖哪些 Java 类型：互操作类的父类型、形参类型、返回类型，甚至可能还有这些类型本身所依赖的类型。
 
@@ -264,7 +267,7 @@ java -Dpackage.mode=true -Dpackage.name=javaworld \
     com.example.a.A com.example.b.B
 ```
 
-#### 第三步：实现互操作类
+### 第三步：实现互操作类
 
 现在开始真正为开发者在第一步中描述的 Java 类框架，使用仓颉来实现其逻辑，请参考以下要点：
 
@@ -319,7 +322,7 @@ public class Interop {
 
 在上述例子中，如果静态成员函数 `m` 在设计上不可能返回 `null` 到 Java 侧，那么完全可以将 `m` 的返回类型改为 `B`，互操作依然可以正常工作。
 
-#### 第四步：编译互操作类
+### 第四步：编译互操作类
 
 使用以下命令进行对互操作类实现进行编译:
 
@@ -355,11 +358,11 @@ cjc --output-type=dylib \
 
 编译将生成两个文件：`libcjworld.so` 和 `src/java/cjworld/Interop.java`，后者包含了 Java 侧可以使用的互操作类的镜像类型。
 
-#### 第五步：集成编译产物至安卓工程
+### 第五步：集成编译产物至安卓工程
 
 1. 将以下文件添加至 Android Studio 工程：
     * 第四步中由 cjc 生成的所有 Java 源文件，添加至 `src/main` 目录下，根据其实际包名，创建必要的目录结构，将源文件放至对应目录位置。
-    * 第四步中由 cjc 编译得到的 `.so` 文件，添加至 `src/main/jniLibs/arm64-v8a` 目录下，如果该子目录不存在，手动创建之即可。
+    * 将第四步中由 cjc 编译得到的 .so 文件放入 `src/main/jniLibs/arm64-v8a` 目录下，若该目录不存在，手动创建即可。
     * 将 `$CANGJIE_HOME/runtime/lib/linux_android_aarch64_cjnative` 目录下的所有 `.so` 文件复制进 `src/main/jniLibs/arm64-v8a` 目录下。
     * 将安卓 NDK 中的 `libc++_shared.so` 文件复制进 `src/main/jniLibs/arm64-v8a` 目录下。该文件位于安卓 NDK 根目录下的 `toolchains/llvm/prebuilt/<host>/sysroot/usr/lib/aarch64-linux-android` 目录下，其中 `<host>` 是开发者构建安卓工程所在的平台的 `${os}-${arch}` 组合。例如，如果是在 x64 架构 Linux 上构建安卓工程，则 `<host>` 为 `linux-x86_64`。
     * 将 `$CANGJIE_HOME/lib/library-loader.jar` 作为安卓工程的 JAR 包依赖。
@@ -446,9 +449,7 @@ java -Dpackage.mode=true -Dpackage.name=package-name -Djar.mode=true \
 
 * `package-name` 指定了为 Java 类型生成的镜像类型希望的包名。之所以镜像类型的包名不一定能与原 Java 类型的包名保持一致，与 [循环导入依赖](#处理循环导入依赖) 有关。
 
-* `path-to-android-jar` is the pathname of the `android.jar` file in the
-  Android SDK that you are using,
-  e.g. `${ANDROID_SDK}/platforms/android-35/android.jar`.
+* `path-to-android-jar` 为你所使用的 Android SDK 中 `android.jar` 文件的路径，例如 `${ANDROID_SDK}/platforms/android-35/android.jar`。
 
 * `full-application-classpath` 指定了本次镜像生成所采用的类路径，包括安卓 SDK 的 `android.jar`，和安卓项目构建得到的 `App.jar` 等，类路径之间由冒号分隔。
 
@@ -549,7 +550,7 @@ public class Interop {
 
 * 互操作类的构造函数体中可以通过 `super()` 调用父类的构造函数，其对调用实例成员函数的先后顺序的规格限制，与普通仓颉构造函数的是完全一致的。另外，构造函数体中同样也需要为所有互操作类新定义的实例成员变量进行初始化，否则将导致编译报错。
 
-* 在互操作类的实例成员函数中，可以调用父类的实例成员函数，即便该父类中的实例成员函数由互操作类重写，也可以通过 `super.` 来调用之。
+* 在互操作类的实例成员函数中，可通过 `super.` 调用父类的实例成员函数，即使该函数已在当前互操作类中被重写。
 
 * 互操作类中可见性为 `public` 的构造函数和成员函数的函数签名中所用到的类型，只允许是：(a) 镜像类型或互操作类；(b) 100% 对应于 Java 基本数据类型的仓颉基本数据类型；(c) 仓颉 `String` 类型。该限制对于成员属性同样存在。
 
@@ -710,13 +711,13 @@ public open class Node {
 * 如果 Java 类型的成员名称与镜像得到的仓颉类型的成员名称不同（原因请参考 [Java 名称](#java-名称) 小节），那么 Java 类型的成员名称信息将通过 `@ForeignName` 注解传递到仓颉侧，例如：
 
 ```java
-    CurrencyAmount priceInUS$Per(WeightUnit wu) { ... }
+CurrencyAmount priceInUS$Per(WeightUnit wu) { /* ... */ }
 ```
 
 <!-- compile -->
 ```cangjie
-    @ForeignName["priceInUS$Per"]
-    public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
+@ForeignName["priceInUS$Per"]
+public open priceInUS_Per(arg0: WeightUnit): CurrencyAmount
 ```
 
 > **注意：**
@@ -844,15 +845,15 @@ Java 泛型在经 `javac` 编译得到 `.class` 的过程中将被擦除，故�
 
 [`JArray<T>`](#javalangjarrayt)是一个特殊的内置类型，其为 Java 数组类型的镜像类型。
 
-元素类型为 `T` 的 Java 数组（即类型为 `T[]`）被镜像为：
+元素类型为 `T` 的 Java 数组（即类型为 `T[]`）被镜像为（其中 `T'` 为 `T` 的镜像类型）：
 
-* `?JArray<T'>`，如果 `T` 是基本数据类型
+* 若 `T` 为基本数据类型，则镜像为 `?JArray<T'>`
 
-* `?JArray<?T'>`，如果 `T` 是引用类型
+* 若 `T` 为引用类型，则镜像为 `?JArray<?T'>`
 
 其中 `T'` 是 `T` 的镜像类型。
 
-有关为何进行 `Option<T>` 封装，请参见 [null 值处理](#java-null-值处理) 章节。
+如需了解进行 `Option<T>` 封装的原因，请参见 [null 值处理](#java-null-值处理) 章节。
 
 > **注意：**
 >
@@ -1026,7 +1027,7 @@ import java.lang.*
 
 @JavaMirror["javax.management.Attribute"]
 public open class javax_management_Attribute <: Serializable {
-	// ...
+ // ...
 }
 ```
 
@@ -1039,7 +1040,7 @@ import java.lang.*
 
 @JavaMirror["javax.naming.directory.Attribute"]
 public interface javax_naming_directory_Attribute <: Cloneable & Serializable {
-	// ...
+ // ...
 }
 ```
 

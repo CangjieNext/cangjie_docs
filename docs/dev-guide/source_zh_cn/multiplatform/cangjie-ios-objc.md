@@ -90,17 +90,17 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 ```objectivec
 // BooleanNode.h
 @interface BooleanNode : Node
-/* glue code */
+/* 胶水层代码 */
 - (id)init:(int32_t)x:(BOOL)flag;
 - (BOOL)isFlagged;
-/* more glue code */
+/* 其他胶水层代码 */
 @end
 ```
 
 ```objectivec
 // BooleanNode.m
 @implementation BooleanNode : Node
-/* glue code */
+/* 胶水层代码 */
 - (id)init:(int32_t)x:(BOOL)flag {
     /* 胶水代码：构造一个仓颉 BooleanNode(x, flag) 实例，
     *  并将其与正在构造的 Objective-C 实例（即 'self'）关联起来。
@@ -111,7 +111,7 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
     *  并返回其结果。
     */
 }
-/* more glue code */
+/* 其他胶水层代码 */
 @end
 ```
 
@@ -136,28 +136,6 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 
 通过以下步骤来实现 iOS 应用中 Objective-C 与仓颉的互操作：
 
-1. 基于 Objective-C 类型和函数，设计互操作胶水层。
-   开发者 -> 互操作胶水层设计（Objective-C 伪代码）
-
-2. 根据上一步设计的胶水层，为所有现存相关的 Objective-C 类和协议借助 Objective-C 镜像生成器生成仓颉侧可用的 `@ObjCMirror` 类型定义。
-    `.h` -Objective-C 镜像生成器-> `.cj`（镜像类型定义）
-
-3. 使用仓颉编写实现互操作层，仓颉代码中按需使用 `@ObjCMirror` 镜像类型，例如创建镜像类型的实例，调用其成员函数等。
-    互操作胶水层设计 + `.cj`（镜像类型定义）-开发者-> `.cj`（胶水层实现）
-
-4. 将 `@ObjCMirror` 镜像类型定义和第 3 步中使用仓颉实现的互操作层一起使用 cjc 编译，编译将得到：
-    * 包含互操作层逻辑的动态库。
-    * 若干 Objective-C 侧可用的镜像类型定义源文件。
-    `.cj`（镜像类型定义 + 胶水层实现）-cjc-> `.dylib` + `.h`/`.m`（胶水层镜像类型定义）
-
-5. 将以下中间产物添加进 XCode 工程:
-    * 第 4 步中由 cjc 编译产生的若干 `.h`/`.m` 源文件，其中包含后续 Objective-C 侧可能用到的互操作胶水层代码。
-    * 第 4 步中由 cjc 编译得到的 `.dylib` 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-    * 仓颉 SDK 中所有必要的运行时库，包括 `.dylib` 等。
-
-    接着，在 Objective-C 侧编写必要的对胶水层中提供的镜像类型的实例化和方法调用，完成后重构建工程即可。
-    XCode 工程 + `.h` + `.m` + `.dylib` -iOS 工具链-> iOS 应用
-
 1. 基于 Objective-C 类型和函数，设计互操作胶水层 API，由开发者完成互操作胶水层的设计（以 Objective-C 伪代码形式呈现）。
 
 2. 根据上一步设计的胶水层，借助 Objective-C 镜像生成器，为所有现存相关的 Objective-C 类和协议生成仓颉侧可用的 `@ObjCMirror` 类型定义，即将 .h 头文件转换为 .cj 镜像类型定义文件。
@@ -165,16 +143,19 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 3. 使用仓颉语言编写实现互操作层，在仓颉代码中按需使用 `@ObjCMirror` 镜像类型，例如创建镜像类型的实例、调用其成员函数等。开发者依据互操作胶水层设计和 .cj 镜像类型定义，完成 .cj 胶水层实现代码的编写。
 
 4. 将 `@ObjCMirror` 镜像类型定义和第 3 步中仓颉实现的互操作层代码一并使用 cjc 编译器进行编译，编译产物包括：
-  - 包含互操作层逻辑的动态库（.dylib 文件）。
-  - 若干 Objective-C 侧可用的镜像类型定义源文件（.h / .m 文件）。
-即：.cj 源文件（镜像类型定义 + 胶水层实现）经 cjc 编译后，生成 .dylib 动态库和 .h / .m 胶水层镜像类型定义。
+
+    * 包含互操作层逻辑的动态库（.dylib 文件）。
+    * 若干 Objective-C 侧可用的镜像类型定义源文件（.h / .m 文件）。
+
+    即：.cj 源文件（镜像类型定义 + 胶水层实现）经 cjc 编译后，生成 .dylib 动态库和 .h / .m 胶水层镜像类型定义。
 
 5. 将以下中间产物添加进 XCode 工程：
-  - 第 4 步中由 cjc 编译产生的若干 .h / .m 源文件，其中包含后续 Objective-C 侧可能用到的互操作胶水层代码。
-  - 第 4 步中由 cjc 编译得到的 .dylib 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-  - 仓颉 SDK 中所有必要的运行时库，包括 .dylib 等。
 
-接着，在 Objective-C 侧编写必要的代码，对胶水层中提供的镜像类型进行实例化和方法调用，完成后使用 iOS 工具链重构建工程，即可生成最终的 iOS 应用。
+    * 第 4 步中由 cjc 编译产生的若干 .h / .m 源文件，其中包含后续 Objective-C 侧可能用到的互操作胶水层代码。
+    * 第 4 步中由 cjc 编译得到的 .dylib 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
+    * 仓颉 SDK 中所有必要的运行时库，包括 .dylib 等。
+
+    接着，在 Objective-C 侧编写必要的代码，对胶水层中提供的镜像类型进行实例化和方法调用，完成后使用 iOS 工具链重构建工程，即可生成最终的 iOS 应用。
 
 ### 从零实现互操作层
 
@@ -296,36 +277,36 @@ ObjCInteropGen A.toml
 
 **常见错误配置问题：**
 
-**镜像生成器无法找到某些标准库的头文件，例如 `stdarg.h` 或 `stdbool.h` 等。**
+* **镜像生成器无法找到某些标准库的头文件，例如 `stdarg.h` 或 `stdbool.h` 等。**
 
-典型报错信息：
+    典型报错信息：
 
-```text
-.../CoreFoundation.h:19:10: error: 'stdarg.h' file not found
-```
+    ```text
+    .../CoreFoundation.h:19:10: error: 'stdarg.h' file not found
+    ```
 
-一般是由于 `[sources-mixins]` 表中 `arguments-append` 数组中的路径设置错误导致的，请仔细检查这些头文件搜索路径下确实存在相应头文件。
+    一般是由于 `[sources-mixins]` 表中 `arguments-append` 数组中的路径设置错误导致的，请仔细检查这些头文件搜索路径下确实存在相应头文件。
 
-**镜像生成器产生“Unknown type name 'NSUInteger'”或类似报错。**
+* **镜像生成器产生“Unknown type name 'NSUInteger'”或类似报错。**
 
-典型报错信息：
+    典型报错信息：
 
-```text
-.../NSObjCRuntime.h:626:74: error: unknown type name 'NSUInteger'
-```
+    ```text
+    .../NSObjCRuntime.h:626:74: error: unknown type name 'NSUInteger'
+    ```
 
-某些时候，开发者需要给 clang 传入额外的参数，要么“`-DTARGET_OS_IPHONE=1`”或“`-DTARGET_OS_OSX=1`”。
+    某些时候，开发者需要给 clang 传入额外的参数，要么“`-DTARGET_OS_IPHONE=1`”或“`-DTARGET_OS_OSX=1`”。
 
-将该额外的参数加入 `[sources-mixins]` 表中的 `arguments-append` 数组，在上述示例中，该配置被注释了：
+    将该额外的参数加入 `[sources-mixins]` 表中的 `arguments-append` 数组，在上述示例中，该配置被注释了：
 
-```toml
-# ...
-arguments-append = [
-    # Uncomment the following line if you get "unknown type name" errors
-    # "-DTARGET_OS_IPHONE=1",
-# ...
-]
-```
+    ```toml
+    # ...
+    arguments-append = [
+        # 如遇到 "unknown type name" 编译报错，请解注释以下这行：
+        # "-DTARGET_OS_IPHONE=1",
+        # ...
+    ]
+    ```
 
 #### 步骤三：实现互操作类
 
@@ -343,7 +324,7 @@ arguments-append = [
     * 拥有两个及以上形参的构造函数或非重写成员函数：请务必添加 `@ForeignName` 注解，否则将导致编译错误。对于此类函数，cjc 无法自动推导出有效的 Objective-C 方法名，因此必须手动指定。
 
     * 构成重载的构造函数或成员函数：请务必通过 `@ForeignName` 注解为每个重载赋予不同的 Objective-C 方法名，因为 Objective-C 不支持方法重载。
-    
+
     * 其余构造函数和成员函数：可选择性添加 `@ForeignName` 注解。若未添加，cjc 会按以下规则自动推导 Objective-C 方法名：无参函数的方法名与原函数名相同（构造函数则为 `init`）；仅有一个形参的函数，方法名为原函数名加上 `:` 后缀（构造函数则为 `init:`）。
 
 > **注意：**
@@ -352,7 +333,7 @@ arguments-append = [
 
 * 请参考以下 Objective-C 类型到仓颉类型的映射关系表（`T'` 是对应的值类型或镜像类型）：
 
-    Objective-C            | 仓颉       | 备注
+    Objective-C            | 仓颉          | 备注
     ---------------------- | ------------  | ------
     `void`                 | `Unit`        | -
     `BOOL`                 | `Bool`        | -
@@ -372,12 +353,12 @@ arguments-append = [
     `enum` 且底层类型为 `T` | `T'`          | -
     `id`                   | `ObjCId`      | (†)
 
-    Objective-C  | 仓颉        | `T` 是...                              | 备注
-    ------------ | ------------   | ----------------------------------------- | ------
-    `T*`         | `CPointer<T'>` | ... 基本数据类型或结构体类型         | -
-    `T*`         | `CPointer<U'>` | ... 枚举类型且 `U` 是其底层类型 | -
-    `T*`         | `CFunc<T'>`    | ... 纯 C 函数类型                | -
-    `T*`         | `T'`           | ... Objective-C 类                          | (†)
+    Objective-C  | 仓颉           | `T` 是...                        | 备注
+    ------------ | ------------   | ---------------------------------| ------
+    `T*`         | `CPointer<T'>` | ... 基本数据类型或结构体类型       | -
+    `T*`         | `CPointer<U'>` | ... 枚举类型且 `U` 是其底层类型    | -
+    `T*`         | `CFunc<T'>`    | ... 纯 C 函数类型                 | -
+    `T*`         | `T'`           | ... Objective-C 类               | (†)
 
     (\*) Objective-C 结构体禁止包含任何非 `CType` 兼容类型的字段。详情请参见 [Objective-C 结构体](#objective-c-结构体类型)。
 
@@ -633,7 +614,7 @@ Objective-C 源码中，被标记为 `unavailable` 的声明将被忽略。
 
 Objective-C 基本数据类型将被映射为对应的仓颉基本数据类型。对于各平台特定大小的 C 类型，将根据​host 平台（即运行镜像生成器本身的平台）上其长度来决定映射到哪个仓颉类型。例如，在 MacOS 上，该映射关系可能为：
 
-| Objective-C          | 仓颉   |
+|   Objective-C        | 仓颉      |
 | -------------------- | --------- |
 | `void`               | `Unit`    |
 | `BOOL`               | `Bool`    |
@@ -833,15 +814,15 @@ public open class G/*<T>*/ <: NSObject {
 
 镜像生成器在生成镜像时会假设以下仓颉类型已被定义在互操作库中，生成的镜像中将用到这些类型，用户亦可使用这些类型。当前版本中，部分类型尚未实现完全，且未来版本中这些类型的名称可能会改变。
 
-| Objective-C         | 仓颉 (\*)        | 备注                                           |
-| ------------------- | ------------------- | ----------------------------------------------------- |
+| Objective-C         | 仓颉 (\*)           | 备注                                                                              |
+| ------------------- | ------------------- | -----------------------------------------------------                            |
 | `id`                | `ObjCId`            | 所有 `@ObjCMirror` 类和接口均实现该 `@ObjCMirror` 接口，其对应 Objective-C 的 `id` |
-| `SEL`               | `SEL`?              | 该 `class` 对应 Objective-C 的 `SEL`                     |
-| `Class`             | `Class`?            | 该 `class` 对应 Objective-C 的 `Class`                   |
-| `Protocol`          | `Protocol`?         | 该 `class` 对应 Objective-C 的 `Protocol`                |
-| 指针类型        | `ObjCPointer<T>`?   | 该 `struct` 对应 Objective-C 的 `T` 为非 `CType` 兼容的 C 结构体 |
-| non-C function type | `ObjCFunc<F>`?      | 该类型用于 C 函数指针类型中包含有非 `CType` 兼容类型，`F` 是仓颉函数类型 |
-| 块类型          | `ObjCBlock<F>`?     | 该 `struct` 对应 Objective-C 的块类型，其中 `F` 是仓颉函数类型 |
+| `SEL`               | `SEL`?              | 该 `class` 对应 Objective-C 的 `SEL`                                             |
+| `Class`             | `Class`?            | 该 `class` 对应 Objective-C 的 `Class`                                           |
+| `Protocol`          | `Protocol`?         | 该 `class` 对应 Objective-C 的 `Protocol`                                     |
+| 指针类型             | `ObjCPointer<T>`?   | 该 `struct` 对应 Objective-C 的 `T` 为非 `CType` 兼容的 C 结构体                |
+| non-C function type | `ObjCFunc<F>`?      | 该类型用于 C 函数指针类型中包含有非 `CType` 兼容类型，`F` 是仓颉函数类型           |
+| 块类型               | `ObjCBlock<F>`?     | 该 `struct` 对应 Objective-C 的块类型，其中 `F` 是仓颉函数类型                    |
 |                     | `__builtin_va_list` | `CPointer<Unit>` 的辅助用类型别名，用于当前版本镜像生成器的实现，但在未来版本中将被移除 |
 
 (\*) 这些仓颉类型名称均为暂定的，未来版本中可能改变。
@@ -871,8 +852,6 @@ public open class G/*<T>*/ <: NSObject {
     * 在一个仓颉类中，两个构造函数即便各形参名称不尽相同，但只要函数签名相同，就禁止同时存在；而在 Objective-C 中，同名为 `init` 的方法，却可以通过外部参数名进行区分。
 
     * 仓颉类中的构造函数不会被继承，而 Objective-C 中并没有专门的“构造方法”，而只有名为 `init` 的方法，而所有方法都可以被继承。
-
-    详情请参见 [Objective-C 类](#objective-c-类) 章节。
 
 * 泛型 Objective-C 类将被镜像为非泛型仓颉类，详情请参见 [Objective-C 泛型](#objective-c-泛型) 章节。
 
@@ -1057,7 +1036,7 @@ public open class MyContainer <: NSObject {
 
 ### 命令行使用方法
 
-`ObjCInteropGen [-v] [--mode=normal`_`config-file`_`]`
+`ObjCInteropGen [-v] [--mode=normal`*`config-file`*`]`
 
 `-v`
 
@@ -1065,9 +1044,9 @@ public open class MyContainer <: NSObject {
 
 `--mode=normal`
 
-强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了 `config-file`，那么必须指定 `--mode=normal`。在未来版本中，该选项将变为可选。
+强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了 *`config-file`*，那么必须指定 `--mode=normal`。在未来版本中，该选项将变为可选。
 
-_`config-file`_
+*`config-file`*
 
 配置文件的路径。
 
@@ -1097,17 +1076,17 @@ path = "./main/src"
 
 [[package]]
 package-name = "com.vendor1.lib1"
-output-root = "lib"  # Output to "./lib/src/com/vendor1/lib1"
+output-root = "lib"  # 生成的镜像源文件将生成于目录 "./lib/src/com/vendor1/lib1"
 filters = ...
 
 [[package]]
 package-name = "com.vendor2.lib2"
-output-root = "lib"  # Output to "./lib/src/com/vendor2/lib2"
+output-root = "lib"  # 生成的镜像源文件将生成于目录 "./lib/src/com/vendor2/lib2"
 filters = ...
 
 [[package]]
 package-name = "com.mycompany.app"
-output-root = "app"  # Output to "./main/src/com/mycompany/app"
+output-root = "app"  # 生成的镜像源文件将生成于目录 "./main/src/com/mycompany/app"
 filters = ...
 ```
 
@@ -1117,13 +1096,9 @@ filters = ...
 
 **该表支持以下配置项：**
 
-`paths` (必选)
+* `paths` (必选)：字符串数组，每个字符串是单个头文件的路径，镜像生成器将确保读取这些头文件。
 
-字符串数组，每个字符串是单个头文件的路径，镜像生成器将确保读取这些头文件。
-
-`arguments` (可选)
-
-字符串数组，保存有一系列 clang 编译选项，当镜像生成器处理列举在 `paths` 中的源文件时，将作为 clang 的命令行参数传入。
+* `arguments` (可选)：字符串数组，保存有一系列 clang 编译选项，当镜像生成器处理列举在 `paths` 中的源文件时，将作为 clang 的命令行参数传入。
 
 **示例：**
 
@@ -1138,9 +1113,9 @@ paths = ["original-objc/M.h"]
 
 **支持的属性：**
 
-- `sources` （必选）：正则表达式字符串，用于匹配头文件名。
+* `sources` （必选）：正则表达式字符串，用于匹配头文件名。
 
-- `arguments-prepend`、`arguments-append` （可选）：字符串数组，内容将被用于作为额外的 clang 命令行参数。`arguments-prepend` 和 `arguments-append` 中的命令行参数将被分别插入到相应 `[sources]` 表项的 `arguments` 属性的数组的前和后。
+* `arguments-prepend`、`arguments-append` （可选）：字符串数组，内容将被用于作为额外的 clang 命令行参数。`arguments-prepend` 和 `arguments-append` 中的命令行参数将被分别插入到相应 `[sources]` 表项的 `arguments` 属性的数组的前和后。
 
 **示例：**
 
@@ -1154,7 +1129,7 @@ paths = ["objc/UIPanels.h"]
 arguments = [ "-I", "/usr/local/include/share/Panels" ]
 
 [sources-mixins.UI]
-# Add these Clang arguments for both UIWidgets and UIPanels
+# 这些 clang 编译选项将同时追加至上述 UIWidgets 和 UIPanels 的 clang 编译命令
 sources = ["UI.+"]
 arguments-append = [
     "-I", "/usr/local/include/Frameworks/AcmeUI"
@@ -1167,16 +1142,16 @@ arguments-append = [
 
 **支持以下配置项：**
 
-- `package-name` （必选）：字符串，目标仓颉包的名称。
+* `package-name` （必选）：字符串，目标仓颉包的名称。
 
-- `output-path` （可选）：字符串，值为文件系统的路径（绝对路径或相对路径均可），该仓颉包的镜像文件均将被输出到该目录下。如果该路径中存在任何不存在的目录，镜像生成器将尝试创建它们。
+* `output-path` （可选）：字符串，值为文件系统的路径（绝对路径或相对路径均可），该仓颉包的镜像文件均将被输出到该目录下。如果该路径中存在任何不存在的目录，镜像生成器将尝试创建它们。
 
-- `output-root` （可选）：字符串，值为 [`[output-roots]`表](#输出根目录) 中的子表键，也就是一个目录标签。该目录标签对应一个输出根目录，基于这个根目录，目标仓颉包的包名将作为子目录名，包名中的点 `.` 被替换为路径分隔符 `/`，得到的路径将与 `output-path` 配置同等效果。
+* `output-root` （可选）：字符串，值为 [`[output-roots]`表](#输出根目录) 中的子表键，也就是一个目录标签。该目录标签对应一个输出根目录，基于这个根目录，目标仓颉包的包名将作为子目录名，包名中的点 `.` 被替换为路径分隔符 `/`，得到的路径将与 `output-path` 配置同等效果。
 
   如果 `output-root` 未配置，且 `[output-roots]` 中有且只有一个子表键，该子表键对应的输出根目录将被采用；否则镜像生成器将报错。
-  
+
   **示例：**
-  
+
   ```toml
   [output-roots.main]
   path="./cj-mirrors"
@@ -1186,14 +1161,14 @@ arguments-append = [
   output-root = "main"
   ```
 
-​		输出文件将置于 `./cj-mirrors/objc/foundation` 目录下。
+​  输出文件将置于 `./cj-mirrors/objc/foundation` 目录下。
 
-- `filters` （必选）：一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。
+* `filters` （必选）：一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。
 
   **示例：**
 
   ```toml
-  # The Foundation framework
+  # Foundation 框架镜像
   [[package]]
   package-name = "objc.foundation"
   filters = { include = "NS.+" }
@@ -1208,60 +1183,57 @@ arguments-append = [
 
 以下将对各属性进行详细解释：
 
-- `include`：该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串。如果值为单个正则表达式，只有匹配该正则表达式的类型名将被采纳。如果是正则表达式的数组，类型名匹配其中任一正则表达式即可被采纳。
+* `include`：该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串。如果值为单个正则表达式，只有匹配该正则表达式的类型名将被采纳。如果是正则表达式的数组，类型名匹配其中任一正则表达式即可被采纳。
 
   **示例：**
 
   ```toml
-  # Only include entities that names of which start with "NS":
+  # 仅包含名称以 "NS" 开头的实体：
   filters = { include = "NS.+" }
   
-  # Only include entities with names that either start with "Foo"
-  # or end with "Bar":
+  # 仅包含名称以 "Foo" 开头或以 "Bar" 结尾的实体：
   filters = { include = ["Foo.*", ".*Bar"] }
   ```
 
-- `exclude`：与 `include` 相反（见上文）如果一个类型名能够被 `include` 过滤器采纳，那么他就不会被 `exclude` 采纳；反之亦然
+* `exclude`：与 `include` 相反（见上文）如果一个类型名能够被 `include` 过滤器采纳，那么他就不会被 `exclude` 采纳；反之亦然
 
   **示例：**
 
   ```toml
-  # Include everything but entities the names of which start with "INTERNAL_":
+  # 包含所有实体，但名称以 "INTERNAL_" 开头的除外：
   filters = { exclude = "INTERNAL_.+" }
   ```
 
-- `union`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名只需要被其中任一过滤器采纳，就将被 `union` 过滤器采纳。
+* `union`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名只需要被其中任一过滤器采纳，就将被 `union` 过滤器采纳。
 
   **示例：**
 
   ```toml
-  # An equivalent of the second `include` example above:
+  # 等效于上面第二个 `include` 示例：
   filters = { union = [ { include = "Foo.*" }, { include = ".*Bar" } ] }
   ```
 
-- `intersect`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名必须被其中所有过滤器采纳，才会被 `intersect` 过滤器采纳。
+* `intersect`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名必须被其中所有过滤器采纳，才会被 `intersect` 过滤器采纳。
 
   **示例：**
 
   ```toml
-  # Adding a negative filter:
+  # 添加排除过滤器：
   filters = { intersect = [ { include = "NS.+" },
                             { exclude = "NSAccidentalClash" } ] }
   ```
 
-- `not`：该属性用于反转一个过滤器的含义，其值为单个过滤器。
+* `not`：该属性用于反转一个过滤器的含义，其值为单个过滤器。
 
   **示例：**
 
   ```toml
-  # Another way to add a negative filter:
+  # 添加排除过滤器的另一种方式：
   filters = { intersect = [ { include = "NS.+" },
                             { not = { include = "NSAccidentalClash" } } ] }
   ```
 
-  
-
-- `filter`/`filter-not` （可选）：这两个属性必须与上述其他属性一起使用，即它们不能是 `filters` 表中的唯一属性。该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串，其语义与 `include` 和 `exclude` 属性完全一致。
+* `filter`/`filter-not` （可选）：这两个属性必须与上述其他属性一起使用，即它们不能是 `filters` 表中的唯一属性。该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串，其语义与 `include` 和 `exclude` 属性完全一致。
 
   `filter` 和 `filter-not` 用于在主过滤器已经过滤得到的所有类型名的基础上，进一步缩减成功匹配的类型名。对于 `filter`，只有成功匹配其中任一正则表达式的类型名将被采纳；对于 `filter-not`，只有不匹配其中任何正则表达式的类型名将被采纳
 
@@ -1270,13 +1242,13 @@ arguments-append = [
   **示例：**
 
   ```toml
-  # Without filter-not:
+  # 不使用 filter-not：
   filters = { intersect = [ { include = "NS.+" },
                             { exclude = "NSAccidentalClash" } ] }
-  # With filter-not:
+  # 使用 filter-not：
   filters = { include = "NS.+", filter-not = "NSAccidentalClash" }
   
-  # 'filter' and 'filter-not' can be used together:
+  # filter 和 filter-not 可以被同时使用：
   filters = { include    = ".*Fizz.+",
               filter     = ".+Buzz.*",
               filter-not = ".*FizzBuzz.*" }
@@ -1289,8 +1261,7 @@ arguments-append = [
 **示例：**
 
 ```toml
-# Replace the type id, the root of the Objective-C type hierarchy,
-# with NSObjectProtocol everywhere.
+# 生成镜像时，将所有 Objective-C 的 id 类型镜像替换为 NSObjectProtocol。
 [[mappings]]
 id = "NSObjectProtocol"
 ```
