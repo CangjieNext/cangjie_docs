@@ -169,18 +169,20 @@ class ColoredNode <: Node {
 3. 使用仓颉语言编写实现互操作层，在仓颉代码中按需使用 @JavaMirror 镜像类型，例如创建镜像类型的实例、调用其成员函数等。即开发者依据互操作胶水层设计和 .cj 镜像类型定义，完成 .cj 互操作层实现代码的编写。
 
 4. 将 @JavaMirror 镜像类型定义和第 3 步中仓颉实现的互操作层代码一并使用 cjc 编译器进行编译，编译产物包括：
-  - 包含互操作层逻辑的动态库（.so 文件）。
-  - 若干 Java 侧可用的镜像类型定义源文件（.java 文件）。
+
+* 包含互操作层逻辑的动态库（.so 文件）。
+* 若干 Java 侧可用的镜像类型定义源文件（.java 文件）。
 即：.cj 源文件（镜像类型定义 + 互操作层实现）经 cjc 编译后，生成 .so 动态库和 .java 胶水层镜像类型定义。
 
-5. 将以下中间产物添加进 Android Studio 工程：
-  - 第 4 步中由 cjc 编译产生的若干 .java 源文件，其中包含后续 Java 侧可能用到的互操作胶水层代码。
-  - 第 4 步中由 cjc 编译得到的 .so 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
-  - 仓颉 SDK 中所有必要的运行时库，包括 .so 和 .jar 等。
+1. 将以下中间产物添加进 Android Studio 工程：
+
+* 第 4 步中由 cjc 编译产生的若干 .java 源文件，其中包含后续 Java 侧可能用到的互操作胶水层代码。
+* 第 4 步中由 cjc 编译得到的 .so 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
+* 仓颉 SDK 中所有必要的运行时库，包括 .so 和 .jar 等。
 
 以下将通过一个端到端的例子来详细说明上述流程。
 
-#### 第一步：设计互操作胶水层
+### 第一步：设计互操作胶水层
 
 在这一步，开发者需要从 Java 源码的视角，来设计一到若干个互操作类。互操作类由仓颉编写实现，但最终会由 cjc 编译生成镜像类型以便 Java 侧使用，因此在 Java 侧看来，并不关心互操作类的具体实现，而只需要关心 Java 侧需要哪些功能。因此，对每个互操作类，开发者只需要考虑以下要点：
 
@@ -215,7 +217,7 @@ public class Interop {
 }
 ```
 
-#### 第二步：生成镜像类型声明
+### 第二步：生成镜像类型声明
 
 现在，切换到仓颉侧源码的视角，开发者需要获得在仓颉侧编写互操作类所依赖的所有 Java 类型的镜像类型，根据上一步可知具体依赖哪些 Java 类型：互操作类的父类型、形参类型、返回类型，甚至可能还有这些类型本身所依赖的类型。
 
@@ -264,7 +266,7 @@ java -Dpackage.mode=true -Dpackage.name=javaworld \
     com.example.a.A com.example.b.B
 ```
 
-#### 第三步：实现互操作类
+### 第三步：实现互操作类
 
 现在开始真正为开发者在第一步中描述的 Java 类框架，使用仓颉来实现其逻辑，请参考以下要点：
 
@@ -319,7 +321,7 @@ public class Interop {
 
 在上述例子中，如果静态成员函数 `m` 在设计上不可能返回 `null` 到 Java 侧，那么完全可以将 `m` 的返回类型改为 `B`，互操作依然可以正常工作。
 
-#### 第四步：编译互操作类
+### 第四步：编译互操作类
 
 使用以下命令进行对互操作类实现进行编译:
 
@@ -355,7 +357,7 @@ cjc --output-type=dylib \
 
 编译将生成两个文件：`libcjworld.so` 和 `src/java/cjworld/Interop.java`，后者包含了 Java 侧可以使用的互操作类的镜像类型。
 
-#### 第五步：集成编译产物至安卓工程
+### 第五步：集成编译产物至安卓工程
 
 1. 将以下文件添加至 Android Studio 工程：
     * 第四步中由 cjc 生成的所有 Java 源文件，添加至 `src/main` 目录下，根据其实际包名，创建必要的目录结构，将源文件放至对应目录位置。
@@ -1026,7 +1028,7 @@ import java.lang.*
 
 @JavaMirror["javax.management.Attribute"]
 public open class javax_management_Attribute <: Serializable {
-	// ...
+ // ...
 }
 ```
 
@@ -1039,7 +1041,7 @@ import java.lang.*
 
 @JavaMirror["javax.naming.directory.Attribute"]
 public interface javax_naming_directory_Attribute <: Cloneable & Serializable {
-	// ...
+ // ...
 }
 ```
 
