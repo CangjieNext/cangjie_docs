@@ -132,9 +132,7 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 
 ## 前置步骤
 
-当前版本的 iOS 版仓颉 SDK 需要开发者手动到仓颉开源代码仓中下载获得 `Cangjie.h` 头文件：
-
-[https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)
+当前版本的 iOS 版仓颉 SDK 需要开发者手动从仓颉开源仓库获取 `Cangjie.h` 头文件，该文件位于 Cangjie/cangjie_runtime 仓库的 `src/Cangjie.h` 路径下。
 
 然后将此头文件集成进 XCode 项目中，本文档后续将阐述的 Objective-C 互操作功能依赖此文件。
 
