@@ -1,2576 +1,1277 @@
 # 仓颉-ObjC 互操作
 
-## 简介
+> **注意：**
+>
+> Objective-C 互操作特性为实验特性，尚在持续完善中。
+
+仓颉跨平台方案支持开发者将仓颉语言接入 iOS 应用开发，无论是项目中尚未实现的新逻辑，还是已存在的存量逻辑，都可通过仓颉语言完成开发与适配。
+
+镜像类型是仓颉跨平台实现跨语言、跨运行时互操作的核心机制。它允许一门语言中定义的类型向另一门语言暴露接口，进而实现该类型在不同语言环境中的直接使用。
+
+在仓颉侧，镜像类型使得在依旧遵循仓颉语法和语义的情况下，仓颉 `class` 能够继承 Objective-C `@interface`，实现 Objective-C `@protocol`。而在 Objective-C 侧，镜像类型同样能够使得仓颉类型以 Objective-C 的类型表示出来。总体来说，仓颉跨平台让仓颉和 Objective-C 在 iOS 应用工程中做到尽可能无缝衔接，同时也意味着，开发者可以在仓颉代码中，通过跨语言互操作调用 iOS 操作系统提供的 API。
+
+## 互操作实现思路与底层机制
+
+仓颉和 Objective-C 虽然都是支持继承和多态的面向对象范式语言，但其各自的语义、底层实现的对象模型和执行模型等却存在显著差异，因此，试图在 Objective-C 代码中直接使用仓颉语言，或反之在仓颉代码中直接使用 Objective-C，均无法实现。
+
+两种语言均各自拥有不同于彼此的托管运行时，自动内存管理、线程模型、异常处理等底层特性各不相同。让两个复杂编程语言的运行时通过相互感知来实现互操作，无疑会让整个应用的复杂度剧增。
+
+因此，仓颉跨平台对于仓颉与 Objective 的互操作的实现思路是分别站在仓颉和 Objective-C 侧，均将另一方视作低层语言。具体来说，仓颉与 Objective-C 通过运行时模块 API 实现互通。运行时模块 API 虽然功能强大，但作为底层 API，手写绑定层费时费力，不过好在 CJMP 提供了相应工具链，有效地消减了使用复杂度。
+
+## 核心概念
+
+### 镜像类型
+
+镜像类型的含义如下：仓颉和 Objective-C 语言之间进行互操作，若一种语言 A 的源码中定义有镜像类型 `T'`，则意味着在另一种语言 B 的源码中实际存在由 B 语言定义的类型 `T`。于是，在语言 A 的源码中就可以通过直接使用镜像类型 `T'` 来实现间接使用类型 `T`，最终实现语言 A 仿佛直接使用语言 B 的类型的效果。该操作存在特定限制，将在下文中详细说明。
+
+Objective-C 视角下，Objective-C 的 `int` 类型就是仓颉 `Int32` 类型在 Objective-C 侧的镜像类型；反过来，仓颉视角下，其 `Int32` 类型就是 Objective-C 的 `int` 类型在仓颉侧的镜像类型。不过，对于部分无法建立对应关系的数值类型来说，这个镜像关系就是不存在的了，例如仓颉的 `Float16` 在 Objective-C 侧就没有任何类型能够与之对应，故在 Objective-C 视角下就不存在一种镜像类型来匹配仓颉的 `Float16` 类型，也可以理解为，仓颉的 `Float16` 类型无法被镜像为任何 Objective-C 基本类型。
+
+对于 `class`、`struct`、`interface` 和 `enum` 等用户自定义类型，对于语言 A 中的类型 `T`，其在语言 B 中的镜像类型 `T'` 是语言 B 中与之最接近的等价类型。例如，仓颉的 `struct` 类型在 Objective-C 中所能找到的最佳等价类型是附加了 `objc_subclassing_restricted` 属性的 Objective-C `interface`。
+
+若要在语言 B 中通过镜像类型使用语言 A 定义的类型，该镜像类型仅会暴露语言 A 原生类型中“理论上可被语言 B 访问和调用”的成员与构造函数。例如：若某个仓颉成员函数的返回类型为 `Float16`，由于 `Float16` 无法被镜像为 Objective-C 类型，该仓颉成员函数也无法生成对应的镜像，导致 Objective-C 侧无法通过镜像类型调用此函数，这类场景需根据实际情况采用特定技巧解决。
+
+正常情况下，无论是仓颉类型的镜像类型还是 Objective-C 类型的镜像类型，以及镜像类型本身依赖的其他类型的镜像类型，都能够以某种方式自动生成获得。CJMP 提供了[Objective-C 镜像生成器](#objective-c-镜像生成器参考)，支持 Objective-C 类型自动生成镜像类型。仓颉类型镜像同样可自动生成：配置对应编译选项执行 `cjc` 编译时，会将仓颉类型的镜像类型定义作为副产品生成，后续章节将对完整操作步骤展开详细讲解。
+
+**将 Objective-C 类型镜像为仓颉类型：**
+
+cjc 在编译过程中会将所有仓颉源码中用到的 Objective-C 镜像类型替换为相应的胶水代码，这意味着，真正对编译结果起作用的核心信息只有两点：一是所用 Objective-C 镜像类型的名称，二是该镜像类型中各可用成员的名称及其类型。因此在编写仓颉代码时，Objective-C 镜像类型定义中只需要包含各个可用成员的声明就够了，即 Objective-C 镜像类型中并不需要保留构造函数体、成员函数体和成员属性体，成员变量也不需要初始化器。另一方面，Objective-C 类型中定义的 `@private` 成员对仓颉侧来说不可见，因此这类成员同样不会出现在 Objective-C 镜像类型定义中。
+
+显然，上述 Objective-C 镜像类型定义的写法是不符合仓颉语法/语义规格的，故 Objective-C 镜像类型定义必须带有 `@ObjCMirror` 注解，该注解用于在编译期协助 `cjc` 区分正常的仓颉类型定义与 Objective-C 镜像类型定义，从而对后者进行特殊处理。
+
+示例如下，假设存在如下的 Objective-C `interface`：
+
+```objectivec
+@interface Node : NSObject {
+}
+- (id)initWith:(int)x;
+- (int)getX;
+@end
+```
+
+其对应的 Objective-C 镜像类型定义可能如下：
+
+<!-- compile -->
+```cangjie
+@ObjCMirror
+public open class Node <: NSObject {
+    @ForeignName["initWith:"]
+    public init(x: Int32)
+    public open func getX(): Int32
+}
+```
+
+### 全局函数镜像
+
+Objective-C 和仓颉均支持全局函数，全局函数不是任何类型的成员。Objective-C 全局函数以镜像全局函数的形式暴露至仓颉侧，本质上是自动生成的胶水代码，用于在语言间传递控制权和数据。
+
+### 互操作类
+
+互操作类本质上是一个仓颉 `class`，其从一到若干个镜像类型派生而来，这种仓颉 `class` 可供 Objective-C 侧使用，这是因为其所有构造函数和非继承而来的 `public` 成员函数，都会通过一个由 cjc 在编译它时自动生成的共轭的 Objective-C 包装 `interface`，对 Objective-C 代码暴露。这个 Objective-C 包装 `interface` 本身可能会定义若干辅助方法，但对于 Objective-C 侧代码来说，能调用的方法只有从仓颉侧暴露而来的，以及该 `interface` 继承而来的；仓颉侧代码也是同理。
+
+接下来将举例说明，当使用 cjc 编译以下互操作类时：
+
+<!-- compile -->
+```cangjie
+@ObjCImpl
+public class BooleanNode <: Node {
+    private let _flag: Bool
+    public init(x: Int32, flag: Bool) {
+        super.init(x)
+        this._flag = flag
+    }
+    public func isFlagged(): Bool {
+        _flag
+    }
+}
+```
+
+cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块：
+
+```objectivec
+// BooleanNode.h
+@interface BooleanNode : Node
+/* 胶水层代码 */
+- (id)init:(int32_t)x:(BOOL)flag;
+- (BOOL)isFlagged;
+/* 其他胶水层代码 */
+@end
+```
+
+```objectivec
+// BooleanNode.m
+@implementation BooleanNode : Node
+/* 胶水层代码 */
+- (id)init:(int32_t)x:(BOOL)flag {
+    /* 胶水代码：构造一个仓颉 BooleanNode(x, flag) 实例，
+    *  并将其与正在构造的 Objective-C 实例（即 'self'）关联起来。
+    */
+}
+- (BOOL)isFlagged {
+    /* 胶水代码：调用与 'self' 关联的仓颉 BooleanNode 实例的 'flag' 成员函数，
+    *  并返回其结果。
+    */
+}
+/* 其他胶水层代码 */
+@end
+```
+
+### 外部类型
+
+镜像类型和互操作类均有别于语言本身的用户自定义类型，为简洁起见，本文档将它们统称为外部类型。
+
+### Objective-C 兼容类型
+
+以下仓颉类型均为 Objective-C 兼容类型：
+
+* 所有拥有等价的 Objective-C 基本类型的仓颉值类型，例如 `Int16` 拥有等价的 Objective-C 基本类型 `int16_t`，故 `Int16` 为 Objective-C 兼容类型；而 `Float16` 无等价的 Objective-C 基本类型，故 `Float16` 不是 Objective-C 兼容类型
+* 所有外部类型
+* `Option<T>` 类型，且其中类型变元 `T` 为[外部类型](#外部类型)，（详情请参考[`nil` 值处理](#objective-c-侧-nil-值处理)）
+* `ObjCPointer<T>`、`ObjCFunc<F>`、`ObjCBlock<F>` 等内置类型
+* `@C struct` 结构体
+* `CFunc<F>` C 函数类型
+* `CString`
+* 作为函数返回值类型的 `Unit`
+
+## 在仓颉侧使用 Objective-C
+
+通过以下步骤来实现 iOS 应用中 Objective-C 与仓颉的互操作：
+
+1. 基于 Objective-C 类型和函数，设计互操作胶水层 API，由开发者完成互操作胶水层的设计（以 Objective-C 伪代码形式呈现）。
+
+2. 根据上一步设计的胶水层，借助 Objective-C 镜像生成器，为所有现存相关的 Objective-C 类和协议生成仓颉侧可用的 `@ObjCMirror` 类型定义，即将 .h 头文件转换为 .cj 镜像类型定义文件。
+
+3. 使用仓颉语言编写实现互操作层，在仓颉代码中按需使用 `@ObjCMirror` 镜像类型，例如创建镜像类型的实例、调用其成员函数等。开发者依据互操作胶水层设计和 .cj 镜像类型定义，完成 .cj 胶水层实现代码的编写。
+
+4. 将 `@ObjCMirror` 镜像类型定义和第 3 步中仓颉实现的互操作层代码一并使用 cjc 编译器进行编译，编译产物包括：
+
+    * 包含互操作层逻辑的动态库（.dylib 文件）。
+    * 若干 Objective-C 侧可用的镜像类型定义源文件（.h / .m 文件）。
+
+    即：.cj 源文件（镜像类型定义 + 胶水层实现）经 cjc 编译后，生成 .dylib 动态库和 .h / .m 胶水层镜像类型定义。
+
+5. 将以下中间产物添加进 XCode 工程：
+
+    * 第 4 步中由 cjc 编译产生的若干 .h / .m 源文件，其中包含后续 Objective-C 侧可能用到的互操作胶水层代码。
+    * 第 4 步中由 cjc 编译得到的 .dylib 动态库文件，其中包含了由仓颉实现的胶水层逻辑。
+    * 仓颉 SDK 中所有必要的运行时库，包括 .dylib 等。
+
+    接着，在 Objective-C 侧编写必要的代码，对胶水层中提供的镜像类型进行实例化和方法调用，完成后使用 iOS 工具链重构建工程，即可生成最终的 iOS 应用。
+
+### 从零实现互操作层
+
+#### 步骤一：设计互操作层
+
+在这一步，开发者需要 从 Objective-C 源码的视角，来设计一到若干个互操作类。互操作类由仓颉编写实现，但最终会由 cjc 编译生成镜像类以便 Objective-C 侧使用，因此从 Objective-C 侧的角度，开发者并不需要关心互操作类的具体实现，只需要关心 Objective-C 侧需要哪些功能。因此，对每个互操作类，开发者只需要考虑以下要点：
+
+* 互操作类是继承 `NSObject`，还是需要继承其他 Objective-C 类？
+* 互操作类是否需要实现任何 Objective-C 协议？
+* 互操作类中需要拥有哪些 `public`/`protected` 构造方法/成员方法？开发者目前只需要知道它们的功能以确定其函数签名，真正的实现则是在后续步骤中通过仓颉编写。
+
+另请参见[互操作类的特性与限制](#互操作类的特性与限制)。
+
+在 Objective-C 源码的视角下，互操作层所提供的 Objective-C 类与普通的 Objective-C 类在外观和使用上不存在任何区别，唯一区别在于后者的 `@implementation` 是用户自己手写的，而前者的 `@implementation` 则是用户手写仓颉 `ObjCImpl class` 后，由 cjc 编译之自动生成的。因此，开发者要做的是用伪代码来描述 Objective-C 侧的 `@interface`，然后使用仓颉来照着这个 `@interface` 来依次实现各个方法，详情请参考[步骤三](#步骤三实现互操作类)。
+
+**支持的形参类型：** 任何被镜像的 Objective-C 类型。
+
+**支持的返回类型：** 任何被镜像的 Objective-C 类型或 `void` 类型。
+
+**支持的继承与实现关系：** 互操作类只能继承 Objective-C 类的镜像类 `@ObjCMirror class`，不能继承其他互操作类，且只能实现 Objective-C 协议的镜像接口 `@ObjCMirror interface`。
+
+**当前存在的使用限制：**
+
+* 不支持拥有变长形参列表（varargs）的方法。
+
+* 互操作类禁止拥有类型形参，互操作类的非 `private` 成员函数禁止拥有类型形参。
+
+* 泛型 Objective-C 类型在镜像生成前，其泛型会被擦除，各个类型变元会被替换为各个类型上界。
+
+**端到端示例：**
+
+假设开发者的 iOS 应用源码中存在一个类 `M`，类中定义有一个无参且返回类型为 `void` 的实例方法 `foo`：
+
+```objectivec
+// M.h
+#import <Foundation/Foundation.h>
+
+@interface M : NSObject
+- (void)foo;
+@end
+```
+
+```objectivec
+// M.m
+#import "M.h"
+
+@implementation M
+- (void) foo {
+    printf("Hello from ObjC M.foo()\n");
+}
+@end
+```
+
+开发者希望在仓颉侧定义一个继承类 `M` 的类 `A`，其中对方法 `foo` 进行重写。
+
+那么，开发者的互操作类的设计应该类似如下：
+
+```objectivec
+#import "M.h"
+
+@interface A : M
+- (void)foo;
+@end
+```
+
+#### 步骤二：生成镜像类型
+
+开发者需要为上一步中设计的互操作类所依赖的所有 Objective-C 类型生成其仓颉侧可用的镜像类型，这包括互操作类的父类型、成员属性类型、形参和返回类型等，如果涉及数组类型，则还包括其元素类型。
+
+不过在此之前，请正常构建 iOS 应用项目，无需做任何修改，确保能够编译构建成功，这样能保证接下来镜像生成器所接收的 Objective-C 头文件是完整且连贯的。
+
+编写[镜像生成器配置文件](#objective-c-镜像生成器配置文件语法)，并运行镜像生成器：
+
+```bash
+ObjCInteropGen <config-file>
+```
+
+其中 `<config-file>` 是配置文件的路径。
+
+**端到端示例（续）：**
+
+类 `A` 唯一依赖的 Objective-C 类型是其父类 `M`，于是配置文件应如下：
+
+```toml
+# A.toml
+# 将 M 的镜像及其可能依赖的任何镜像放置在 'objcworld' 包中：
+[[package]]
+filters = { include = ["M", "NS.+"] }
+package-name = "objcworld"
+
+# 将包含镜像类型定义的输出文件写入当前目录：
+[output-roots.default]
+path = "."
+
+# 指定输入头文件的路径：
+[sources.all]
+paths = ["M.h"]
+
+[sources-mixins.default]
+sources = [".*"]
+arguments-append = [
+    # 如遇到 "unknown type name" 错误，请取消下面这行的注释
+    # "-DTARGET_OS_IPHONE=1",
+
+    # 请根据系统上 Objective-C 头文件的实际位置修改以下路径：
+    "-F", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks",
+    "-isystem", "/Library/Developer/CommandLineTools/usr/lib/clang/17/include",
+    "-isystem", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+]
+```
+
+镜像生成器命令行如下：
+
+```bash
+ObjCInteropGen A.toml
+```
+
+以上命令将在当前目录生成 `objcworld/M.cj`，文件中保存有类 `M` 的镜像类型定义；以及若干 `objcworld/NS*.cj` 文件，分别保存有类 `M` 所依赖的 Foundation 框架中的类和协议的镜像类型定义。
+
+**常见错误配置问题：**
+
+* **镜像生成器无法找到某些标准库的头文件，例如 `stdarg.h` 或 `stdbool.h` 等。**
+
+    典型报错信息：
+
+    ```text
+    .../CoreFoundation.h:19:10: error: 'stdarg.h' file not found
+    ```
+
+    一般是由于 `[sources-mixins]` 表中 `arguments-append` 数组中的路径设置错误导致的，请仔细检查这些头文件搜索路径下确实存在相应头文件。
+
+* **镜像生成器产生“Unknown type name 'NSUInteger'”或类似报错。**
+
+    典型报错信息：
+
+    ```text
+    .../NSObjCRuntime.h:626:74: error: unknown type name 'NSUInteger'
+    ```
+
+    某些时候，开发者需要给 clang 传入额外的参数，要么“`-DTARGET_OS_IPHONE=1`”或“`-DTARGET_OS_OSX=1`”。
+
+    将该额外的参数加入 `[sources-mixins]` 表中的 `arguments-append` 数组，在上述示例中，该配置被注释了：
+
+    ```toml
+    # ...
+    arguments-append = [
+        # 如遇到 "unknown type name" 编译报错，请解注释以下这行：
+        # "-DTARGET_OS_IPHONE=1",
+        # ...
+    ]
+    ```
+
+#### 步骤三：实现互操作类
+
+对于开发者在[步骤一](#步骤一设计互操作层) 中设计的互操作层中的各个 Objective-C 类框架，现在需要分别为之编写一个仓颉类（即互操作类）：
+
+* 创建源文件，选择一个合适的包名。
+* 导入包 `objc.lang.*`。
+* 导入开发者在[步骤二](#步骤二生成镜像类型) 中生成的镜像类型，但请不要将所有生成的依赖镜像类型全部导入，只需要导入实际将用到的那些镜像类型。
+* 开始编写互操作类，为互操作类添加 `@ObjCImpl` 注解。
+* 根据开发者的设计，让互操作类继承某 `@ObjCMirror open class`；如果并不需要特别继承某父类，则让其继承 `NSObject`。
+* 实现互操作类中的构造函数及其他成员，为其中 `public` 的构造函数和成员函数添加 `@ForeignName["foreign-name"]` 注解，其中 `foreign-name` 是开发者希望的 Objective-C 方法名，并遵守以下规定：
+
+    * 重写父类方法的成员函数：请勿添加 `@ForeignName` 注解，否则将导致编译报错。被重写的方法名已由镜像生成器从 Objective-C 侧自动传播至仓颉侧，保存在镜像父类对应成员函数的 `@ForeignName` 注解中（详见[Objective-C 类和协议](#objective-c-类和协议)），cjc 会从中获取原方法名，无需重复指定。
+
+    * 拥有两个及以上形参的构造函数或非重写成员函数：请务必添加 `@ForeignName` 注解，否则将导致编译错误。对于此类函数，cjc 无法自动推导出有效的 Objective-C 方法名，因此必须手动指定。
+
+    * 构成重载的构造函数或成员函数：请务必通过 `@ForeignName` 注解为每个重载赋予不同的 Objective-C 方法名，因为 Objective-C 不支持方法重载。
+
+    * 其余构造函数和成员函数：可选择性添加 `@ForeignName` 注解。若未添加，cjc 会按以下规则自动推导 Objective-C 方法名：无参函数的方法名与原函数名相同（构造函数则为 `init`）；仅有一个形参的函数，方法名为原函数名加上 `:` 后缀（构造函数则为 `init:`）。
 
 > **注意：**
 >
-> 仓颉-ObjC 互操作特性为实验性功能，特性还在持续完善中。
+> 当前版本的 cjc 并不会全面校验 _`foreign-name`_ 的合法性。特别地，cjc 并不会校验 _`foreign-name`_ 中冒号 `:` 的数量是否与构造函数/成员函数的形参个数一致。
 
-仓颉 SDK 支持仓颉与 ObjC(Objective-C) 的互操作，因此在 IOS 应用中可以使用仓颉编程语言开发业务模块。整体调用流程如下：
+* 请参考以下 Objective-C 类型到仓颉类型的映射关系表（`T'` 是对应的值类型或镜像类型）：
 
-- 场景一：从 ObjC 调用仓颉，ObjC code → (glue code) → 仓颉 code
-- 场景二：从仓颉调用 ObjC，仓颉 code → (glue code) → ObjC code
+    Objective-C            | 仓颉          | 备注
+    ---------------------- | ------------  | ------
+    `void`                 | `Unit`        | -
+    `BOOL`                 | `Bool`        | -
+    `signed char`          | `Int8`        | -
+    `short`                | `Int16`       | -
+    `int`                  | `Int32`       | -
+    `long`                 | `Int64`       | -
+    `long long`            | `Int64`       | -
+    `unsigned char`        | `UInt8`       | -
+    `unsigned short`       | `UInt16`      | -
+    `unsigned int`         | `UInt32`      | -
+    `unsigned long`        | `UInt64`      | -
+    `unsigned long long`   | `UInt64`      | -
+    `float`                | `Float32`     | -
+    `double`               | `Float64`     | -
+    `struct`               | `@C struct'`  | (\*)
+    `enum` 且底层类型为 `T` | `T'`          | -
+    `id`                   | `ObjCId`      | (†)
 
-**涉及的概念：**
+    Objective-C  | 仓颉           | `T` 是...                        | 备注
+    ------------ | ------------   | ---------------------------------| ------
+    `T*`         | `CPointer<T'>` | ... 基本数据类型或结构体类型       | -
+    `T*`         | `CPointer<U'>` | ... 枚举类型且 `U` 是其底层类型    | -
+    `T*`         | `CFunc<T'>`    | ... 纯 C 函数类型                 | -
+    `T*`         | `T'`           | ... Objective-C 类               | (†)
 
-1. Mirror Type：镜像类型，ObjC 类型使用仓颉语法形式的表达，供开发者使用仓颉的方式调用 ObjC 方法。
-2. CFFI：C Foreign Function Interface，是 Java/Objetive C/仓颉等高级编程语言提供的 C 语言外部接口。
-3. 胶水代码：用于弥合不同编程语言差异的中间代码。
-4. 互操作代码：ObjC 调用仓颉方法的实现代码，或仓颉调用 ObjC 的实现代码。
+    (\*) Objective-C 结构体禁止包含任何非 `CType` 兼容类型的字段。详情请参见 [Objective-C 结构体](#objective-c-结构体类型)。
 
-**涉及的工具：**
+    (†) 对于可能持有或接受 `nil` 值的镜像类型或互操作类的形参类型、返回类型及局部变量等，请使用 `Option<T'>`。详情请参见[由 Objective-C 到仓颉的映射关系](#由-objective-c-到仓颉的映射关系) 章节。
 
-1. 仓颉 SDK：仓颉的开发者工具集。
-2. cjc：指代仓颉编译器。
-3. ObjCInteropGen: ObjC 镜像生成工具
-4. IOS 工具链：IOS 应用开发所需的工具集合。
+**支持的特性：**
 
-仓颉与 ObjC 之间的调用，通常需要利用 ObjC 编程语言或仓颉编程语言的 CFFI 编写"胶水代码"。然而，人工书写这种胶水代码（Glue Code）对于开发者来说特别繁琐。
+互操作类中的成员函数：
 
-仓颉 SDK 中包含的仓颉编译器（cjc）支持自动生成必要的胶水代码，减轻开发者负担。
+* 可以重写其父类中的方法。
+* 可以实现其实现的接口中的方法。
+* 可以新定义互操作类中独有的成员函数。
 
-cjc 自动生成胶水代码需要获取在跨编程语言调用中涉及的 ObjC 类型（类和接口）的符号信息，该符号信息包含在 Mirror Type 中。
+互操作类的构造函数和成员函数：
 
-**语法映射：**
+* 在函数体中，如果纯粹是在操作普通仓颉类型的值，那么实际上可以正常使用所有仓颉语言特性。
+* 可以使用普通仓颉语法来：
+    * 实例化互操作类和 `@ObjCMirror` 类。
+    * 调用互操作类和 `@ObjCMirror` 类型的构造函数、实例/静态成员函数，包括通过 `super` 调用其父类的构造函数和成员函数。
+    * 访问自己的成员属性，和访问其他互操作类和 `@ObjCMirror` 类型的非 `private` 成员属性。
 
-|            仓颉语法                            |                    ObjC 语法                       |
-|:----------------------------------------------|:---------------------------------------------------|
-|`@ObjCMirror public interface A`         |        `@protocol A`                               |
-|  `@ObjCMirror public class A`           |        `@interface A`                              |
-|    `public open func fooAndB(a: A, b: B): R`              |        `- (R)foo:(A)a andB:(B)b`                   |
-|  `public static func fooAndB(a: A, b: B): R`         |        `+ (R)foo:(A)a andB:(B)b`                   |
-|    `prop foo: R`                              |        `@property(readonly) R foo`                 |
-|    `mut prop foo: R`                          |        `@property R foo`                           |
-|     `static prop foo: R`                      |        `@property(readonly, class) R foo`          |
-|     `static mut prop foo: R`                  |        `@property(class) R foo`                    |
-|    `init()`                                   |        `- (instancetype)init`                      |
-|    `let x: R`                                 |        `const R x`                                 |
-|     `var x: R`                                |        `R x`                                       |
+**使用限制：**
 
-**类型映射：**
+* 互操作类可以实现 `@ObjCMirror` 接口，但禁止实现普通仓颉接口。
 
-| 仓颉类型                                      | ObjC 类型                    |
-|:------------------------------------------|:---------------------------|
-| `Unit`                                    | `void`                     |
-| `Int8`                                    | `signed char`              |
-| `Int16`                                   | `short`                    |
-| `Int32`                                   | `int`                      |
-| `Int64`                                   | `long/NSInteger`           |
-| `Int64`                                   | `long long`                |
-| `UInt8`                                   | `unsigned char`            |
-| `UInt16`                                  | `unsigned short`           |
-| `UInt32`                                  | `unsigned int`             |
-| `UInt64`                                  | `unsigned long/NSUInteger` |
-| `UInt64`                                  | `unsigned long long`       |
-| `Float32`                                 | `float`                    |
-| `Float64`                                 | `double`                   |
-| `Bool`                                    | `bool/BOOL`                |
-| `?A` where `A` is `class`                 | `A*` where `A` is `@interface`              |
-| `A` where `A` is `class`                  | `nonnull A*` where `A` is `@interface`      |
-| `ObjCPointer<A>` where `A` is `class`     | `A**` where `A` is `@interface`             |
-| `ObjCPointer<A>` where `A` is not `class` | `A*` otherwise                              |
-| `@C struct A`                             | `struct A`                                  |
-| `ObjCBlock<F>`                            | block                                       |
-| `ObjCFunc<F>`                             | function type                               |
-| `?ObjCId`                                 | `id`                                        |
-| `ObjCId`                                  | `nonnull id`                                |
-| `?A` where `A` is `interface`             | `id<A>`                                     |
-| `A` where `A` is `interface`              | `nonnull id<A>`                             |
-| `?ObjCId`                                 | `id<A,B>`, `id<A,B,C>`, etc.                |
-| `ObjCId`                                  | `nonnull id<A,B>`, etc.                     |
+* 互操作类禁止声明为 `open` 或 `abstract`，且禁止 `extend`。
 
-注意：
+* 互操作类中的非 `private` 构造函数和成员函数：
 
-1. ObjC 源码中标记为 `unavailable` 的类型不做映射转化
-2. 当前版本不支持 ObjC 中的全局变量的转化
-3. 匿名 `C enumeration` 的类型不做映射转化
-4. `C unions` 的类型不做映射转化
-5. `const` `volatile` `restrict`  的类型不做映射转化
-6. 如果 ObjC 方法签名中，返回类型或形参类型被 nonnull 修饰，则生成的仓颉侧对应类型不进行 Option 封装。
+    * 形参类型和返回类型只能为上述表中列举的 Objective-C 类型（由于变长参数要求使用仓颉 `Array<T>`，而该类型并没有 Objective-C 映射类型，故变长参数并不支持）。
+    * 禁止拥有命名形参。
+    * 禁止拥有类型形参。
 
-以仓颉调用 ObjC 为例，整体开发过程描述如下：
+* 非 `private` 成员属性的类型只能为前文表中列举的 Objective-C 映射类型。
 
-1. 开发者进行接口设计，确定函数调用流程和范围。
+* 泛型 Objective-C 类型将被镜像为非泛型仓颉类型，详情请参见 [Objective-C 泛型](#objective-c-泛型)。
 
-2. 根据步骤 1，为被调用的 ObjC 类和接口生成 Mirror Type。
+* **重要限制：** 镜像类型和互操作类的实例，即 Objective-C 引用类型的值，禁止逃逸至仓颉全局变量、静态变量，以及任何能够在每次调用之间持久化的数据结构中。
 
-    ```objc
-    // original-objc/Base.h
-    #import <Foundation/Foundation.h>
+**端到端示例（续）：**
 
-    @interface Base : NSObject
+继续上述的例子，开发者可能会如下实现互操作类 `A`：
 
-    - (void)f;
+<!-- compile -->
+```cangjie
+package cjworld           // Same package name
 
-    @end
-    ```
+import objc.lang.*  // Always required
 
-    ```objc
-    // original-objc/Base.m
-    #import "Base.h"
-
-    @implementation Base
-
-    - (void) f {
-        printf("Hello from ObjC Base f()\n");
+@ObjCImpl
+public class A <: M {
+    public init() {
+        super()
     }
 
+    override public open func foo(): Unit {
+        println("Hello from overridden A.foo()")
+    }
+}
+```
+
+#### 步骤四：编译互操作类
+
+执行以下命令行以编译互操作类：
+
+```bash
+cjc --target=arm64-apple-ios-simulator \
+    --sysroot=$(xcrun --show-sdk-path --sdk iphonesimulator) \
+    --output-type=dylib \
+    --int-overflow=wrapping \
+    <source-files> \
+    -o <target-file> \
+    --link-options "-undefined dynamic_lookup"
+```
+
+其中：
+
+`<source-files>` 是互操作类的源文件，以及各镜像类型定义的源文件。
+
+`<target-file>` 是得到的包含互操作类逻辑的动态库的文件名，例如 `libcjworld.dylib`。
+
+cjc 会同时自动生成 Objective-C 源文件（`.h` 和 `.m` 文件），这些 Objective-C 源文件中包含有 Objective-C 包装类（对应互操作类）。这些源文件默认生成在 `./objc-gen` 子目录中。
+
+需要为生成的动态库 `.dylib` 文件签名：
+
+```bash
+xcrun codesign --sign - <dylib-file>
+```
+
+**端到端示例（续）：**
+
+首先编译互操作类源文件：
+
+```bash
+cd cjworld
+
+cjc --target=arm64-apple-ios-simulator \
+    --sysroot=$(xcrun --show-sdk-path --sdk iphonesimulator) \
+    --output-type=dylib \
+    --int-overflow=wrapping \
+    *.cj \
+    -o libcjworld.dylib \
+    --link-options "-undefined dynamic_lookup"
+```
+
+cjc 将生成三个文件：`./libcjworld.dylib`、`./objc-gen/A.h` 和 `./objc-gen/A.m`。
+
+然后为动态库签名：
+
+```bash
+xcrun codesign --sign - libcjworld.dylib
+```
+
+#### 步骤五：整合所有产物
+
+* 在 XCode 项目中创建一个子目录，将 `$CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/` 目录下的所有动态库文件都拷贝一份到该目录下。
+
+* 将这些动态库，以及步骤四中得到的动态库添加进 XCode 项目依赖（“BuildPhases”标签页，添加进“Copy Files”和“Link Binary With Libraries”）。
+
+* 将步骤四中生成的 `.h` 和 `.m` 文件拷贝到项目根目录以参与编译构建。
+
+接着重新构建项目即可。
+
+**端到端示例（续）：**
+
+在 XCode 工程的根目录创建一个子目录，将仓颉 SDK 中用于 iOS 的所有动态库文件全部拷贝到该目录下：
+
+```bash
+cd ..
+mkdir -p CJRuntimeDylibs
+cp $CANGJIE_HOME/runtime/lib/ios_simulator_aarch64_cjnative/*.dylib CJRuntimeDylibs/
+```
+
+将这些动态库以及 `./cjworld/libcjworld.dylib` 作为依赖添加进 XCode 工程，具体操作是，在“BuildPhases”中的“Copy Files”和“Link Binary With Libraries”列表中将它们添加进去。
+
+将所有 cjc 生成的 `.h` 和 `.m` 文件放置到 XCode 工程根目录：
+
+```bash
+mv cjworld/objc-gen/*.h ./
+mv cjworld/objc-gen/*.m ./
+```
+
+然后重新构建 XCode 工程。
+
+### 在 Objective-C 侧调用仓颉
+
+在[上一节](#从零实现互操作层) 中开发者设计、实现并编译了互操作层，最后将互操作层集成进 XCode 工程。现在，开发者就可以在 Objective-C 侧实现对仓颉侧实现的逻辑的调用了。互操作类经 cjc 编译自动得到的 Objective-C 包装类可以直接由 Objective-C 代码调用使用，从而间接调用对应的互操作类的逻辑。
+
+**端到端示例（续）：**
+
+在 Objective-C 侧代码中，实例化类 `A`，然后调用其 `foo` 实例方法，如下：
+
+```objectivec
+// ...
+#import "M.h"
+#import "A.h"
+// ...
+    M* a = [[A alloc] init];
+    [a foo];
+// ...
+```
+
+重新构建 XCode 工程，然后直接在 iOS 模拟器上运行应用查看效果。
+
+### 后续操作步骤
+
+经过[上述操作流程](#从零实现互操作层) 的讲解，现在应该已经明白了如何往互操作层中新增更多的互操作类，以及如何在互操作类中使用到更多的 Objective-C 类型，以下是对后续操作步骤的总结，开发者会发现其实依然对应着上述的五个操作步骤：
+
+**[步骤一](#步骤一设计互操作层)：** 现在开发者可以根据设计，实现更多的互操作类，或者对现存的互操作类进行增强实现，比如实现新成员函数、成员属性等。
+
+**[步骤二](#步骤二生成镜像类型)：** 如果开发者在修改互操作层的过程中识别到需要用到某些尚未被镜像的 Objective-C 类型，应按以下方式操作：首先重新构建当前的 XCode 工程看看是否能够编译成功，确保代码的连贯性无问题；然后根据需要编辑镜像生成器配置文件，配置好后调用镜像生成器全量重新生成所有镜像。注意，推荐全量重新生成，以确保镜像代码的连贯性。
+
+**[步骤三](#步骤三实现互操作类)：** 获得需要的全部 Objective-C 类型的镜像后，开发者就可以继续根据设计实现新的互操作类，或对现存互操作类进行翻修。
+
+**[步骤四](#步骤四编译互操作类)：** 编译所有互操作类及其他相关源文件。
+
+**[步骤五](#步骤五整合所有产物)：** 将上一步中 cjc 生成的 `.h`、`.m` 和 `.dylib` 文件拷贝到相应的位置，然后重新构建 XCode 工程。
+
+接着，开发者就可以[在 Objective-C 侧使用](#在-objective-c-侧调用仓颉) 刚刚新增的互操作类了。
+
+### 互操作类的特性与限制
+
+* 互操作类必须是一个镜像类的直接子类。
+
+* 互操作类可以实现一到若干个镜像接口，但禁止实现任何普通仓颉接口。反之，普通仓颉类禁止实现镜像接口，普通仓颉接口也禁止继承镜像接口。
+
+* 互操作类禁止被声明为 `open` 或 `abstract`，禁止被 `extend`，且禁止为泛型。
+
+* 互操作类中可以定义新的实例成员变量，且变量类型可以是任何仓颉类型（因为这些成员变量不会被暴露至 Objective-C 侧）。互操作类中的成员函数可以对其父类中的成员方法进行重写。
+
+* 互操作类中可以定义构造函数，构造函数中可以通过 `super()` 调用父类的构造方法，且遵循普通仓颉构造函数中 `super` 和实例成员函数调用的顺序的相关规定，以及同样要求在构造函数中需要对所有无初始化器的实例成员变量初始化。
+
+* 互操作类中的实例成员函数体中，可以调用父类的实例方法，如果父类的实例方法在互操作类中被重写，也同样支持通过 `super.` 来调用。
+
+* 镜像类型和互操作类中定义的构造函数和成员函数的函数签名中所允许使用的类型必须是 (a) 镜像类型或互操作类 (b) 100%与 Objective-C 对应的基本数据类型。详情请参见上述的[步骤三](#步骤三实现互操作类) 和[由 Objective-C 到仓颉的映射关系](#由-objective-c-到仓颉的映射关系) 章节。
+
+## 由 Objective-C 到仓颉的映射关系
+
+当前版本的 Objective-C 镜像生成器遵循以下所描述的 Objective-C 到仓颉的类型映射规格。
+
+Objective-C 镜像生成器调用 clang 解析 Objective-C 源码，特别地，调用时会带有 `-fobjc-arc` 编译选项。
+
+Objective-C 源码中，被标记为 `unavailable` 的声明将被忽略。
+
+全局函数、文件作用域函数及变量声明也均将被忽略。
+
+在输出的仓颉源文件中，所有声明的顺序保持与源 Objective-C 源文件中各声明在文件中的顺序一致，其中唯一的例外是嵌套类型定义。
+
+### Objective-C 名称
+
+原 Objective-C 标识符一般情况下都会被原样保留，除了以下这些情况：
+
+* Objective-C 的标识符与仓颉关键字存在冲突，例如 `catch`、`false`、`UInt32` 等。冲突的标识符会在仓颉侧使用反引号 ` `` ` 包裹。
+
+* Objective-C 允许定义一对同名的类和协议，而仓颉禁止同包中存在一对同名的类和接口。当 Objective-C 侧一对同名的类和协议同时被镜像时，由协议镜像得到的仓颉接口的名字，会在原协议的名称的基础上，加上 `Protocol` 后缀。
+
+* Objective-C 允许定义一对同名的实例方法和静态方法，而仓颉禁止定义同名的实例成员函数和静态成员函数。当 Objective-C 侧存在同名的实例方法和静态方法，且它们将被镜像，那么最靠近冲突源的那个方法将会被重命名。如果导致冲突的实例方法和静态方法定义源于同一个类或协议中，静态方法将被重命名。重命名的方法是，对于实例方法，方法名加上 `Instance` 后缀，对于静态方法，方法名加上 `Static` 后缀。例如，在以下例子中：
+
+    ```objectivec
+    @interface A
+    +(void)foo;
+    @end
+    
+    @interface B : A
+    -(void)foo;
+    +(void)bar;
+    -(void)bar;
     @end
     ```
 
-    并创建配置文件，以`example.toml`为例：
-
-    ```toml
-    # Place mirrors of the Foundation framework classes in the 'objc.foundation' package:
-    [[packages]]
-    filters = { include = ["NS.+"] }
-    package-name = "objc.foundation"
-
-    # Place the mirror of the class Base in the 'example' package:
-    [[packages]]
-    filters = { include = "Base" }
-    package-name = "example"
-
-    # Write the output files with mirror type definitions to the './mirrors' directory:
-    [output-roots.default]
-    path = "mirrors"
-
-    # Specify the pathnames of input files
-    [sources.all]
-    paths = ["original-objc/Base.h"]
-
-    # Extra settings for testing with GNUstep
-    [sources-mixins.default]
-    sources = [".*"]
-    arguments-append = [
-        "-F", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks",
-        "-isystem", "/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
-        "-isystem", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include",
-        "-DTARGET_OS_IPHONE"
-    ]
-    ```
-
-    配置文件格式如下:
-
-    ```toml
-    # 可选，import其他的toml配置文件，值为字符串数组，每行表示相对于当前工作目录的toml文件路径
-    imports = [
-        "../path_to_file.toml"
-    ]
-
-    # 生成的Mirror Type文件存放路径,当目标文件夹不存在时会自动创建
-    [output-roots]
-    path = "path_to_mirrors"
-
-    # Mirror Type的输入文件列表，与Clang编译选项
-    [sources]
-    path = "path_to_ObjC_header_file"
-    # 编译选项
-    arguments-append = [
-        "-F", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks",
-        "-isystem", "/Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include",
-        "-isystem", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include",
-        "-DTARGET_OS_IPHONE"
-    ]
-
-    # 多个sources属性的集合
-    [sources-mixins]
-    sources = [".*"]
-
-    # 指定包名
-     [[packages]]
-    # 如果转换的代码隐式的使用到某些符号，如Uint32/Bool等，需要将该符号一并添加到filters中（如未添加运行 ObjCInteropGen 时会出现Entity Uint32/Bool from `xx.h` is ambiguous between x packages报错信息)
-    filters = { include = "Base" }
-    package-name = "example"
-    ```
-
-    使用 ObjC 的镜像生成工具生成 ObjC 的镜像文件：
-
-    ```bash
-    ObjCInteropGen example.toml
-    ```
-
-    生成的镜像文件 `Base.cj` 如下：
+    上述 Objective-C 类型将被镜像为：
 
     <!-- compile -->
-
     ```cangjie
-    // Base.cj
-    package example
-
-    import objc.lang.*
-
     @ObjCMirror
-    public open class Base {
-        public init()
-        public open func f(): Unit
+    public open class A <: ObjCId {
+        public static func foo()
+    }
+    
+    @ObjCMirror
+    public open class B <: A {
+        public open func fooInstance()
+        public static func barStatic()
+        public open func bar()
     }
     ```
 
-    如果需要基于 `Base` 对部分函数进行重写，示例如下：
+### Objective-C 类型别名
 
-    <!-- compile -->
-    ```cangjie
-    // Interop.cj
-    package example
+`typedef` 声明将被映射为仓颉可见性 `public` 的类型别名。​
 
-    import objc.lang.*
+### Objective-C 基本数据类型
 
-    @ObjCImpl
-    public class Interop <: Base {
-        public override func f(): Unit {
-            println("Hello from overridden Cangjie Interop.f()")
-            Base().f()
-        }
-    }
-    ```
+Objective-C 基本数据类型将被映射为对应的仓颉基本数据类型。对于各平台特定大小的 C 类型，将根据​host 平台（即运行镜像生成器本身的平台）上其长度来决定映射到哪个仓颉类型。例如，在 MacOS 上，该映射关系可能为：
 
-3. 开发互操作代码，使用步骤 2 中生成的 Mirror Type 创建 ObjC 对象、调用 ObjC 方法。
+|   Objective-C        | 仓颉      |
+| -------------------- | --------- |
+| `void`               | `Unit`    |
+| `BOOL`               | `Bool`    |
+| `signed char`        | `Int8`    |
+| `short`              | `Int16`   |
+| `int`                | `Int32`   |
+| `long`               | `Int64`   |
+| `long long`          | `Int64`   |
+| `unsigned char`      | `UInt8`   |
+| `unsigned short`     | `UInt16`  |
+| `unsigned int`       | `UInt32`  |
+| `unsigned long`      | `UInt64`  |
+| `unsigned long long` | `UInt64`  |
+| `float`              | `Float32` |
+| `double`             | `Float64` |
 
-    `互操作代码.cj` + `Mirror Type.cj`→ 实现仓颉调用 ObjC
+### Objective-C 结构体类型
 
-    例如如下示例，可通过 ObjCImpl 类型继承 Mirror Type 调用 ObjC 类型构造函数：
+如果一个 Objective-C `struct` 中仅包含对于仓颉而言 `CType` 兼容的类型的字段，那么该 Objective-C `struct` 将被映射为仓颉可见性 `public` 的 `@C struct` 类型。如果 Objective-C `struct` 包含非 `CType` 兼容的类型的字段，例如 Objective-C 对象指针，当前不支持镜像。
 
-    <!-- compile -->
-    ```cangjie
-    // A.cj
-    package cjworld
+嵌套的 `struct` 将被镜像为顶级仓颉 `@C struct`，因为仓颉仅支持顶级类型定义。
 
-    import objc.lang.*
+不完全结构声明（用于前向声明，例如 `struct MyRecord;`）将被镜像为空 `struct`（`struct` 类型定义中无任何成员）。
 
-    @ObjCImpl
-    public class A <: M {
-        public override func goo(): Unit {
-            println("Hello from overridden A goo()")
-        }
-    }
-    ```
+Objective-C `struct` 的字段将被镜像为可见性 `public` 的成员变量。
 
-4. 使用 cjc 编译互操作代码和 'Mirror Type.cj' 类型。cjc 将生成：
+仓颉不支持位域，如果原 `struct` 的字段带有位域，这些宽度信息将被忽略，且镜像生成器将告警。
 
-    - 胶水代码。
-    - 实际进行互操作的 ObjC 源代码。
+与 Objective-C 不同，仓颉要求 `struct` 中所有成员变量都需要在构造时被初始化。因此，镜像得到的仓颉 `struct` 的所有成员变量都会带有零初始化器。例如：
 
-    `Mirror Type.cj`\+`互操作代码.cj`→ cjc → `仓颉代码.so`和 `互操作.m`/`互操作.h`
-
-5. 将步骤 4 中生成的文件添加到 macOs/iOS 项目中：
-
-    - `互操作.m/h`：cjc 生成的文件
-    - `仓颉代码.so`：cjc 生成的文件
-    - 仓颉 SDK 包含的运行时库
-
-    在 ObjC 源代码中插入必要的调用并重新生成该程序。
-
-    macOs/iOS 项目 + `互操作.m/h` + `仓颉代码.so` → macOS/iOS 工具链 → 可执行文件
-
-## 环境准备
-
-**系统要求：**
-
-- **硬件/操作系统**：macOS 12.0 及以上版本(aarch64)运行
-
-**ObjCInteropGen 工具使用环境准备步骤：**
-
-1. 安装对应版本的仓颉 SDK，安装方法请参见[开发指南](https://cangjie-lang.cn/docs?url=%2F1.0.0%2Fuser_manual%2Fsource_zh_cn%2Ffirst_understanding%2Finstall_Community.html)。
-2. 执行如下命令安装 LLVM 16。
-
-    ```bash
-    brew install llvm@16
-    ```
-
-3. 将 `llvm@16/lib/` 子目录添加到 `DYLD_LIBRARY_PATH` 环境变量中。
-
-   ```bash
-    export DYLD_LIBRARY_PATH=/opt/homebrew/opt/llvm@16/lib:$DYLD_LIBRARY_PATH
-    ```
-
-4. 检测是否安装成功：执行如下命令，如果出现 ObjCInteropGen 使用说明，则证明安装成功。
-
-    ```bash
-    ObjCInteropGen --help
-    ```
-
-## ObjCMirror 类
-
-ObjCMirror 为 ObjC 类型使用仓颉语法形式的表达，由工具自动生成，供开发者使用仓颉的方式调用 ObjC 方法。
-
-> **注意：**
->
-> 本特性尚为实验特性，用户仅可使用文档已说明的特性，若使用了未被提及的特性，将可能出现如编译器崩溃等的未知错误。
-> 暂不支持的特性将出现未知错误。
-
-### 构造函数
-
-```objc
-// M.h
-@interface M : NSObject
-// Constructor w/out parameters
-- (id)init;
-// Constructor w/ scalar parameters
-- (id)initWithArg0:(int)arg0 andArg1:(float)arg1;
-@end
-
-// M.m
-#import "M.h"
-
-@implementation M
-// -- implement constructors --
-@end
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M {
-    public init()
-    // 带参数的构造函数，必须使用 @ForeignName 修饰。
-    @ForeignName["initWithArg0:andArg1:"]
-    public init(arg0: IntNative, arg1: Float32)
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-class A <: M {
-    @ForeignName["initWithArg2:"]
-    public init(arg2: Bool) {
-        M()
-        println("arg2 is ${arg2}")
-    }
-}
-```
-
-当前具体规格如下：
-
-- ObjCMirror 类 的构造函数可有零个、一个或多个参数。
-- 构造函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 构造函数显式声明时，不为 private/static/const 类型。无显式声明的构造函数时，则无法构建该对象。
-- 仅支持单个命名参数。
-- 暂不支持默认参数值。
-
-### 成员函数
-
-```objc
-// M.h
-@interface M : NSObject
-
-// Static method with parameters and return type
-+ (int64_t) booWithArg0: (int32_t)arg0 andArg1: (bool)arg1;
-
-// Instance method with parameters and return type
-- (double) gooWithArg0: (int16_t)arg0 andArg1: (float)arg1;
-
-@end
-
-// M.m
-#import "M.h"
-
-@implementation M
-// -- implement methods --
-@end
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M {
-    public init()
-
-    @ForeignName["booWithArg0:andArg1:"]
-    public static func boo(arg0: Int32, arg1: Bool): Int64
-
-    @ForeignName["gooWithArg0:andArg1:"]
-    public open func goo(arg0: Int16, arg1: Float32): Float64
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-class A <: M {
-    @ForeignName["gooWithArg0:andArg1:"]
-    public override func goo(arg0: Int16, arg1: Float32): Float64 {
-        M.boo(1, true)
-        M().goo(arg0, arg1)
-    }
-}
-```
-
-具体规格如下：
-
-- ObjCMirror 类 的成员函数可有零个、一个或多个参数。
-- 函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 仅支持单个命名参数。
-- 不支持在 Mirror 类中新增成员函数，运行时将有异常。
-- 支持 static/open 类型。
-- 不支持 private/const 成员。
-- 暂不支持默认参数值。
-- 暂不支持重载函数。
-
-### 属性
-
-```objc
-// M.h
-@interface M : NSObject
-
-@property int f;
-
-@end
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M {
-    public init()
-    protected open mut prop f: IntNative
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-class A <: M {
-    @ForeignName["gooWithArg0:"]
-    public func goo(arg0: IntNative): IntNative {
-        M().f + arg0
-    }
-}
-```
-
-具体规格如下：
-
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 不支持 private/const 成员。
-- 支持 static/open 修饰。
-- 暂不支持映射 assign/readonly 等 attribute，仓颉侧映射均按照 readwrite 处理，在 objc 侧处理上述 attribute 的属性时，以 objc 规格为准。
-- 若属性被 Impl 子类覆盖，则不允许在 ObjC 侧的构造函数中调用该属性，将出现运行时崩溃。
-
-### 成员变量
-
-```objc
-// M.h
-@interface M : NSObject
-{
-@public
-double m;
-}
-
-@end
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M {
-    public init()
-    public var m: Float64
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-class A <: M {
-    @ForeignName["initWithM:"]
-    public init(m: Float64) {
-        M()
-        this.m = m
-    }
-
-    @ForeignName["gooWithArg0:"]
-    public func goo(arg0: Float64): Float64 {
-        this.m + arg0
-    }
-}
-```
-
-具体规格如下：
-
-- 支持可变变量 var、不可变变量 let。
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 不支持 static/const/private 类型变量。
-
-### 继承
-
-Mirror 类支持继承 open Mirror 类。
-示例如下：
-
-<!-- compile -->
-
-```cangjie
-// M1.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M1 {
-    @ForeignName["init"]
-    public init()
-
-    @ForeignName["goo"]
-    public open func goo(): Int64
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-open class M <: M1 {
-    @ForeignName["init"]
-    public init()
-
-    @ForeignName["goo"]
-    public override func goo(): Int64
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-public class A <: M {
-    public init() {
-        println("cj: A.init()")
-        let m = M()
-    }
-
-    @ForeignName["boo"]
-    public func boo(): Bool {
-        println("cj: A.boo: M.init()")
-        let m = M()
-        println("cj: A.boo: M1.init()")
-        let m1 = M1()
-
-        m.goo() > m1.goo()
-    }
-}
-```
-
-```objc
-// main.m
-#import "A.h"
-#import <Foundation/Foundation.h>
-
-int main(int argc, char** argv) {
-    @autoreleasepool {
-        A* a = [[A alloc] init];
-
-        NSLog(@"objc: result on [a boo] %s", [a boo] ? "YES" : "NO");
-    }
-    return 0;
-}
-```
-
-### 约束限制
-
-- 暂不支持 String 类型。（暂不支持的特性将出现未知错误）
-- 暂不支持类型检查和类型强转。（暂不支持的特性将出现未知错误）
-- 暂不支持处理异常。（暂不支持的特性将出现未知错误）
-- 不支持普通仓颉类继承 Mirror 类。
-- 不支持继承普通仓颉类。
-- 当成员函数或构造函数有超过一个的参数时，必须使用 @ForeignName。
-
-> 注意：
->
-> 支持在 Impl 类或普通仓颉类中调用 Mirror 类成员，规格一致。
-
-## ObjCMirror 全局函数
-
-支持映射 ObjC 中的全局函数，具体示例如下：
-
-```objc
-int foo(NSObject* o, double x) { ... }
-```
-
-```cangjie
-@ObjCMirror
-public func foo(o: ?NSObject, x: Float64): Int64
-```
-
-具体规格如下:
-
-- 该函数不能包含函数体。
-- 该函数不能标记为 foreign 函数和 const 函数。
-- 该函数不能使用泛型。
-- 函数的返回类型必须显示指定。
-- 函数可以拥有任意个数的形参。
-- 不支持 vararg 参数。
-- 支持命名形参和形参默认值，当形参拥有默认值时，仓颉侧调用该 @ObjCMirror 全局函数时可以不提供该实参，ObjC 实际调用其全局函数时采用该默认值。
-
-## ObjCMirror 接口
-
-支持映射 ObjC 中的 `protocol` 为接口，`interface` 为 `open class`，具体示例如下：
-
-```objc
-// Foo.h
-@protocol Foo : <NSObject>
-- (void) foo;
-@end
-```
-
-```objc
-// M.h
-@interface M : NSObject
-- (void) acceptFoo: (id<Foo>)foo;
-@end
-```
-
-<!-- compile -->
-
-```cangjie
-// Foo.cj
-@ObjCMirror
-public interface Foo {
-    // 不支持构造函数。
-    func foo(): Unit
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-@ObjCMirror
-public open class M {
-    public init()
-    public open func acceptFoo(foo: ?Foo): Unit
-}
-```
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-@ObjCImpl
-class A <: M {
-    public init() {}
-
-    public func acceptFoo(foo: ?Foo) {
-        foo?.foo()
-    }
-}
-```
-
-具体规格如下:
-
-- 支持成员函数，规则同 [ObjCMirror 类](#成员函数)
-- 支持属性，规则同 [ObjCMirror 类](#属性)
-- 暂不支持默认成员实现。
-- 暂不支持映射 ObjC protocols 的 @optional 和 @required 成员函数。
-- 暂不支持成员变量。
-- @ObjCMirror 接口仅支持继承 @ObjCMirror 接口，不支持其他类型。
-- 当成员函数有超过一个的参数时，必须使用 @ForeignName。
-
-## ObjCImpl 类
-
-ObjCImpl 为仓颉注解，语义为该类的方法与成员可以被 ObjC 函数调用。编译期间编译器会为 `@ObjCImpl` 的仓颉类生成对应的 objc 代码。
-
-> **注意：**
->
-> 本特性尚为实验特性，用户仅可使用文档已说明的特性，若使用了未被提及的特性，将可能出现如编译器崩溃等的未知错误。
-> 暂不支持的特性将出现未知错误。
-
-### 调用 ObjCImpl 的构造或成员函数
-
-在 ObjC 中调用 ObjCImpl 的构造或成员函数如下：
-
-<!-- compile -->
-
-```cangjie
-// A.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCImpl
-class A <: M {
-    @ForeignName["initWithM:"]
-    public init(m: Float64) {
-        this.m = m
-    }
-
-    @ForeignName["gooWithArg0:"]
-    public func goo(arg0: Float64): Float64 {
-        this.m + arg0
-    }
-}
-```
-
-```objc
-int main(int argc, char** argv) {
-    @autoreleasepool {
-	M* a = [[A alloc] initWithM: 1.0];
-	[a gooWithArg0: 1.0];
-	M* b = [[A alloc] initWithM: 1.0];
-	[b gooWithArg0: 1.0];
-    }
-    return 0;
-}
-```
-
-具体规格如下：
-
-- ObjCImpl 类 的成员函数可有零个、一个或多个参数。
-- 函数的参数和返回值类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 构造函数必须显式声明。
-- 仅支持单个命名参数。
-- 暂不支持默认参数值。
-- 成员函数支持 static/open 修饰。
-- 仅有 public 函数可在 ObjC 侧被调用。
-
-### 属性
-
-<!-- compile -->
-
-```cangjie
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-public class M1 {
-    public prop answer: Float64
-
-    @ForeignName["initWithAnswer:"]
-    public init(answer: Float64) 
-}
-
-@ObjCMirror
-public open class M {
-    public mut prop bar: M1
-
-    @ForeignName["init"]
-    public init()
-}
-
-@ObjCImpl
-public class A <: M {
-    private var _b: M1
-    public mut prop b: M1 {
-        get() {
-            _b
-        }
-        set(value) {
-            _b = value
-        }
-    }
-    public init() {
-        println("cj: A.init()")
-        _b = M1(123.123)
-        bar = M1(_b.answer)
-    }
-}
-```
-
-```objc
-#import "A.h"
-#import <Foundation/Foundation.h>
-
-int main(int argc, char** argv) {
-    @autoreleasepool {
-        A* a = [[A alloc] init];
-        NSLog(@"objc: value of bar.answer: %lf", a.bar.answer);
-        NSLog(@"objc: value of b.answer: %lf", a.b.answer);
-    }
-    return 0;
-}
-```
-
-具体规格如下：
-
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 支持 static/open 修饰。
-- 仅 public 类型可在 ObjC 侧被调用。
-
-### 成员变量
-
-<!-- compile -->
-
-```cangjie
-// M.cj
-package cjworld
-
-import objc.lang.*
-
-@ObjCMirror
-public open class M {
-    @ForeignName["init"]
-    public init()
-}
-
-@ObjCMirror
-public open class M1 {
-    @ForeignName["init"]
-    public init()
-
-    @ForeignName["foo"]
-    public func foo(): Float64
-}
-
-@ObjCImpl
-public class A <: M {
-    public let m1: M1
-    public var num: Int64
-
-    public init() {
-        super()
-
-        m1 = M1()
-        num = 42
-    }
-}
-```
-
-```objc
-// main.m
-#import "A.h"
-#import <Foundation/Foundation.h>
-
-int main(int argc, char** argv) {
-    @autoreleasepool {
-        A* a = [[A alloc] init];
-
-        // NOTE: Cangjie fields are translated to props, NOT instance variables
-        NSLog(@"objc: value of [a.m1 foo]: %lf", [a.m1 foo]);
-        NSLog(@"objc: value of a.num %ld", a.num);
-    }
-    return 0;
-}
-```
-
-具体规格如下：
-
-- 支持可变变量 var、不可变变量 let。
-- 类型可为具备与 ObjC 的映射关系的基础类型、Mirror 类型或 Impl 类型。
-- 仅 public 类型可在 ObjC 侧被调用。
-
-### 继承
-
-支持 Impl 继承 Mirror/Impl 类。并支持在 Impl 中调用 `super(x)`/`this(x)` 构造 Mirror 或 Impl 对象。具体示例如下：
-
-<!-- compile -->
-
-```cangjie
-@ObjCMirror
-open class M {}
-
-@ObjCImpl
-open class A <: M {
-    public init() {
-        super()
-    }
-    public static func cjMain(): Unit {
-        let impl = A()
-    }
-}
-
-@ObjCImpl
-open class B <: A {}
-```
-
-限制如下：
-
-- 暂未支持 @ObjCImpl 的生命周期管理。
-- 从 Cangjie 实例化的 @ObjCImpl 永远不会被垃圾回收。
-- 不支持通过 `super(x)` 或 `this(x)` 调用 @ObjCInit 函数。
-
-### 约束限制
-
-- 暂不支持 String 类型。
-- 暂不支持类型检查和类型强转。
-- 暂不支持在 ObjC 侧继承 Impl 类。
-- 暂不支持处理异常。
-- 当成员函数或构造函数有超过一个参数时，必须使用 @ForeignName。（当该函数为重载函数时则不需要）
-- 不支持普通仓颉类继承 Impl 类。
-- 不支持继承普通仓颉类。
-- Impl 类必须继承 Mirror/Impl 类。
-- Impl 可以实现零个或多个 Mirror 接口。
-
-> 注意：
->
-> 暂不支持在仓颉中调用 Impl 类的任意成员。
-
-## objc.lang
-
-是与互操作库一起提供的包，包含用于对 Objective-C 中的其他类型完成映射的支持类型。
-
-### ObjCPointer
-
-`ObjCPointer` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 中定义的原始指针。其签名如下：
-
-<!-- compile -->
-
-```cangjie
-struct ObjCPointer<T> {
-    /* 从 C Pointer构造对象 */
-    public init(ptr: CPointer<Unit>)
-
-    public func isNull(): Bool
-
-    public func read(): T
-
-    public func write(value: T): Unit
-}
-```
-
-`ObjCPointer` 方法的实现均在编译器中。
-
-具体规则如下：
-
-- 只有与 Objective-C 兼容的明确的类型才能用于实例化参数 `T`，包括其他 `ObjCPointer` 类型，例如：`ObjCPointer<Class>`、`ObjCPointer<Int64>`、`ObjCPointer<ObjCPointer<Bool>>`。如下类型不合法：`ObjCPointer<U>`，其中 `U` 为类型参数，`ObjCPointer<String>`。
-- `ObjCPointer<T>` 当 `T` 是一个明确的与 Objective C 兼容的类型时, 该类型为 Objective-C 兼容类型。
-- 由于仓颉类类型 `A` 在 Objective-C 中已经对应了指针类型 `A*`，因此指向类 `ObjCPointer<A>` 的指针对应着指向指针的指针 `A**`。这是在仓颉中模拟 Objective-C 指向指针的唯一方法。
-
-当前约束如下：
-
-- 由于 Objective-C ARC 的限制，`ObjCPointer<class>` 类型**不能**用作任何仓颉方法或属性的返回类型，包括 `@ObjCMirror` 和 `@ObjCImpl` 声明的方法和属性
-
-### ObjCBlock
-
-`ObjCBlock` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 的 `Block` 类型。其签名如下：
-
-<!-- compile -->
-
-```cangjie
-public class ObjCBlock<F> {
-
-    public init(ptr: CPointer<NativeBlockABI>)
-    public init(ptr: CPointer<CangjieBlockABI>)
-    public init(f: F)
-
-    public prop call: F 
-
-    public unsafe func unsafeGetNativeABIPointer(): CPointer
-
-    public unsafe func unsafeGetFunctionPointer(): CPointer 
-}
-```
-
-`ObjCBlock` 方法的实现均在编译器中。
-
-示例如下：
-
-<!-- code_no_check -->
-
-```cangjie
-let f: ObjCBlock<(Int64) -> Int64> = ObjCBlock { it => it +2 } // 对象支持在仓颉侧使用 lambda 构建。
-f.call(123)
-let ff = f.call // 报错：不允许值类型赋值。
-```
-
-具体规格如下：
-
-- ObjCBlock\<F> 中的 F 必须为合法的仓颉函数类型。
-- F 的返回值和参数必须为 ObjC 兼容类型。
-- ObjCBlock 中的 call 属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
-
-### ObjCFunc
-
-`ObjCFunc` 类型定义在 `objc.lang` 包中，用于映射 Objective-C 的函数。其签名如下：
-
-<!-- compile -->
-
-```cangjie
-public struct ObjCFunc<F> {
-
-    public ObjCFunc(let ptr: CPointer)
-
-    public prop call: F
-
-    public unsafe func unsafeGetFunctionPointer(): CPointer
-}
-```
-
-`ObjCFunc` 方法的实现均在编译器中。
-
-示例如下：
-
-<!-- code_no_check -->
-
-```cangjie
-let f: ObjCFunc<(Int64) -> Int64> = mirrorFuncCreator() // 对象必须从 ObjC 侧创建，通过 Mirror 类型的返回值或参数传递到仓颉侧。
-f.call(123)
-let ff = f.call // 报错：不允许值类型赋值。
-```
-
-具体规格如下：
-
-- ObjCFunc\<F> 中的 F 必须为合法的仓颉函数类型。
-- F 的返回值和参数必须为 ObjC 兼容类型。
-- ObjCFunc 中的 call 属性仅允许被直接调用，禁止用于其他场景（如赋值给变量、作为函数参数等）。
-- 不允许在仓颉侧构造 ObjCFunc\<F> 类型对象。
-
-### ObjCId
-
-`ObjCId` 类型定义在 `objc.lang` 包中，用作所有 Mirror 类型的父类型。它是 ObjC 在仓颉世界中的 `id` 类型代表。其签名如下：
-
-<!-- code_no_check -->
-
-```cangjie
-@ObjCMirror
-public interface ObjCId {}
-```
-
-具体规格如下：
-
-- 任意 @ObjCMirror 或 @ObjCImpl 均可以实现该接口。
-- 默认所有 Mirror 类型均继承该接口，因此需导入 `import objc.lang.ObjCId` 。
-
-## @C structs
-
-使用 `@C` 注解的结构体，在 `ObjCPointer<T>` 内部使用时，可以用于 `@ObjCMirror` 和 `@ObjcImpl` 的声明参数、返回类型、字段和属性。仓颉代码中此类注解的结构体 `X` 对应于 Objective C 代码中的 `struct X` 类型，前述类型需同时在仓颉侧和 ObjC 侧均存在。
-
-约束如下：
-
-- 结构体可以包含基础类型、CPointer 指针和其他带有 @C 注解的结构体。
-- 对于在仓颉或 Objective C 中定义的每个结构体，在对应的另一个语言中都应该有相同的声明。字段及其类型的差异可能会导致运行时错误。
-- 结构体应与 `ObjCPointer<T>` 一起使用。例如，`ObjCPointer<MyStruct>`。通过值传递的结构体暂不支持。
-- struct 的类型别名 typedef 暂不支持。
-
-示例如下：
-
-```objc
-struct X {
-    long a;
-    float b;
+```objectivec
+struct A {
+    int x;
+    double y;
+    BOOL z;
+    struct A *w;
 };
 ```
 
-<!-- compile -->
+上述类型将被镜像为：
 
+<!-- compile -->
 ```cangjie
 @C
-public struct X {
-    var a: Int64
-    var b: Float32
+public struct A {
+    public var x: Int32 = 0
+    public var y: Float64 = 0.0
+    public var z: Bool = false
+    public var w: CPointer<A> = CPointer<A>()
 }
 ```
 
-## @optional 方法
+### Objective-C 联合体类型
 
-支持在仓颉侧调用 ObjC 的 @optional 方法。例如：
+仓颉不支持 C 的 `union` 类型，故其将镜像为仓颉 `struct`，各原联合体中的成员依次被镜像为成员变量，这明显是不符合原联合体的语义的，故对此将输出告警信息。
 
-```objc
-@protocol K
-@optional
-- (void) unimplemented;
-- (void) implemented;
+### `id` 类型
+
+`id` 类型将镜像为内置 `@ObjCMirror interface ObjCId`。
+
+### Objective-C 类和协议
+
+Objective-C 类和协议将分别被镜像为仓颉类和接口。所有生成的镜像类和接口均实现/继承了内置 `ObjCId` 镜像接口（见[内置类型](#objective-c-内置类型)）。
+
+不支持可变参数，对于声明了可变参数的方法，其参数列表中的 `, ...` 部分将被忽略。
+
+Objective-C 方法的完整名称，即选择器，中可能包含有 `:`，而仓颉标识符不支持含有 `:`。这种方法名在镜像为仓颉函数名时，遵循以下转换规则：
+
+* 直接跟随在 `:` 之后的那个字母（如果有）将被替换为大写。
+* 所有 `:` 均将被删除。
+
+原选择器则将被保留在仓颉侧 `@ForeignName` 注解中。
+
+**示例：**
+
+```objectivec
+@interface A
+- (void)foo;
+- (void)foo:(int)i;
+- (void)foo:(int)i bar:(int) j;
+- (void)foo:(int)i bar:(int) j baz:(int) k;
 @end
 ```
 
-在 Objective-C 中，@optional 方法不要求必须实现。当仓颉为包含此类方法的类生成 Mirror Interface 对象并在运行时从 Cangjie 调用这些方法时，若方法未被实际实现，将导致运行时错误。
-
-为避免此问题，仓颉引入了 @ObjCOptional 注解：当调用被该注解标记的方法时，若其实现不存在，则抛出 ObjCOptionalMethodUnimplementedException 异常,若存在，则正常执行调用。
+将被镜像为：
 
 <!-- compile -->
-
 ```cangjie
 @ObjCMirror
-open interface M {
-    @ObjCOptional
-    @ForeignName["foo"]
-    public func foo(): Unit
+public open class A {
+    public open func foo(): Unit
+    
+    @ForeignName["foo:"]
+    public open func foo(i: Int32): Unit
+    
+    @ForeignName["foo:bar:"]
+    public open func fooBar(i: Int32, j: Int32): Unit
+
+    @ForeignName["foo:bar:baz:"]
+    public open func fooBarBaz(i: Int32, j: Int32, k: Int32): Unit
 }
 ```
 
-在调用处可增加 `try-catch` 捕获异常：
+#### Objective-C 类
 
-<!-- code_no_check -->
+Objective-C 的 `@interface` 类声明将被镜像为仓颉的 `@ObjCMirror public open class`。
 
-```cangjie
-try {
-    m.foo()
-} catch (e: ObjCOptionalMethodUnimplementedException) {
-    println("cj: caught ObjCOptionalMethodUnimplementedException!")
-}
-```
+Objective-C 的 `@interface` 的分类（category）和扩展（extension）声明的镜像均将直接融合进相应的仓颉类定义中。
 
-## @property 属性
+Objective-C 的 `@implementation` 声明将被忽略。
 
-支持通过 `@ForeignGetterName` 和 `@ForeignSetterName` 映射 ObjC 的 @property 语法。
-在 Mirror 类中，具有 `@ForeignGetterName` 和 `@ForeignSetterName` 注解的属性将改变从 Cangjie 端访问属性时使用的方法。默认生成的选择器（来自属性名或 `@ForeignName` 注解）会被指定的选择器覆盖。在下面的示例中，Objective-C 端重新定义了属性的 getter 和 setter 名称：
+类的前向声明（`@class` 标记）被镜像为空的仓颉类定义（即类中无任何成员）。
 
-```objc
-@interface Component
-@property (getter=isShared, setter=applyShared:) BOOL shared;
-/*...*/
+仓颉存在构造函数和非构造函数的成员函数之间的区分，而 Objective-C 则并没有直接的“构造方法”和“非构造方法”的区分。被归类为 `init` 方法的方法，将被镜像为仓颉构造函数，且存在以下两个限制：
+
+* Objective-C 类中，如果两个 `init` 方法的方法签名仅仅区别于选择器的名称，即两个方法的形参个数相同，且对应的形参类型相同，那么镜像生成器将把这两个方法所镜像得到的两个构造函数声明注释掉，并输出告警表明存在冲突。
+
+* `init` 方法与其他方法一样能够被继承，而在仓颉中，构造函数是不会被继承的。因此，在镜像类或互操作类的实例化过程中，其父类的 `init` 方法镜像得到的构造函数将无法被调用。
+
+其他 Objective-C 类的方法将被镜像为仓颉类的 `public open` 成员函数。实例方法将被镜像为实例成员函数，类方法将被镜像为静态成员函数。
+
+#### Objective-C 协议
+
+Objective-C 的 `@protocol` 将被镜像为仓颉的 `@ObjCMirror public interface`。
+
+协议的前向声明被镜像为空的仓颉接口定义（即接口中无任何成员）。
+
+Objective-C 协议的方法将被镜像为仓颉接口的 `public open` 成员函数。实例方法将被镜像为实例成员函数，类方法将被镜像为静态成员函数。
+
+`@optional` 指令将被忽略。
+
+### Objective-C 指针类型
+
+Objective-C 指针类型的 `const`、`volatile` 和 `restrict` 修饰符均将被忽略。
+
+C 基本数据类型 `T` 的指针及其类型别名将被镜像为相应的 `CPointer<T'>`，其中 `T'` 是 `T` 的镜像类型（详情请参考 [Objective-C 基本数据类型](#objective-c-基本数据类型)）。
+
+底层类型为 `T` 的 C 枚举类型的指针将被镜像为 `CPointer<T'>`，其中 `T'` 是 `T` 的镜像类型，原枚举类型名将在注释中体现。
+
+#### Objective-C 结构体指针类型
+
+对于 Objective-C 结构体指针类型，如果 C 结构体 `T` 是 `CType` 兼容的，则将被镜像为 `CPointer<T'>`，其中 `T'` 是 `T` 的镜像类型；否则将被镜像为 `ObjCPointer<T'>`（该类型名为暂定名）。`ObjCPointer` 类型定义在互操作库中。
+
+#### Objective-C 函数指针类型
+
+对于 Objective-C 函数指针类型，如果函数形参和返回类型均为 `CType` 兼容类型，则将被镜像为 `CFunc<F>`；否则将被镜像为 `ObjCFunc<F>`（该类型名为暂定名）。`ObjCFunc` 类型定义在互操作库中。
+
+#### Objective-C 块指针类型
+
+Objective-C 块指针类型将被镜像为 `ObjCBlock<F>`（该类型名为暂定名）。`ObjCBlock` 类型定义在互操作库中。`ObjCBlock<F>` 中的类型形参 `F` 是相应的仓颉函数类型。
+
+#### Objective-C 对象指针类型
+
+指向 Objective-C 类实例的指针类型将按照以下规则进行镜像：
+
+* Objective-C 类实例的指针（形如 `SomeClass*`）类型将被镜像为该类的镜像类型 `@ObjCMirror class`。
+
+* Objective-C 带有有且只有一个协议约束的 `id` 类型（例如 `id<NSCopying>`）将被镜像为该协议的镜像类型 `@ObjCMirror interface`。
+
+* Objective-C 带有多于一个协议约束的 `id` 类型（例如 `id<NSCopying, NSSecureCoding>`）将被镜像为纯粹的 `ObjCId` 类型，而各协议则将被列举在生成的注释中。`ObjCId` 接口类型定义于互操作库，所有 `@ObjCMirror` 类和接口均实现或继承该接口。
+
+* 如果在泛型模板中使用的一个泛型类型形参指定有单个约束协议，该类型形参在使用处将被替换为协议类型的引用类型，原类型形参名将被留存在注释中。
+
+### Objective-C 泛型
+
+泛型 Objective-C 类将被镜像为非泛型仓颉类。原 Objective-C 的轻量级泛型的信息，例如“`<T>`”、“`<Foo>`”将被保存在生成的仓颉类旁边的注释中。类定义中的所有泛型使用均将被替换为 `ObjCId`。
+
+**示例：**
+
+```objectivec
+@interface G<T> : NSObject
+- (void)f:(T)t;
 @end
 ```
 
-生成的 ObjMirror 使用上述注解指示了 ObjC 侧正确的名称：
+以上类型将被镜像为：
 
 <!-- compile -->
-
 ```cangjie
 @ObjCMirror
-class Component {
-    @ForeignGetterName["isShared"]
-    @ForeignSetterName["applyShared:"]
-    public mut prop shared: Bool
+public open class G/*<T>*/ <: NSObject {
+    @ForeignName["f:"] public open func f(t: ?ObjCId /*T*/): Unit
 }
 ```
 
-支持在 ObjCImpl 类中使用该注解，在 ObjC 侧调用属性方法时，需使用注解所指示的名称。
+注意：在当前版本，泛型约束将被忽略，相关示例：
 
-<!-- code_no_check -->
-
-```cangjie
-@ObjCImpl
-class ComponentChild <: Component {
-    @ForeignName["_count"]
-    @ForeignSetterName["putCount:"]
-    public mut prop count: Int64 {
-        get() {
-            42
-        }
-        set(value) {}
-    }
-}
-```
-
-具体约束如下：
-
-- 注解仅支持一个字符串类型的参数。
-- 不支持修饰重载的属性。
-- `@ForeignSetterName` 不支持修饰可变类型。
-
-## 同参数类型构造函数
-
-```objc
-@interface M
-- (id) initWithA: (int) a andB: (float) b;
-- (id) initWithC: (int) c andD: (float) d;
+```objectivec
+@interface G<T: SomeType*> : NSObject
+- (void)f:(T)t;
 @end
 ```
 
-ObjC 中，参数类型相同但参数名不同的构造函数不属于声明冲突，但在仓颉中，参数类型相同即被认为声明冲突，编译时会报错。
+以上类型的镜像结果将与上一个的镜像结果完全一致。
 
-<!-- compile.error -->
+### Objective-C 内置类型
 
+镜像生成器在生成镜像时会假设以下仓颉类型已被定义在互操作库中，生成的镜像中将用到这些类型，用户亦可使用这些类型。当前版本中，部分类型尚未实现完全，且未来版本中这些类型的名称可能会改变。
+
+| Objective-C         | 仓颉 (\*)           | 备注                                                                              |
+| ------------------- | ------------------- | -----------------------------------------------------                            |
+| `id`                | `ObjCId`            | 所有 `@ObjCMirror` 类和接口均实现该 `@ObjCMirror` 接口，其对应 Objective-C 的 `id` |
+| `SEL`               | `SEL`?              | 该 `class` 对应 Objective-C 的 `SEL`                                             |
+| `Class`             | `Class`?            | 该 `class` 对应 Objective-C 的 `Class`                                           |
+| `Protocol`          | `Protocol`?         | 该 `class` 对应 Objective-C 的 `Protocol`                                     |
+| 指针类型             | `ObjCPointer<T>`?   | 该 `struct` 对应 Objective-C 的 `T` 为非 `CType` 兼容的 C 结构体                |
+| non-C function type | `ObjCFunc<F>`?      | 该类型用于 C 函数指针类型中包含有非 `CType` 兼容类型，`F` 是仓颉函数类型           |
+| 块类型               | `ObjCBlock<F>`?     | 该 `struct` 对应 Objective-C 的块类型，其中 `F` 是仓颉函数类型                    |
+|                     | `__builtin_va_list` | `CPointer<Unit>` 的辅助用类型别名，用于当前版本镜像生成器的实现，但在未来版本中将被移除 |
+
+(\*) 这些仓颉类型名称均为暂定的，未来版本中可能改变。
+
+## 尚未实现的特性
+
+仓颉 SDK 对 Objective-C 互操作的支持尚在开发中，某些特性尚未实现，某些则可能在首个正式发布版本前发生变化，某些由于仓颉与 Objective-C 之间的根本差异完全无法，或部分无法被实现。
+
+* C 语言中存在若干特性，比如能改变数据默认大小、打包方式、填充规则和/或对齐方式，这些特性与 ABI 高度相关。仓颉并不支持如此底层的控制，特别是位域。镜像生成器将直接忽略位域宽度指定符，并输出相应告警信息。
+
+* 仓颉的 C 互操作不支持 C 的 `union` 类型，故 `union` 将被镜像为仓颉 `struct` 类型，且镜像生成器将告警。
+
+* 如果 Objective-C 的 `struct` 中存在类型非 `CType` 兼容的字段，则该 `struct` 无法被镜像。
+
+* 匿名 C 枚举声明将被忽略，具名 C 枚举声明则将被镜像为 `abstract sealed class`。
+
+* 不支持对变长参数，但拥有变长参数的方法依然也支持镜像，不过变长参数的方法中的 `...` 将被忽略。
+
+* `@optional` 标注将被忽略。
+
+* Objective-C 属性在条件允许时才会被镜像为仓颉成员属性，否则其 getter/setter 方法将被视作普通的实例方法，并被镜像为仓颉实例成员函数。详情请参见 [Objective-C 类和协议](#objective-c-类和协议) 小节。
+
+* 修饰符 `const`、`volatile`、`restrict` 均将被忽略。
+
+* Objective-C 中名称为 `init` 的方法将被镜像为仓颉的构造函数，且存在以下两方面的限制：
+
+    * 在一个仓颉类中，两个构造函数即便各形参名称不尽相同，但只要函数签名相同，就禁止同时存在；而在 Objective-C 中，同名为 `init` 的方法，却可以通过外部参数名进行区分。
+
+    * 仓颉类中的构造函数不会被继承，而 Objective-C 中并没有专门的“构造方法”，而只有名为 `init` 的方法，而所有方法都可以被继承。
+
+* 泛型 Objective-C 类将被镜像为非泛型仓颉类，详情请参见 [Objective-C 泛型](#objective-c-泛型) 章节。
+
+* 对 `@protocol` 的镜像支持尚未完全支持。
+
+* 当前尚不支持对拥有非 `CType` 兼容类型作为形参/返回类型的函数指针类型进行镜像。
+
+* 当前尚不支持 Objective-C 块。
+
+* 尚未实现 Objective-C 类型 `NSString` 与仓颉类型 `String` 之间相互转换的内在函数。
+
+## Objective-C 侧 nil 值处理
+
+仓颉无 `nil` 引用的概念，因此对于 Objective-C 的 `nil` 值不存在等价物。对于 Objective-C 侧的类和协议类型镜像为仓颉类和接口类型的实例的指针，从 Objective-C 侧传入到仓颉侧后，如果为 `nil`，则会导致仓颉侧的段错误。反之，仓颉侧也不存在直接往 Objective-C 侧返回 `nil` 值的途径。
+
+因此决定将仓颉 `Option<T>` 枚举用于表示这类 Objective-C 类型，其中 `None` 表示 `nil` 值，而 `Some(r)` 表示一个非空引用值 `r`。假设仓颉类型 `T` 是 `@ObjCMirror` 镜像类型或 `@ObjCImpl` 互操作类，cjc 将把 `Option<T>` 判定为 Objective-C 兼容类型，并对该类型的值进行装包/拆包。
+
+示例如下，以下 `@interface`：
+
+```objectivec
+@interface MyContainer: NSObject
+// ...
+- (void)addItem:(MyItem *)item withUuid:(NSString *)uuid;
+- (MyItem *)itemWithUuid:(NSString *)uuid;
+- (NSString *)uuidForItem:(MyItem *)item;
+@property (copy) NSArray<MyItem *> *allItems;
+@end
+```
+
+> 说明：下文代码为精简展示，省略了 `@ForeignName` 注解。
+
+镜像生成结果如下：
+
+<!-- compile -->
 ```cangjie
 @ObjCMirror
-class M {
-    @ForeignName["initWithA:andB:"]
-    public init(a: Int32, b: Float32) 
-
-    @ForeignName["initWithC:andD:"]
-    public init(c: Int32, b: Float32) // 编译报错，声明冲突
+public open class MyContainer <: NSObject {
+// ...
+    public open func addItemWithUuid(item: ?MyItem, uuid: ?NSString): Unit
+    public open func itemWithUuid(uuid: ?NSString): ?MyItem
+    public open func uuidForItem:(item: ?MyItem): ?NSString
+    public open mut prop allItems ?NSArray/*<MyItem>*/
 }
 ```
 
-因此，新增 `@ObjCInit` 注解，通过不同名的静态函数映射 ObjC 中的同类型构造函数。
-
-<!-- code_no_check -->
-
-```cangjie
-
-@ObjCMirror
-class M {
-    @ObjCInit["initWithA:andB:"]
-    public static func initWithAandB(a: Int32, b: Float32): M // M.initWithAandB(...)
-    @ObjCInit["initWithC:andD:"]
-    public static func initWithCandD(c: Int32, b: Float32): M // M.initWithCandD(...)
-}
-```
-
-具体规格如下：
-
-- 只支持修饰 `@ObjCMirror` 类中的静态函数。
-- `@ObjCInit` 支持零个或一个字符串常量作为注解的参数。
-- `@ObjCInit` 修饰的类 `T` 中的静态函数，返回值类型必须为 `T`。
-- 暂不支持在 `@ObjCInit` 修饰的函数内使用 `super(x)`。
-- `@ObjCInit` 修饰的静态函数其他规则同 `@ObjCMirror` 类的静态函数。
-
-## ObjC 使用 Cangjie 规格
-
-### 新增实验编译选项 `--experimental --enable-interop-cjmapping=<Target Languages>`
-
-该选项启用前端（FE）对非 C 语言的 Cangjie 互操作支持。目前支持的值为 Java 和 ObjC。
-
-### 新增实验编译选项 `--experimental --import-interop-cj-package-config-path <ConfigFile Path(*.toml)>`
-
-功能：在 FE 中启用对非 C 语言的 Cangjie 互操作支持。
-参数：需要指定一个 toml 格式的配置文件路径，例如：src/cj/config.toml 或 objcCallCangjie.toml。
+上述 `Option<T>` 装包确保了即便 Objective-C 侧往仓颉侧传入 `nil` 值，仓颉侧不会因此崩溃，但这个解决方法不可避免地带来了部分性能和内存足迹的劣化。解决方法引入的另一个缺点是[型变的丢失](#型变丢失)。不过，[Objective-C 对可空性注解的支持](#objective-c-可空性注解) 显著消减了上述由于引用封装所带来的影响。
 
 > **注意：**
 >
-> - 此选项必须与 `--experimental --enable-interop-cj-mapping` 同时使用。
-> - `--import-interop-cj-package-config-path` 用于指定互操作的配置文件。
-> - `--enable-interop-cj-mapping` 用于指定目标语言并启用对应的互操作映射。
+> 上述问题对于能够被映射为仓颉 `CPointer<T>` 类型的 C 类型并不构成麻烦，因为 `CPointer<T>` 类型实现内部提供有相关的空指针检查功能。
 
-### ObjC 使用 Cangjie 接口
+### 型变丢失
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的接口类型映射为 ObjC 的协议（@protocol）。映射后，用户可：
+为 Objective-C 镜像类型和互操作类进行 [`Option<T>`装包](#objective-c-侧-nil-值处理) 带来了一个显著的限制：向这样装包的类型在所有其他方面均完全遵循仓颉语义规则。具体而言，根据仓颉语义规则，`Option<T>` 对其类型变元 `T` 是不变的，即，对于两个类型 `U` 和 `T`，除非 `U` 和 `T` 是相同的类型，否则即便 `U` 是 `T` 的子类型，`Option<U>` 也与 `Option<T>` 不存在任何子类型关系。这意味着，对于镜像类型中存在重写关系的方法，如果这两个方法的返回类型存在协变的关系，这个协变的关系无法在仓颉侧保留下来，子类中的重写方法的返回类型的镜像必须改为父类中方法的返回类型的镜像。
 
-- 将 Cangjie 接口映射为 ObjC 协议
-- 在 ObjC 函数中使用该协议作为参数类型
-- 在 ObjC 类中采纳该协议，并将其实例作为函数参数传递
+示例如下，在以下代码片段中，Objective-C 类 `Foo` 是类 `Bar` 的直接父类：
 
-#### 示例
+```objectivec
+@interface Foo : NSObject
+@end
 
-Cangjie 源码：
+@interface Bar : Foo
+@end
+```
+
+Objective-C 类 `C` 中声明有方法 `get`，其返回类型为 `Foo`：
+
+```objectivec
+@interface C : NSObject
+- (Foo*) get;
+@end
+```
+
+Objective-C 类 `D` 继承 `C`，其中重写了方法 `get`，返回类型换为了更加精确的类型 `Bar`：
+
+```objectivec
+@interface D : C
+- (Bar*) get;
+@end
+```
+
+假设不存在 `Option<T>` 装包，上述所有类型将被镜像为：
 
 <!-- compile -->
-
 ```cangjie
-// cangjie code
-package cjworld
+@ObjCMirror
+public open class Foo <: NSObject {}
 
-public interface A {
-    public func foo(): Unit
-    public func goo(a: Int32, b: Int32): Unit
-    public func koo(): Int32
-    public func hoo(a: Int32): Int32
+@ObjCMirror
+public open class Bar <: Foo {}
+
+@ObjCMirror
+public open class C <: NSObject {
+    open func get(): Foo
+}
+
+@ObjCMirror
+public open class D <: C {
+    open func get(): Bar       // Return type covariance in action
 }
 ```
 
-生成的 ObjC 头文件（A.h）：
+但正如前文所说，如果 `get` 方法存在返回 `nil` 的可能性，那么仓颉侧将不可避免地崩溃。
 
-```ObjC
-// A.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-@protocol A
-- (void)foo;
-- (void)goo:(int32_t)a :(int32_t)b;
-- (int32_t)koo;
-- (int32_t)hoo:(int32_t)a;
-@end
-
-```
-
-#### 规格约束
-
-由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
-
-- Cangjie 接口不得继承其他接口
-- 不支持泛型成员函数
-- 不支持成员属性、操作符重载函数
-- 成员函数不得为 static
-- 成员函数不得包含默认实现
-- 不支持函数重载
-- 仅允许使用基础数据类型：
-    - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 已支持的互操作特性不得使用 interface 作为函数返回值类型
-
-### ObjC 使用 Cangjie 枚举
-
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的枚举类型映射为 ObjC 的类。映射后，用户可：
-
-- 调用枚举类型的构造函数以创建对应的枚举对象
-- 在 Cangjie 与 ObjC 之间无缝传递枚举对象
-- 调用枚举中定义的静态方法和实例方法
-- 支持枚举属性的访问
-
-#### 示例
+如果进行 `Option<T>` 装包，就可以解决 `nil` 的问题，不过所有重写的成员函数的返回类型就不得不降级为原始的（定义在父类型中的）成员函数的返回类型：
 
 <!-- compile -->
-
 ```cangjie
-// Cangjie
-// =============================================
-// Enum Definition: Basic Enum (TimeUnit)
-// =============================================
-public enum TimeUnit {
-    | Year(Int64)
-    | Month(Int64)
-    | Year
-    | Month
+@ObjCMirror
+public open class Foo <: NSObject {}
 
-    // The public method to Calculate how many months.
-    public func CalcMonth(): Unit {
-        let s = match (this) {
-            case Year(n) => "x has ${n * 12} months"
-            case Year => "x has 12 months"
-            case TimeUnit.Month(n) => "x has ${n} months"
-            case Month => "x has 1 month"
-        }
-        println(s)
-    }
+@ObjCMirror
+public open class Bar <: Foo {}
 
-    // The static method to return ten years.
-    public static func TenYear(): TimeUnit {
-        Year(10)
-    }
+@ObjCMirror
+public open class C <: NSObject {
+    open func get(): Option<Foo>
+}
+
+@ObjCMirror
+public open class D <: C {
+    // open func get(): Option<Bar>  // Error, `Option<T>` is not covariant by T
+    open func get(): Option<Foo>     // OK, but the return type is lowered
 }
 ```
 
-生成的 ObjC 头文件与源文件：
+[Objective-C 可空性注解](#objective-c-可空性注解)一定程度上消减了该问题。
 
-```ObjC
-// TimeUnit.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-__attribute__((objc_subclassing_restricted))
-@interface TimeUnit : NSObject
-- (id)initWithRegistryId:(int64_t)registryId;
-+ (TimeUnit*)Year:(int64_t)p1;
-+ (TimeUnit*)Month:(int64_t)p1;
-+ (TimeUnit*)Year;
-+ (TimeUnit*)Month;
-+ (void)initialize;
-@property (readwrite) int64_t $registryId;
-- (void)CalcMonth;
-+ (TimeUnit*)TenYear;
-- (void)deleteCJObject;
-- (void)dealloc;
+### Objective-C 可空性注解
+
+XCode6.3 开始支持 Objective-C 的可空性注解，其目的是更好地与新 iOS/OSX 开发语言 Swift 集成配合，Swift 本身将调用 Objective-C 所提供的 API。
+
+> **Objective-C 可空性标注：**
+>
+> 关键字 `nullable`、`nonnull` 可用于注修饰 Objective-C 属性、方法形参类型和返回类型。它们的含义分别是指定的实体可能/不可能持有或接受 `nil` 值。除此之外还有关键字 `null_unspecified`，意思是并不确定指定的实体到底是可能还是不可能持有或接受 `nil` 值，不过该关键字及其少见被使用到。
+>
+> 另外，指针类型也可以被 `_Nullable`、`_Nonnull` 注解，与上述各关键字的语义相同。
+>
+> Objective-C 属性也可以被指定为 `null_resettable`，语义是该属性的 getter 不可能返回 `nil` 值，而如果调用 setter 时传入 `nil` 值，该属性将被重置为某默认值。
+
+因此，如果某处对 Objective-C 引用类型的使用被标记为不可为空（例如被 `nonnull` 标记），则该使用处将被免去 `Option<T>` 装包。即镜像生成器只会为所有未被 `nonnull` 或 `_Nonnull` 注解的成员属性类型、成员函数形参类型和成员函数返回类型进行 `Option<T>` 装包。
+
+现在，请重新考虑[上一节中](#objective-c-侧-nil-值处理) 的例子，这次我们对其添加了可空性注解，如下：
+
+```objectivec
+@interface MyContainer: NSObject
+// ...
+- (void)addItem:(nonnull MyItem *)item withUuid:(nonnull NSString *)uuid;
+- (nullable MyItem *)itemWithUuid:(nonnull NSString *)uuid;
+- (nullable NSString *)uuidForItem:(nonnull MyItem *)item;
+@property (copy, nonnull) NSArray<MyItem *> *allItems;
 @end
-
-// TimeUnit.m
-#import "TimeUnit.h"
-#import "Cangjie.h"
-#import <dlfcn.h>
-#import <stdlib.h>
-static int64_t (*CJImpl_ObjC_default_TimeUnit_Year_l)(int64_t) = NULL;
-static int64_t (*CJImpl_ObjC_default_TimeUnit_Month_l)(int64_t) = NULL;
-static int64_t (*CJImpl_ObjC_TimeUnit_Year)() = NULL;
-static int64_t (*CJImpl_ObjC_TimeUnit_Month)() = NULL;
-static void (*CJImpl_ObjC_default_TimeUnit_deleteCJObject)(int64_t) = NULL;
-static void (*CJImpl_ObjC_default_TimeUnit_CalcMonth)(int64_t) = NULL;
-static int64_t (*CJImpl_ObjC_default_TimeUnit_TenYear)() = NULL;
-static void* CJWorldDLHandle = NULL;
-static struct RuntimeParam defaultCJRuntimeParams = {0};
-@implementation TimeUnit
-- (id)initWithRegistryId:(int64_t)registryId {
-    if (self = [super init]) {
-        self.$registryId = registryId;
-    }
-    return self;
-}
-+ (TimeUnit*)Year:(int64_t)p1 {
-    int64_t regId = CJImpl_ObjC_default_TimeUnit_Year_l(p1);
-    return [[TimeUnit alloc]initWithRegistryId: regId];
-}
-+ (TimeUnit*)Month:(int64_t)p1 {
-    int64_t regId = CJImpl_ObjC_default_TimeUnit_Month_l(p1);
-    return [[TimeUnit alloc]initWithRegistryId: regId];
-}
-+ (TimeUnit*)Year {
-    int64_t regId = CJImpl_ObjC_TimeUnit_Year();
-    return [[TimeUnit alloc]initWithRegistryId: regId];
-}
-+ (TimeUnit*)Month {
-    int64_t regId = CJImpl_ObjC_TimeUnit_Month();
-    return [[TimeUnit alloc]initWithRegistryId: regId];
-}
-+ (void)initialize {
-    if (self == [TimeUnit class]) {
-        defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-        if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-            NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-            exit(1);
-        }
-        if (LoadCJLibraryWithInit("libdefault.dylib") != E_OK) {
-            NSLog(@"ERROR: Failed to init cjworld library ");
-            exit(1);
-        }
-        if ((CJWorldDLHandle = dlopen("libdefault.dylib", RTLD_LAZY)) == NULL) {
-            NSLog(@"ERROR: Failed to open cjworld library ");
-            NSLog(@"%s", dlerror());
-            exit(1);
-        }
-        if ((CJImpl_ObjC_default_TimeUnit_Year_l =
-                dlsym(CJWorldDLHandle, "CJImpl_ObjC_default_TimeUnit_Year_l")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_default_TimeUnit_Year_l symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_default_TimeUnit_Month_l =
-                dlsym(CJWorldDLHandle, "CJImpl_ObjC_default_TimeUnit_Month_l")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_default_TimeUnit_Month_l symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_TimeUnit_Year = dlsym(CJWorldDLHandle, "CJImpl_ObjC_TimeUnit_Year")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_TimeUnit_Year symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_TimeUnit_Month = dlsym(CJWorldDLHandle, "CJImpl_ObjC_TimeUnit_Month")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_TimeUnit_Month symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_default_TimeUnit_deleteCJObject =
-                dlsym(CJWorldDLHandle, "CJImpl_ObjC_default_TimeUnit_deleteCJObject")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_default_TimeUnit_deleteCJObject symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_default_TimeUnit_CalcMonth =
-                dlsym(CJWorldDLHandle, "CJImpl_ObjC_default_TimeUnit_CalcMonth")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_default_TimeUnit_CalcMonth symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_default_TimeUnit_TenYear =
-                dlsym(CJWorldDLHandle, "CJImpl_ObjC_default_TimeUnit_TenYear")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_default_TimeUnit_TenYear symbol in cjworld");
-            exit(1);
-        }
-    }
-}
-- (void)CalcMonth {
-     CJImpl_ObjC_default_TimeUnit_CalcMonth(self.$registryId);
-}
-+ (TimeUnit*)TenYear {
-    return [[TimeUnit alloc]initWithRegistryId: CJImpl_ObjC_default_TimeUnit_TenYear()];
-}
-- (void)deleteCJObject {
-     CJImpl_ObjC_default_TimeUnit_deleteCJObject(self.$registryId);
-}
-- (void)dealloc {
-    [self deleteCJObject];
-}
-@end
-
 ```
 
-#### 规格约束
-
-由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
-
-- Cangjie enum 不得实现其他接口
-- 不支持泛型成员函数
-- 成员函数中不使用 Lambda
-- 不支持操作符重载
-- 不支持函数重载
-- 不支持命名参数
-- 仅允许使用基础数据类型：
-    - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 不支持通过 extend 对 enum 进行扩展
-
-### ObjC 使用 Cangjie 结构体
-
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的 struct 类型映射为 ObjC 的类。映射后，用户可：
-
-- 在 ObjC 中调用 Cangjie 侧 public struct 的 public 实例方法、静态方法
-- 在 ObjC 中访问 Cangjie 侧 public struct 的 public 静态/非静态成员变量
-- 在 ObjC 中访问 Cangjie 侧 public struct 的 public 成员属性
-- 在 ObjC 函数中使用 Cangjie 侧 public struct 作为参数类型、返回值类型
-
-#### 示例
-
-Cangjie 源码：
+镜像生成器将不对 `nonnull` 实体进行 `Option<T>` 装包：（注意，以下代码出于简洁考虑省略了 `@ForeignName` 注解）
 
 <!-- compile -->
-
 ```cangjie
-// cangjie code
-package cjworld
-
-public struct Vector {
-    public let x: Int32
-    public let y: Int32
-
-    public init(x: Int32, y: Int32) {
-        this.x = x
-        this.y = y
-    }
-
-    public func dot(v: Vector): Int64 {
-        let res: Int64 = Int64(x * v.x + y * v.y)
-        return res
-    }
-
-    public static func processPrimitive(intArg: Int32, floatArg: Float64, boolArg: Bool): Unit {
-        println("Hello from static processPrimitive: ${intArg * 2}, ${floatArg + 1.0} + ${!boolArg}")
-    }
+@ObjCMirror
+public open class MyContainer <: NSObject {
+    // ...
+    public open func addItemWithUuid(item: MyItem, uuid: NSString): Unit
+    public open func itemWithUuid(uuid: NSString): ?MyItem
+    public open func uuidForItem:(item: MyItem): ?NSString
+    public open mut prop allItems: NSArray/*<MyItem*>*/
 }
 ```
 
-生成的 ObjC 头文件与源文件：
+> **注意：**
+>
+> 当前尚不支持正确地将 Objective-C 属性的 `null_resettable` 的语义传播至仓颉成员属性，故该注解将被视作 `nullable` 处理。
 
-```ObjC
-// Vector.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-__attribute__((objc_subclassing_restricted))
-@interface Vector : NSObject
-- (id)init:(int32_t)x :(int32_t)y;
-- (id)initWithRegistryId:(int64_t)registryId;
-+ (void)initialize;
-@property (readwrite) int64_t $registryId;
-@property (readonly, getter=x) int32_t x;
-- (int32_t)x;
-@property (readonly, getter=y) int32_t y;
-- (int32_t)y;
-- (int64_t)dot:(Vector*)v;
-+ (void)processPrimitive:(int32_t)intArg :(double)floatArg :(BOOL)boolArg;
-- (void)deleteCJObject;
-- (void)dealloc;
-@end
+如果开发者的 Objective-C 代码尚未采用上述的可空性注解，推荐开发者在开始进行互操作层设计与实现前，事先为互操作层相关的 Objective-C 代码合理添加 `nonnull` 注解。因为这样之后可能将显著减少镜像类型中的 `Option<T>` 装包，从而使得互操作层更加清晰已读。
 
-// Vector.m
-#import "Vector.h"
-#import "Cangjie.h"
-#import <dlfcn.h>
-#import <stdlib.h>
-static int64_t (*CJImpl_ObjC_cjworld_Vector_init__ii)(int32_t,int32_t) = NULL;
-static void (*CJImpl_ObjC_cjworld_Vector_deleteCJObject)(int64_t) = NULL;
-static int32_t (*CJImpl_ObjC_cjworld_Vector_x_get)(int64_t) = NULL;
-static int32_t (*CJImpl_ObjC_cjworld_Vector_y_get)(int64_t) = NULL;
-static int64_t (*CJImpl_ObjC_cjworld_Vector_dot_RN7cjworld6VectorE)(int64_t,int64_t) = NULL;
-static void (*CJImpl_ObjC_cjworld_Vector_processPrimitive___idb)(int32_t,double,BOOL) = NULL;
-static void* CJWorldDLHandle = NULL;
-static struct RuntimeParam defaultCJRuntimeParams = {0};
-@implementation Vector
-- (id)init:(int32_t)x :(int32_t)y {
-    if (self = [super init]) {
-        self.$registryId = CJImpl_ObjC_cjworld_Vector_init__ii(x, y);
-    }
-    return self;
-}
-- (id)initWithRegistryId:(int64_t)registryId {
-    if (self = [super init]) {
-        self.$registryId = registryId;
-    }
-    return self;
-}
-+ (void)initialize {
-    if (self == [Vector class]) {
-        defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-        if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-            NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-            exit(1);
-        }
-        if (LoadCJLibraryWithInit("libcjworld.dylib") != E_OK) {
-            NSLog(@"ERROR: Failed to init cjworld library ");
-            exit(1);
-        }
-        if ((CJWorldDLHandle = dlopen("libcjworld.dylib", RTLD_LAZY)) == NULL) {
-            NSLog(@"ERROR: Failed to open cjworld library ");
-            NSLog(@"%s", dlerror());
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_init__ii = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_init__ii")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_init__ii symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_deleteCJObject")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_deleteCJObject symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_x_get = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_x_get")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_x_get symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_y_get = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_y_get")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_y_get symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_dot_RN7cjworld6VectorE = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_dot_RN7cjworld6VectorE")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_dot_RN7cjworld6VectorE symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_processPrimitive___idb = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_processPrimitive___idb")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_processPrimitive___idb symbol in cjworld");
-            exit(1);
-        }
-    }
-}
-- (int32_t)x {
-    return CJImpl_ObjC_cjworld_Vector_x_get(self.$registryId);
-}
-- (int32_t)y {
-    return CJImpl_ObjC_cjworld_Vector_y_get(self.$registryId);
-}
-- (int64_t)dot:(Vector*)v {
-    return CJImpl_ObjC_cjworld_Vector_dot_RN7cjworld6VectorE(self.$registryId, v.$registryId);
-}
-+ (void)processPrimitive:(int32_t)intArg :(double)floatArg :(BOOL)boolArg {
-     CJImpl_ObjC_cjworld_Vector_processPrimitive___idb(intArg, floatArg, boolArg);
-}
-- (void)deleteCJObject {
-     CJImpl_ObjC_cjworld_Vector_deleteCJObject(self.$registryId);
-}
-- (void)dealloc {
-    [self deleteCJObject];
-}
-@end
+## Objective-C 镜像生成器参考
 
-```
+### 准备工作
 
-#### 规格约束
+在使用镜像生成器前请确保已执行仓颉 SDK 中的 `envsetup.sh` 脚本。
 
-由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
+开发者需要知道将要为之生成镜像的所有类型所依赖的类型所在的头文件的本地路径。这包括 iOS 标准库头文件，以及所有 XCode 在构建项目时 Objective-C 编译器的所有头文件搜索路径。
 
-- Cangjie 结构体不得实现其他接口
-- 不支持泛型成员函数
-- 不支持操作符重载函数
-- 不支持函数重载
-- 不支持 mut 函数
-- 不支持 ObjC 端对成员变量、成员属性赋值
-- 成员变量仅允许使用基础数据类型：
-    - 数值类型
-    - Bool 类型
-    - Unit 类型
-- 不支持通过 extend 对 struct 进行扩展
+### 命令行使用方法
 
-### ObjC 使用 Cangjie 类
+`ObjCInteropGen [-v] [--mode=normal`_`config-file`_`]`
 
-为实现 Cangjie 与 Objective-C 的互操作，需将 Cangjie 的类映射为 ObjC 的类。映射后，用户可在 ObjC 代码中，直接调用 Cangjie 侧公开类（public class）的公共实例方法与静态方法，如果被映射的 Cangjie 类为 open 类，则可以在 ObjC 侧继承 Cangjie 类，并重写它的公开方法。
+`-v`
 
-#### 示例
+输出详细日志。
 
-<!-- compile -->
+`--mode=normal`
 
-Cangjie 源码：
+强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了 _`config-file`_，那么必须指定 `--mode=normal`。在未来版本中，该选项将变为可选。
 
-```cangjie
-// cangjie code
-package cjworld
+_`config-file`_：配置文件的路径。
 
-public class Vector {
-    let x: Int32
-    let y: Int32
+### Objective-C 镜像生成器配置文件语法
 
-    public init(x: Int32, y: Int32) {
-        this.x = x
-        this.y = y
-    }
+Objective-C 镜像生成器配置文件是一个纯文本文件，遵循 TOML 语法，其中指定了以下配置信息：
 
-    public func dot(v: Vector): Int64 {
-        let res: Int64 = Int64(x * v.x + y * v.y)
-        return res
-    }
+* 将生成的镜像源文件保存在哪个目录下。
+* 源 Objective-C 头文件名（`.h` 文件）。
+* 生成的仓颉包的包名，以及将生成的哪些镜像类型放置在哪个仓颉包中。
+* 对于部分开发者需要特殊处理的类型，需要将类型进行如何的映射。
 
-    public static func processPrimitive(intArg: Int32, floatArg: Float64, boolArg: Bool): Unit {
-        println("Hello from static processPrimitive: ${intArg * 2}, ${floatArg + 1.0} + ${!boolArg}")
-    }
-}
-```
+对于配置文件中将被视作正则表达式的字符串，必须遵循 `ECMAScript` 正则表达式语法。
 
-生成的 ObjC 头文件与源文件：
+#### 输出根目录
 
-```ObjC
-// Vector.h
-#import <Foundation/Foundation.h>
-#import <stddef.h>
-__attribute__((objc_subclassing_restricted))
-@interface Vector : NSObject
-- (id)init:(int32_t)x :(int32_t)y;
-- (id)initWithRegistryId:(int64_t)registryId;
-+ (void)initialize;
-@property (readwrite) int64_t $registryId;
-- (int64_t)dot:(Vector*)v;
-+ (void)processPrimitive:(int32_t)intArg :(double)floatArg :(BOOL)boolArg;
-- (void)deleteCJObject;
-- (void)dealloc;
-@end
+`[output-roots]`表的每个子表键定义了一个目录标签，这个目录标签对应了本地文件系统中的一个路径，这个路径定义于子表中的`path`配置项。[`[[package]]`数组](#镜像生成器单包配置) 中的 `output-root` 配置项将被指定一个目标标签，该目录标签对应的本地文件系统路径将被作为根目录，该 `[[package]]` 相应包下生成的镜像源文件均将相对于该根目录放置。
 
-// Vector.m
-#import "Vector.h"
-#import "Cangjie.h"
-#import <dlfcn.h>
-#import <stdlib.h>
-static int64_t (*CJImpl_ObjC_cjworld_Vector_init__ii)(int32_t,int32_t) = NULL;
-static void (*CJImpl_ObjC_cjworld_Vector_deleteCJObject)(int64_t) = NULL;
-static int64_t (*CJImpl_ObjC_cjworld_Vector_dot_CN7cjworld6VectorE)(int64_t,int64_t) = NULL;
-static void (*CJImpl_ObjC_cjworld_Vector_processPrimitive___idb)(int32_t,double,BOOL) = NULL;
-static void* CJWorldDLHandle = NULL;
-static struct RuntimeParam defaultCJRuntimeParams = {0};
-@implementation Vector
-- (id)init:(int32_t)x :(int32_t)y {
-    if (self = [super init]) {
-        self.$registryId = CJImpl_ObjC_cjworld_Vector_init__ii(x, y);
-    }
-    return self;
-}
-- (id)initWithRegistryId:(int64_t)registryId {
-    if (self = [super init]) {
-        self.$registryId = registryId;
-    }
-    return self;
-}
-+ (void)initialize {
-    if (self == [Vector class]) {
-        defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-        if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-            NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-            exit(1);
-        }
-        if (LoadCJLibraryWithInit("libcjworld.dylib") != E_OK) {
-            NSLog(@"ERROR: Failed to init cjworld library ");
-            exit(1);
-        }
-        if ((CJWorldDLHandle = dlopen("libcjworld.dylib", RTLD_LAZY)) == NULL) {
-            NSLog(@"ERROR: Failed to open cjworld library ");
-            NSLog(@"%s", dlerror());
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_init__ii = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_init__ii")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_init__ii symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_deleteCJObject")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_deleteCJObject symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_dot_CN7cjworld6VectorE = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_dot_CN7cjworld6VectorE")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_dot_CN7cjworld6VectorE symbol in cjworld");
-            exit(1);
-        }
-        if ((CJImpl_ObjC_cjworld_Vector_processPrimitive___idb = dlsym(CJWorldDLHandle, "CJImpl_ObjC_cjworld_Vector_processPrimitive___idb")) == NULL) {
-            NSLog(@"ERROR: Failed to find CJImpl_ObjC_cjworld_Vector_processPrimitive___idb symbol in cjworld");
-            exit(1);
-        }
-    }
-}
-- (int64_t)dot:(Vector*)v {
-    return CJImpl_ObjC_cjworld_Vector_dot_CN7cjworld6VectorE(self.$registryId, v.$registryId);
-}
-+ (void)processPrimitive:(int32_t)intArg :(double)floatArg :(BOOL)boolArg {
-     CJImpl_ObjC_cjworld_Vector_processPrimitive___idb(intArg, floatArg, boolArg);
-}
-- (void)deleteCJObject {
-     CJImpl_ObjC_cjworld_Vector_deleteCJObject(self.$registryId);
-}
-- (void)dealloc {
-    [self deleteCJObject];
-}
-@end
-
-```
-
-#### 规格约束
-
-由于与其他语言特性的集成仍在开发中，以下场景暂不支持：
-
-- Cangjie class 不得实现其他接口
-- 非 open 类仅支持 public 成员函数映射，open 类支持 public 成员函数 和 protected open 成员函数，其它成员不会报错，不会映射到 ObjC 端
-- 不支持泛型成员函数
-- 不支持函数重载
-- 非 open 类成员函数参数和返回值允许使用基础数据类型（数值类型、Bool 类型和 Unit 类型）和本包定义的非 open public class 类型，open 类仅支持基本数据类型（数值类型、Bool 类型和 Unit 类型）
-- 不支持通过 extend 对 class 进行扩展
-- 不支持 Cangjie abstract 类
-- 基于 ObjC 的语言特性限制，ObjC 缺乏 protected 访问修饰符，Cangjie 的 protected 成员在映射后对 ObjC 外部代码可见
-- 基于 ObjC 的语言特性限制，Cangjie 的非 open 类在映射后仍可被 ObjC 继承，建议谨慎使用继承以避免设计问题
-- Cangjie class static 成员映射后，Cangjie 的静态成员映射后无法在 ObjC 子类中被重写，且暂不支持在 ObjC 子类中重新定义（redef）
-- 基于 Cangjie open class 生成的 ObjC 代码手动管理内存的要求限制，在编译时需禁用自动引用计数（Automatic Reference Counting，ARC）功能
-
-### ObjC 使用 Cangjie 泛型数据类型
-
-#### ObjC 使用泛型类/结构体
-
-ObjC 使用 Cangjie 泛型类（非 open 类）、结构体之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
-
-- 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
-    - 支持多泛型参数用法
-    - 支持在非静态函数、非静态属性中使用类型变元
-
-- class/struct 均参考如下示例：
-
-    - Cangjie 侧源码
-
-    <!-- compile -->
-
-    ```cangjie
-    package cjworld
-
-    import interoplib.objc.*
-
-    public class GenericClass<T> {
-        private var value: T
-
-        public GenericClass(v: T) {
-            this.value = v
-        }
-        public func getValue(): T {
-            return this.value
-        }
-
-        public func setValue(t: T) {
-            value = t
-        }
-    }
-    ```
-
-    - 配置信息
-
-    ```toml
-    [default]
-    APIStrategy = "Full"
-    GenericTypeStrategy = "None"
-
-    [[package]]
-    name = "cjworld"
-    APIStrategy = "Full"
-    GenericTypeStrategy = "Partial"
-    excluded_apis = [
-    ]
-    generic_object_configuration = [
-        { name = "GenericClass", type_arguments = ["Float64", "Int32"] },
-        { name = "GenericClass<Float64>", symbols = [
-            "getValue",
-            "GenericClass",
-            "setValue"
-        ]},
-
-        { name = "GenericClass<Int32>", symbols = [
-            "getValue",
-            "GenericClass",
-            "setValue"
-        ]}
-    ]
-    ```
-
-    - 映射后的 ObjC 代码如下：
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    __attribute__((objc_subclassing_restricted))
-    @interface GenericClassFloat64 : NSObject
-    - (id)init;
-    - (id)initWithRegistryId:(int64_t)registryId;
-    + (void)initialize;
-    @property (readwrite) int64_t $registryId;
-    - (double)getValue:(double)t;
-    - (void)deleteCJObject;
-    - (void)dealloc;
-    @end
-    ```
-
-    ```ObjC
-    #import "GenericClassFloat64.h"
-    #import "Cangjie.h"
-    #import <dlfcn.h>
-    #import <stdlib.h>
-    static int64_t (*CJImpl_ObjC_genericClass_GenericClassFloat64_init)() = NULL;
-    static void (*CJImpl_ObjC_genericClass_GenericClassFloat64_deleteCJObject)(int64_t) = NULL;
-    static double (*CJImpl_ObjC_genericClass_GenericClassFloat64_getValue_G_)(int64_t,double) = NULL;
-    static void* CJWorldDLHandle = NULL;
-    static struct RuntimeParam defaultCJRuntimeParams = {0};
-    @implementation GenericClassFloat64
-    - (id)init {
-        if (self = [super init]) {
-            self.$registryId = CJImpl_ObjC_genericClass_GenericClassFloat64_init();
-        }
-        return self;
-    }
-    - (id)initWithRegistryId:(int64_t)registryId {
-        if (self = [super init]) {
-            self.$registryId = registryId;
-        }
-        return self;
-    }
-    + (void)initialize {
-        if (self == [GenericClassFloat64 class]) {
-            defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-            if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-                NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-                exit(1);
-            }
-            if (LoadCJLibraryWithInit("libgenericClass.dylib") != E_OK) {
-                NSLog(@"ERROR: Failed to init cjworld library ");
-                exit(1);
-            }
-            if ((CJWorldDLHandle = dlopen("libgenericClass.dylib", RTLD_LAZY)) == NULL) {
-                NSLog(@"ERROR: Failed to open cjworld library ");
-                NSLog(@"%s", dlerror());
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassFloat64_init = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassFloat64_init")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassFloat64_init symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassFloat64_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassFloat64_deleteCJObject")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassFloat64_deleteCJObject symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassFloat64_getValue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassFloat64_getValue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassFloat64_getValue_G_ symbol in cjworld");
-                exit(1);
-            }
-        }
-    }
-    - (double)getValue:(double)t {
-        return CJImpl_ObjC_genericClass_GenericClassFloat64_getValue_G_(self.$registryId, t);
-    }
-    - (void)deleteCJObject {
-        CJImpl_ObjC_genericClass_GenericClassFloat64_deleteCJObject(self.$registryId);
-    }
-    - (void)dealloc {
-        [self deleteCJObject];
-    }
-    @end
-    ```
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    __attribute__((objc_subclassing_restricted))
-    @interface GenericClassInt32 : NSObject
-    - (id)init;
-    - (id)initWithRegistryId:(int64_t)registryId;
-    + (void)initialize;
-    @property (readwrite) int64_t $registryId;
-    - (int32_t)getValue:(int32_t)t;
-    - (void)deleteCJObject;
-    - (void)dealloc;
-    @end
-    ```
-
-    ```ObjC
-    #import "GenericClassInt32.h"
-    #import "Cangjie.h"
-    #import <dlfcn.h>
-    #import <stdlib.h>
-    static int64_t (*CJImpl_ObjC_genericClass_GenericClassInt32_init)() = NULL;
-    static void (*CJImpl_ObjC_genericClass_GenericClassInt32_deleteCJObject)(int64_t) = NULL;
-    static int32_t (*CJImpl_ObjC_genericClass_GenericClassInt32_getValue_G_)(int64_t,int32_t) = NULL;
-    static void* CJWorldDLHandle = NULL;
-    static struct RuntimeParam defaultCJRuntimeParams = {0};
-    @implementation GenericClassInt32
-    - (id)init {
-        if (self = [super init]) {
-            self.$registryId = CJImpl_ObjC_genericClass_GenericClassInt32_init();
-        }
-        return self;
-    }
-    - (id)initWithRegistryId:(int64_t)registryId {
-        if (self = [super init]) {
-            self.$registryId = registryId;
-        }
-        return self;
-    }
-    + (void)initialize {
-        if (self == [GenericClassInt32 class]) {
-            defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-            if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-                NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-                exit(1);
-            }
-            if (LoadCJLibraryWithInit("libgenericClass.dylib") != E_OK) {
-                NSLog(@"ERROR: Failed to init cjworld library ");
-                exit(1);
-            }
-            if ((CJWorldDLHandle = dlopen("libgenericClass.dylib", RTLD_LAZY)) == NULL) {
-                NSLog(@"ERROR: Failed to open cjworld library ");
-                NSLog(@"%s", dlerror());
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassInt32_init = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassInt32_init")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassInt32_init symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassInt32_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassInt32_deleteCJObject")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassInt32_deleteCJObject symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericClass_GenericClassInt32_getValue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericClass_GenericClassInt32_getValue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericClass_GenericClassInt32_getValue_G_ symbol in cjworld");
-                exit(1);
-            }
-        }
-    }
-    - (int32_t)getValue:(int32_t)t {
-        return CJImpl_ObjC_genericClass_GenericClassInt32_getValue_G_(self.$registryId, t);
-    }
-    - (void)deleteCJObject {
-        CJImpl_ObjC_genericClass_GenericClassInt32_deleteCJObject(self.$registryId);
-    }
-    - (void)dealloc {
-        [self deleteCJObject];
-    }
-    @end
-    ```
-
-#### ObjC 使用泛型枚举
-
-ObjC 使用 Cangjie 泛型枚举之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
-
-- 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
-    - 支持多泛型参数用法
-    - 支持在非静态函数、非静态属性中使用类型变元
-
-- 示例
-    - Cangjie 侧源码
-
-    <!-- compile -->
-
-    ```cangjie
-    package genericEnum
-
-    import interoplib.objc.*
-
-    public enum GenericEnum<T> where T <: ToString {
-        | Red(T) | Green(T) | Blue(T)
-
-        public func printValue(): Unit {
-            let s = match (this) {
-                case Red(n) => "red(${n})"
-                case Green(n) => "green(${n})"
-                case Blue(n) => "blue(${n})"
-            }
-            print("cangjie: ${s}\n", flush: true)
-        }
-
-        public func setValue(a: T): T {
-            print("cangjie: ${a}\n", flush: true)
-            a
-        }
-
-        public prop value: T {
-            get() {
-                match (this) {
-                    case Red(n) => n
-                    case Green(n) => n
-                    case Blue(n) => n
-                }
-            }
-        }
-    }
-    ```
-
-    - 配置信息
-
-    ```toml
-    [default]
-    APIStrategy = "Full"
-    GenericTypeStrategy = "None"
-
-    [[package]]
-    name = "genericEnum"
-    APIStrategy = "Full"
-    GenericTypeStrategy = "Partial"
-    excluded_apis = [
-    ]
-    generic_object_configuration = [
-        { name = "GenericEnum", type_arguments = ["Int32", "Float64"] },
-        { name = "GenericEnum<Int32>", symbols = [
-            "printValue",
-            "setValue",
-            "value"
-        ]}
-        { name = "GenericEnum<Float64>", symbols = [
-            "printValue",
-            "setValue",
-            "value"
-        ]}
-    ]
-    ```
-
-    - 映射后的 ObjC 代码如下：
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    __attribute__((objc_subclassing_restricted))
-    @interface GenericEnumFloat64 : NSObject
-    - (id)initWithRegistryId:(int64_t)registryId;
-    + (GenericEnumFloat64*)Red:(double)p1;
-    + (GenericEnumFloat64*)Green:(double)p1;
-    + (GenericEnumFloat64*)Blue:(double)p1;
-    + (void)initialize;
-    @property (readwrite) int64_t $registryId;
-    @property (readonly, getter=value) double GenericEnumFloat64;
-    - (double)value;
-    - (void)printValue;
-    - (double)setValue:(double)a;
-    - (void)deleteCJObject;
-    - (void)dealloc;
-    @end
-    ```
-
-    ```ObjC
-    #import "GenericEnumFloat64.h"
-    #import "Cangjie.h"
-    #import <dlfcn.h>
-    #import <stdlib.h>
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_Red_G_)(double) = NULL;
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_Green_G_)(double) = NULL;
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_Blue_G_)(double) = NULL;
-    static void (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_deleteCJObject)(int64_t) = NULL;
-    static void (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_printValue)(int64_t) = NULL;
-    static double (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_setValue_G_)(int64_t,double) = NULL;
-    static double (*CJImpl_ObjC_genericEnum_GenericEnumFloat64_value_get)(int64_t) = NULL;
-    static void* CJWorldDLHandle = NULL;
-    static struct RuntimeParam defaultCJRuntimeParams = {0};
-    @implementation GenericEnumFloat64
-    - (id)initWithRegistryId:(int64_t)registryId {
-        if (self = [super init]) {
-            self.$registryId = registryId;
-        }
-        return self;
-    }
-    + (GenericEnumFloat64*)Red:(double)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumFloat64_Red_G_(p1);
-        return [[GenericEnumFloat64 alloc]initWithRegistryId: regId];
-    }
-    + (GenericEnumFloat64*)Green:(double)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumFloat64_Green_G_(p1);
-        return [[GenericEnumFloat64 alloc]initWithRegistryId: regId];
-    }
-    + (GenericEnumFloat64*)Blue:(double)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumFloat64_Blue_G_(p1);
-        return [[GenericEnumFloat64 alloc]initWithRegistryId: regId];
-    }
-    + (void)initialize {
-        if (self == [GenericEnumFloat64 class]) {
-            defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-            if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-                NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-                exit(1);
-            }
-            if (LoadCJLibraryWithInit("libgenericEnum.dylib") != E_OK) {
-                NSLog(@"ERROR: Failed to init cjworld library ");
-                exit(1);
-            }
-            if ((CJWorldDLHandle = dlopen("libgenericEnum.dylib", RTLD_LAZY)) == NULL) {
-                NSLog(@"ERROR: Failed to open cjworld library ");
-                NSLog(@"%s", dlerror());
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_Red_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_Red_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_Red_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_Green_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_Green_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_Green_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_Blue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_Blue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_Blue_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_deleteCJObject")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_deleteCJObject symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_printValue = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_printValue")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_printValue symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_setValue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_setValue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_setValue_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumFloat64_value_get = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumFloat64_value_get")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumFloat64_value_get symbol in cjworld");
-                exit(1);
-            }
-        }
-    }
-    - (double)value {
-        return CJImpl_ObjC_genericEnum_GenericEnumFloat64_value_get(self.$registryId);
-    }
-    - (void)printValue {
-        CJImpl_ObjC_genericEnum_GenericEnumFloat64_printValue(self.$registryId);
-    }
-    - (double)setValue:(double)a {
-        return CJImpl_ObjC_genericEnum_GenericEnumFloat64_setValue_G_(self.$registryId, a);
-    }
-    - (void)deleteCJObject {
-        CJImpl_ObjC_genericEnum_GenericEnumFloat64_deleteCJObject(self.$registryId);
-    }
-    - (void)dealloc {
-        [self deleteCJObject];
-    }
-    @end
-    ```
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    __attribute__((objc_subclassing_restricted))
-    @interface GenericEnumInt32 : NSObject
-    - (id)initWithRegistryId:(int64_t)registryId;
-    + (GenericEnumInt32*)Red:(int32_t)p1;
-    + (GenericEnumInt32*)Green:(int32_t)p1;
-    + (GenericEnumInt32*)Blue:(int32_t)p1;
-    + (void)initialize;
-    @property (readwrite) int64_t $registryId;
-    @property (readonly, getter=value) int32_t GenericEnumInt32;
-    - (int32_t)value;
-    - (void)printValue;
-    - (int32_t)setValue:(int32_t)a;
-    - (void)deleteCJObject;
-    - (void)dealloc;
-    @end
-    ```
-
-    ```ObjC
-    #import "GenericEnumInt32.h"
-    #import "Cangjie.h"
-    #import <dlfcn.h>
-    #import <stdlib.h>
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumInt32_Red_G_)(int32_t) = NULL;
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumInt32_Green_G_)(int32_t) = NULL;
-    static int64_t (*CJImpl_ObjC_genericEnum_GenericEnumInt32_Blue_G_)(int32_t) = NULL;
-    static void (*CJImpl_ObjC_genericEnum_GenericEnumInt32_deleteCJObject)(int64_t) = NULL;
-    static void (*CJImpl_ObjC_genericEnum_GenericEnumInt32_printValue)(int64_t) = NULL;
-    static int32_t (*CJImpl_ObjC_genericEnum_GenericEnumInt32_setValue_G_)(int64_t,int32_t) = NULL;
-    static int32_t (*CJImpl_ObjC_genericEnum_GenericEnumInt32_value_get)(int64_t) = NULL;
-    static void* CJWorldDLHandle = NULL;
-    static struct RuntimeParam defaultCJRuntimeParams = {0};
-    @implementation GenericEnumInt32
-    - (id)initWithRegistryId:(int64_t)registryId {
-        if (self = [super init]) {
-            self.$registryId = registryId;
-        }
-        return self;
-    }
-    + (GenericEnumInt32*)Red:(int32_t)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumInt32_Red_G_(p1);
-        return [[GenericEnumInt32 alloc]initWithRegistryId: regId];
-    }
-    + (GenericEnumInt32*)Green:(int32_t)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumInt32_Green_G_(p1);
-        return [[GenericEnumInt32 alloc]initWithRegistryId: regId];
-    }
-    + (GenericEnumInt32*)Blue:(int32_t)p1 {
-        int64_t regId = CJImpl_ObjC_genericEnum_GenericEnumInt32_Blue_G_(p1);
-        return [[GenericEnumInt32 alloc]initWithRegistryId: regId];
-    }
-    + (void)initialize {
-        if (self == [GenericEnumInt32 class]) {
-            defaultCJRuntimeParams.logParam.logLevel = RTLOG_ERROR;
-            if (InitCJRuntime(&defaultCJRuntimeParams) != E_OK) {
-                NSLog(@"ERROR: Failed to initialize Cangjie runtime");
-                exit(1);
-            }
-            if (LoadCJLibraryWithInit("libgenericEnum.dylib") != E_OK) {
-                NSLog(@"ERROR: Failed to init cjworld library ");
-                exit(1);
-            }
-            if ((CJWorldDLHandle = dlopen("libgenericEnum.dylib", RTLD_LAZY)) == NULL) {
-                NSLog(@"ERROR: Failed to open cjworld library ");
-                NSLog(@"%s", dlerror());
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_Red_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_Red_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_Red_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_Green_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_Green_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_Green_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_Blue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_Blue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_Blue_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_deleteCJObject = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_deleteCJObject")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_deleteCJObject symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_printValue = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_printValue")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_printValue symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_setValue_G_ = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_setValue_G_")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_setValue_G_ symbol in cjworld");
-                exit(1);
-            }
-            if ((CJImpl_ObjC_genericEnum_GenericEnumInt32_value_get = dlsym(CJWorldDLHandle, "CJImpl_ObjC_genericEnum_GenericEnumInt32_value_get")) == NULL) {
-                NSLog(@"ERROR: Failed to find CJImpl_ObjC_genericEnum_GenericEnumInt32_value_get symbol in cjworld");
-                exit(1);
-            }
-        }
-    }
-    - (int32_t)value {
-        return CJImpl_ObjC_genericEnum_GenericEnumInt32_value_get(self.$registryId);
-    }
-    - (void)printValue {
-        CJImpl_ObjC_genericEnum_GenericEnumInt32_printValue(self.$registryId);
-    }
-    - (int32_t)setValue:(int32_t)a {
-        return CJImpl_ObjC_genericEnum_GenericEnumInt32_setValue_G_(self.$registryId, a);
-    }
-    - (void)deleteCJObject {
-        CJImpl_ObjC_genericEnum_GenericEnumInt32_deleteCJObject(self.$registryId);
-    }
-    - (void)dealloc {
-        [self deleteCJObject];
-    }
-    @end
-    ```
-
-#### ObjC 使用泛型接口
-
-ObjC 使用 Cangjie 泛型接口之前需对泛型类型进行配置，参考[类型配置介绍](#objc-使用泛型配置文件)
-
-- 支持范围
-    - 泛型类型支持 Cangjie 大部分基础数值类型，详情请参见`规格限制`
-    - 支持多泛型参数用法
-    - 支持在非静态函数、非静态属性中使用类型变元
-
-- 示例
-    - Cangjie 侧源码
-
-    <!-- compile -->
-
-    ```cangjie
-    package genericInterface
-
-    import interoplib.objc.*
-
-    public interface GenericInterface<T> {
-        func argretGenericFunc(v: T): T {
-            setValue(v)
-            return getValue()
-        }
-
-        func setValue(v: T): Unit
-
-        func getValue(): T
-
-        func normalFunc(v: Int32): Int32
-    }
-    ```
-
-    - 配置信息
-
-    ```toml
-    [default]
-    APIStrategy = "Full"
-    GenericTypeStrategy = "None"
-
-    [[package]]
-    name = "genericInterface"
-    APIStrategy = "Full"
-    GenericTypeStrategy = "Partial"
-    excluded_apis = [
-    ]
-    generic_object_configuration = [
-        { name = "GenericInterface", type_arguments = ["Int32", "Float64"] },
-        { name = "GenericInterface<Int32>", symbols = [
-            "argretGenericFunc",
-            "setValue",
-            "getValue"
-        ]}
-        { name = "GenericInterface<Float64>", symbols = [
-            "argretGenericFunc",
-            "setValue",
-            "getValue"
-        ]}
-    ]
-    ```
-
-    - 映射后的 ObjC 代码如下：
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    @protocol GenericInterfaceFloat64
-    - (double)argretGenericFunc:(double)v;
-    - (void)setValue:(double)v;
-    - (double)getValue;
-    - (int32_t)normalFunc:(int32_t)v;
-    @end
-    ```
-
-    ```ObjC
-    #import <Foundation/Foundation.h>
-    #import <stddef.h>
-    @protocol GenericInterfaceInt32
-    - (int32_t)argretGenericFunc:(int32_t)v;
-    - (void)setValue:(int32_t)v;
-    - (int32_t)getValue;
-    - (int32_t)normalFunc:(int32_t)v;
-    @end
-    ```
-
-#### 规格限制
-
-- 泛型数据类型的使用需受其自身规格约束的限制
-- 暂不支持自定义数据类型
-- 支持的基础类型：Int、Int8、Int16、Int32、Int64、UInt8、UInt16、UInt32、UInt64、Float32、Float64、Bool
-- 用户自定义类型的泛型形参若有上界，该上界类型不能包含泛型参数
-- 暂仅支持无内层类型形参的实例成员函数，其形参类型和返回类型允许使用外层类型形参
-- 暂不支持 Interface default 方法实现
-- 暂不支持 mut 关键字
-
-### ObjC 使用泛型配置文件
-
-配置文件采用 toml 格式进行配置，按照包级别对于符号以及泛型实例化信息进行控制，实例参考如下：
+**示例：**
 
 ```toml
-[default]
-APIStrategy = "Full"
-GenericTypeStrategy = "None"
+[output-roots.lib]
+path = "./lib/src"
+
+[output-roots.app]
+path = "./main/src"
 
 [[package]]
-name = "genericClass"
-APIStrategy = "Full"
-GenericTypeStrategy = "Partial"
-excluded_apis = [
-    "Vector.hello"
-]
-generic_object_configuration = [
-    { name = "GenericClass", type_arguments = ["Int64", "Int32"] },
-    { name = "GenericClass<Int64>", symbols = [
-        "getValue",
-        "GenericClass",
-        "setValue"
-    ]},
+package-name = "com.vendor1.lib1"
+output-root = "lib"  # 生成的镜像源文件将生成于目录 "./lib/src/com/vendor1/lib1"
+filters = ...
 
-    { name = "GenericClass<Int32>", symbols = [
-        "getValue",
-        "GenericClass",
-        "setValue"
-    ]}
+[[package]]
+package-name = "com.vendor2.lib2"
+output-root = "lib"  # 生成的镜像源文件将生成于目录 "./lib/src/com/vendor2/lib2"
+filters = ...
+
+[[package]]
+package-name = "com.mycompany.app"
+output-root = "app"  # 生成的镜像源文件将生成于目录 "./main/src/com/mycompany/app"
+filters = ...
+```
+
+#### 头文件输入
+
+`[sources]` 表的每个子表键定义了一组独立的头文件，镜像生成器将确保将这些头文件作为输入。
+
+**该表支持以下配置项：**
+
+* `paths` (必选)：字符串数组，每个字符串是单个头文件的路径，镜像生成器将确保读取这些头文件。
+
+* `arguments` (可选)：字符串数组，保存有一系列 clang 编译选项，当镜像生成器处理列举在 `paths` 中的源文件时，将作为 clang 的命令行参数传入。
+
+**示例：**
+
+```toml
+[sources.all]
+paths = ["original-objc/M.h"]
+```
+
+#### 额外的 clang 命令行参数
+
+`[sources-mixins]`表中的每个表项是个表，每个表首先通过`sources`属性的正则表达式匹配 [`[sources]`表](#头文件输入) 中的一到若干个表键，匹配到的这些表键所对应的头文件在被 clang 处理时，将额外指定命令行参数。
+
+**支持的属性：**
+
+* `sources` （必选）：正则表达式字符串，用于匹配头文件名。
+
+* `arguments-prepend`、`arguments-append` （可选）：字符串数组，内容将被用于作为额外的 clang 命令行参数。`arguments-prepend` 和 `arguments-append` 中的命令行参数将被分别插入到相应 `[sources]` 表项的 `arguments` 属性的数组的前和后。
+
+**示例：**
+
+```toml
+[sources.UIWidgets]
+paths = ["objc/UIWidgets.h"]
+arguments = [ "-I", "/usr/local/include/share/Widgets" ]
+
+[sources.UIPanels]
+paths = ["objc/UIPanels.h"]
+arguments = [ "-I", "/usr/local/include/share/Panels" ]
+
+[sources-mixins.UI]
+# 这些 clang 编译选项将同时追加至上述 UIWidgets 和 UIPanels 的 clang 编译命令
+sources = ["UI.+"]
+arguments-append = [
+    "-I", "/usr/local/include/Frameworks/AcmeUI"
 ]
 ```
 
-对应 cangjie 侧源码如下：
+#### 镜像生成器单包配置
 
-<!-- compile -->
+`[[package]]` 数组的每个表项指定了一个目标仓颉包名，一组名称过滤器，用于说明哪些 Objective-C 实体将被镜像到该仓颉包中，以及可选的，该包的输出目录。
 
-```cangjie
-package genericClass
+**支持以下配置项：**
 
-import interoplib.objc.*
+* `package-name` （必选）：字符串，目标仓颉包的名称。
 
-public class GenericClass<T> {
-    private var value: T
+* `output-path` （可选）：字符串，值为文件系统的路径（绝对路径或相对路径均可），该仓颉包的镜像文件均将被输出到该目录下。如果该路径中存在任何不存在的目录，镜像生成器将尝试创建它们。
 
-    public GenericClass(v: T) {
-        value = v
-    }
-    public func getValue(): T {
-        return this.value
-    }
-    public func setValue(t: T) {
-        value = t
-    }
-}
+* `output-root` （可选）：字符串，值为 [`[output-roots]`表](#输出根目录) 中的子表键，也就是一个目录标签。该目录标签对应一个输出根目录，基于这个根目录，目标仓颉包的包名将作为子目录名，包名中的点 `.` 被替换为路径分隔符 `/`，得到的路径将与 `output-path` 配置同等效果。
+
+  如果 `output-root` 未配置，且 `[output-roots]` 中有且只有一个子表键，该子表键对应的输出根目录将被采用；否则镜像生成器将报错。
+
+  **示例：**
+
+  ```toml
+  [output-roots.main]
+  path="./cj-mirrors"
+  
+  [[package]]
+  package-name = "objc.foundation"
+  output-root = "main"
+  ```
+
+​  输出文件将置于 `./cj-mirrors/objc/foundation` 目录下。
+
+* `filters` （必选）：一个表，指定了一组名称过滤器，说明了需要确保源文件中的哪些 Objective-C 实体声明镜像到指定的仓颉包中。
+
+  **示例：**
+
+  ```toml
+  # Foundation 框架镜像
+  [[package]]
+  package-name = "objc.foundation"
+  filters = { include = "NS.+" }
+  ```
+
+**名称过滤器：**
+
+一个名称过滤器是一个 TOML 表，表中包含：
+
+* `include`、`exclude`、`union`、`intersect` 和 `not` 其中之一选一个作为属性。
+* 可选的 `filter` 属性和/或 `filter-not` 属性。
+
+以下将对各属性进行详细解释：
+
+* `include`：该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串。如果值为单个正则表达式，只有匹配该正则表达式的类型名将被采纳。如果是正则表达式的数组，类型名匹配其中任一正则表达式即可被采纳。
+
+  **示例：**
+
+  ```toml
+  # 仅包含名称以 "NS" 开头的实体：
+  filters = { include = "NS.+" }
+  
+  # 仅包含名称以 "Foo" 开头或以 "Bar" 结尾的实体：
+  filters = { include = ["Foo.*", ".*Bar"] }
+  ```
+
+* `exclude`：与 `include` 相反（见上文）如果一个类型名能够被 `include` 过滤器采纳，那么他就不会被 `exclude` 采纳；反之亦然
+
+  **示例：**
+
+  ```toml
+  # 包含所有实体，但名称以 "INTERNAL_" 开头的除外：
+  filters = { exclude = "INTERNAL_.+" }
+  ```
+
+* `union`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名只需要被其中任一过滤器采纳，就将被 `union` 过滤器采纳。
+
+  **示例：**
+
+  ```toml
+  # 等效于上面第二个 `include` 示例：
+  filters = { union = [ { include = "Foo.*" }, { include = ".*Bar" } ] }
+  ```
+
+* `intersect`：该属性用于结合两个以上的过滤器。其值为过滤器的数组，类型名必须被其中所有过滤器采纳，才会被 `intersect` 过滤器采纳。
+
+  **示例：**
+
+  ```toml
+  # 添加排除过滤器：
+  filters = { intersect = [ { include = "NS.+" },
+                            { exclude = "NSAccidentalClash" } ] }
+  ```
+
+* `not`：该属性用于反转一个过滤器的含义，其值为单个过滤器。
+
+  **示例：**
+
+  ```toml
+  # 添加排除过滤器的另一种方式：
+  filters = { intersect = [ { include = "NS.+" },
+                            { not = { include = "NSAccidentalClash" } } ] }
+  ```
+
+* `filter`/`filter-not` （可选）：这两个属性必须与上述其他属性一起使用，即它们不能是 `filters` 表中的唯一属性。该属性值可以是一个正则表达式字符串，或一个数组中包含若干正则表达式字符串，其语义与 `include` 和 `exclude` 属性完全一致。
+
+  `filter` 和 `filter-not` 用于在主过滤器已经过滤得到的所有类型名的基础上，进一步缩减成功匹配的类型名。对于 `filter`，只有成功匹配其中任一正则表达式的类型名将被采纳；对于 `filter-not`，只有不匹配其中任何正则表达式的类型名将被采纳
+
+  `filter` 和 `filter-not` 其实是 `intersect` 分别配合 `include` 和 `exclude` 操作的简写形式。
+
+  **示例：**
+
+  ```toml
+  # 不使用 filter-not：
+  filters = { intersect = [ { include = "NS.+" },
+                            { exclude = "NSAccidentalClash" } ] }
+  # 使用 filter-not：
+  filters = { include = "NS.+", filter-not = "NSAccidentalClash" }
+  
+  # filter 和 filter-not 可以被同时使用：
+  filters = { include    = ".*Fizz.+",
+              filter     = ".+Buzz.*",
+              filter-not = ".*FizzBuzz.*" }
+  ```
+
+#### 类型名映射替换
+
+`[[mappings]]` 是一个表的数组，每个表中表示的类型名映射替换关系，最终会被统一收集为一个映射替换表，用于镜像生成过程中，将表中指定的若干类型名称替换为其他类型名。除了 C 的基本数据类型（例如 `int`），几乎所有其他 Objective-C 类型均可通过此配置实现类型名的替换。
+
+**示例：**
+
+```toml
+# 生成镜像时，将所有 Objective-C 的 id 类型镜像替换为 NSObjectProtocol。
+[[mappings]]
+id = "NSObjectProtocol"
 ```
 
-- **[default]** 字段：全局默认配置，当包（package）未提供具体配置时，将采用此默认设置
+#### 导入其他配置文件
 
-- **APIStrategy** 字段：符号可见性策略，用于控制 Cangjie 符号在目标语言中的默认可见性
+`imports` 配置项的值是一个字符串数组，每个字符串是其他配置文件的文件路径，该配置文件中的配置信息将被添加进当前配置文件中。被导入的配置文件中的 `package` 和 `mappings` 条目配置项中的配置信息将被追加到当前配置文件中。
 
-- **GenericTypeStrategy** 字段：泛型实例化策略，用于控制 Cangjie 泛型 API 在目标语言中的默认实例化范围
+支持配置文件的嵌套导入，但如果检测到配置文件的循环依赖导入则将导致编译器报错。
 
-- **[[package]]** 字段：包级别的配置信息
+**使用示例:**
 
-    - **name** 字段：包的名称
-
-    - **APIStrategy** 字段：当前包的符号可见性模式配置
-        - Full : 表示默认公开所有符号，通过 excluded_apis 列表排除特定符号
-        - None : 表示默认隐藏所有符号，通过 included_apis 列表包含特定符号
-
-    - **GenericTypeStrategy** 字段：当前包的泛型实例化模式配置
-        - Partial : 需要对泛型进行指定类型的实例化
-        - None : 不需要使用泛型功能
-
-    - **included_apis** 字段：当 APIStrategy 为 None 时，此列表中的完全限定名称对应的符号将在目标语言中公开。符号必须满足公开的语法要求，否则会生成警告。如需公开结构体的内部符号，必须先公开该结构体本身。如果结构体已在此列表中，会生成警告
-
-    - **excluded_apis** 字段：当 APIStrategy 为 Full 时，此列表中的完全限定名称对应的符号将在目标语言中隐藏，与 included_apis 功能相反
-
-    - **generic_object_configuration** 字段：当前包中允许进行实例化的泛型类型及其符号的配置列表
-
-        - 泛型数据结构 & 实例化类型
-            - name 字段：泛型数据类型（struct/class/interface/enum）的名称
-            - type_arguments 字段：实例化时使用的具体类型参数列表。多个泛型参数应按顺序配置，如 "Int32, Int64" 对应 <T, U>
-
-            ```toml
-            { name = "GenericClass", type_arguments = ["Int64", "Int32"] }
-            ```
-
-        - 实例化数据结构 & 实例化符号
-            - name 字段：对应实例化后上述泛型数据类型(struct/class/interface/enum)对象名称
-            - symbols 字段：该实例化数据结构中允许公开的符号列表（包括变量、函数等）
-
-            ```toml
-                { name = "GenericClass<Int64>", symbols = [
-                    "getValue",
-                    "GenericClass",
-                    "setValue"
-                ]},
-
-                { name = "GenericClass<Int32>", symbols = [
-                    "getValue",
-                    "GenericClass",
-                    "setValue"
-                ]}
-            ```
-
-#### 符号控制规格约束
-
-配置文件需要用户保障配置的语法正确性，例如 B.funcA 为 exposed ，则 B 不允许设置为 hiddened（其他场景同理）。
-
-## 版本约束限制
-
-1. 当前版本的 ObjCInteropGen 功能存在如下约束限制：
-
-    - 不支持 ObjC 类/接口中的非静态成员变量转换
-    - 不支持 ObjC 类/接口中的指针属性转换
-    - 不支持对构造函数 init 方法的转换
-    - 不支持同时转换多个 .h 头文件
-    - 不支持 Bit fields 转换
-
-2. 当前版本的 ObjC 互操作方案存在如下约束限制：
-    - 不支持 ObjC Mirror 和 Impl 类的实例逃逸出线程范围，即不能作为全局变量、静态变量，或作为这些变量的字段成员
-    - ObjC Mirror 和 Impl 类的实例不能作为其他 ObjC Mirror 或 Impl 对象的字段成员
-    - ObjC Mirror 和 Impl 类的实例不能被 Lambda 表达式块或 spawn 线程捕获
-
-3. 使用仓颉与 ObjC 互操作时，需额外下载依赖文件 `Cangjie.h` （[点此下载](https://gitcode.com/Cangjie/cangjie_runtime/blob/dev/runtime/src/Cangjie.h)），并在编译时通过编译选项指定其所在位置。
-4. 在仓颉中依赖了 Foundation 中的类型（例如 NSObject），且定义该类型的头文件（例如 NSObject.h）未在编译选项中显式指定时，由于实际 Foundation 已被导入，且该类型实际已在 Foundation 中被定义，因此当前可通过创建同名空头文件，保证编译正常。
-5. 当前 ObjCImpl 的构造函数实现使用 `[self doesNotRecognizeSelecor:_cmd];` 特性，运行时总是抛出异常，无需返回值，因此需关闭 `-Werror=return-type` 的编译期检查能力，保证编译正常。
-6. 当 ObjCImpl 声明中依赖了其他 ObjCMirror/ObjCImpl 对象类型时，在翻译到 ObjC 侧并由 Clang 编译时，该声明必须置于独立的头文件中。为此，应将该声明单独定义在一个仓颉源文件中，或显式创建一个同名的空头文件，以确保编译顺利进行。
+```toml
+import = "../common.toml"
+```
