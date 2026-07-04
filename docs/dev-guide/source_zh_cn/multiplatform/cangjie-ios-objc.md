@@ -1036,7 +1036,7 @@ public open class MyContainer <: NSObject {
 
 ### 命令行使用方法
 
-`ObjCInteropGen [-v] [--mode=normal`*`config-file`*`]`
+`ObjCInteropGen [-v] [--mode=normal`_`config-file`_`]`
 
 `-v`
 
@@ -1044,11 +1044,9 @@ public open class MyContainer <: NSObject {
 
 `--mode=normal`
 
-强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了 *`config-file`*，那么必须指定 `--mode=normal`。在未来版本中，该选项将变为可选。
+强制使用正常模式。除正常模式外的其他模式均仅用于镜像生成器本身内部开发和测试。在当前版本，如果指定了 _`config-file`_，那么必须指定 `--mode=normal`。在未来版本中，该选项将变为可选。
 
-*`config-file`*
-
-配置文件的路径。
+_`config-file`_：配置文件的路径。
 
 ### Objective-C 镜像生成器配置文件语法
 
