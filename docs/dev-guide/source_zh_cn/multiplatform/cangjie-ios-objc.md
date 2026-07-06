@@ -125,7 +125,7 @@ cjc 将同时生成一对 Objective-C 源码，其内容类似于以下代码块
 
 * 所有拥有等价的 Objective-C 基本类型的仓颉值类型，例如 `Int16` 拥有等价的 Objective-C 基本类型 `int16_t`，故 `Int16` 为 Objective-C 兼容类型；而 `Float16` 无等价的 Objective-C 基本类型，故 `Float16` 不是 Objective-C 兼容类型
 * 所有外部类型
-* `Option<T>` 类型，且其中类型变元 `T` 为[外部类型](#外部类型)，（详情请参考[`nil`值处理](#objective-c-侧-nil-值处理)）
+* `Option<T>` 类型，且其中类型变元 `T` 为[外部类型](#外部类型)，（详情请参考[nil值处理](#objective-c-侧-nil-值处理)）
 * `ObjCPointer<T>`、`ObjCFunc<F>`、`ObjCBlock<F>` 等内置类型
 * `@C struct` 结构体
 * `CFunc<F>` C 函数类型
