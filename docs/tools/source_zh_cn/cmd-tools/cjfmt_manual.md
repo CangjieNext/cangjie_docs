@@ -92,7 +92,7 @@ cjfmt -d testsrc/ -o /home/../testout   # 源文件文件夹testsrc/不存在；
 
 `cjfmt -c`
 
-- 选项 `-c` 允许开发者指定客制化的格式化工具配置文件。
+- 选项 `-c` 允许开发者指定客制化的格式化工具配制文件。
 
 ```shell
 cjfmt -f a.cj -c ./cangjie-format.toml
