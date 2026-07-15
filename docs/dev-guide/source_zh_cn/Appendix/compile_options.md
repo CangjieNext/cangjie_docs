@@ -503,7 +503,7 @@ cjc --scan-dependency pkgA.cjo
 **值得注意的是：**
 
 1. `Windows` 和 `macOS` 平台（不含 `iOS`）不支持该功能。
-2. 目前在 iOS 平台中需使用 `--experimental` 启用该功能，开启 `LTO` 仅支持编译静态库（见 `--lto-staticlib-format` 选项），暂不支持同时启用代码混淆功能。
+2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能（推荐使用`--lto=full`），仅支持编译静态库（见 `--lto-staticlib-format` 选项），暂不支持同时启用代码混淆功能。
 3. 当使能并指定 `LTO` （`Link Time Optimization` 链接时优化）优化编译模式时，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
 `LTO` 优化支持两种编译模式：
@@ -535,7 +535,7 @@ cjc --scan-dependency pkgA.cjo
 
     > **注意：**
     >
-    > `LTO` 模式下 `--output-type=staticlib` 输出 bitcode 文件
+    > `LTO` 模式下 `--output-type=staticlib` 默认输出 bitcode 文件。
 
 3. 在 `LTO` 模式下，静态链接标准库（`--static-std`）时，标准库的代码也会参与 `LTO` 优化，并静态链接到可执行文件；动态链接标准库（`--dy-std`）时，在 `LTO` 模式下依旧使用标准库中的动态库参与链接。
 
@@ -556,8 +556,8 @@ cjc --scan-dependency pkgA.cjo
 
 | 取值        | 输出格式                 | 行为说明                                                                      |
 | :-------- | :------------------- | :------------------------------------------------------------------------ |
-| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode |
-| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，自动链接标准库 bc 文件参与 LTO                      |
+| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode （`LTO` 模式下且`--output-type=staticlib`时，该选项可缺省）|
+| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，自动链接标准库 bitcode 文件参与 LTO                      |
 
 用法如下：
 
@@ -565,10 +565,6 @@ cjc --scan-dependency pkgA.cjo
 cjc test.cj --output-type=staticlib --target=aarch64-apple-ios17.5 --lto=full -o libtest.bc --experimental
 cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o libmain.a --lto=full --lto-staticlib-format=native --experimental
 ```
-
-> **注意：**
->
-> 不启用 `--lto-staticlib-format` 时默认输出 bitcode 文件。
 
 ### `--compile-as-exe`
 
@@ -588,7 +584,8 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 >
 > - 仅在开启 `--lto` 时有效，否则将报错。
 > - 不能与 `--compile-as-exe` 同时使用，否则将报错。
-> - 仅在 Linux 、Android 、OpenHarmony 平台中编译动态库有效， iOS 平台中编译静态库时有效，否则会告警。
+> - `Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库有效。
+> - `iOS` 平台中仅编译静态库时有效，且`--lto=thin` 场景下可能部分符号未被隐藏。
 
 **使用示例：**
 
