@@ -548,7 +548,8 @@ The unit test code structure for a module is as follows, where `xxx.cj` contains
 - `--progress-brief` Displays a brief (single-line) progress report instead of a detailed one.
 - `--progress-entries-limit <value>` Limits the number of entries displayed in the progress report. Default: `0`. Allowed values:
     - `0` No limit on the number of entries.
-    - `n` Where `n` is a positive integer, specifying the maximum number of entries displayed simultaneously in the terminal.
+    - `1` Have limit on the number of entries: at most 1 test case with 1 group is displayed.
+    - `n` Where `n` is a positive integer, specifying the maximum number of entries (including test cases and groups) displayed simultaneously in the terminal.
 
 Examples of `cjpm test` parameter usage:
 

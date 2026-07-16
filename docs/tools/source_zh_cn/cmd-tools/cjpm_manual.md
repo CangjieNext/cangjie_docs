@@ -614,9 +614,10 @@ cjpm run finished
 - `--skip-script` 配置后，将会跳过构建脚本的编译运行
 - `--no-progress` 禁用进度报告。如果指定选项 `--dry-run`，则隐含选项 `--no-progress`
 - `--progress-brief` 显示简短（单行）进度报告而不是详细进度报告
-- `--progress-entries-limit <value>` 限制进度报告中显示的条目数量。默认值：`0`。允许的值：
-    - `0` 不限制条目数
-    - `n` 其中 `n` 是正整数，指定终端上可以同时显示的最大条目
+- `--progress-entries-limit <value>` 限制进度报告中显示的条目数量。默认值：0。允许的值：
+- `0` 不限制条目数
+- `1` 限制条目数，展示1条Group和1条Test。
+- `n` 其中 `n` 是大于1的正整数，指定终端上可以同时显示的最大条目（包括Group和Test条目
 
 `cjpm test` 参数选项使用示例:
 
