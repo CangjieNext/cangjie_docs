@@ -77,8 +77,59 @@ c = b'\u{90}' - b'\u{66}' + c   // c is 162 with type UInt8
 
 Integer types natively support the following operators: arithmetic operators, bitwise operators, relational operators, increment and decrement operators, and compound assignment operators. The precedence of these operators can be found in the [Operators](../Appendix/operator.md) section of the appendix.
 
-Conversions are allowed between integer types, as well as between integer and floating-point types. Integer types can also be converted to character types. For specific syntax and rules on type conversions, refer to [Numeric Type Conversions](../class_and_interface/typecast.md#numeric-type-conversions).
+Conversions are allowed between integer types, as well as between integer and floating-point types. Integer types can also be converted to character types. For specific syntax and rules on type conversions, refer to [Numeric Type Conversions](#numeric-type-conversions).
 
 > **Note:**
 >
 > The operations mentioned in this chapter refer to those supported natively, without [operator overloading](../function/operator_overloading.md).
+
+## Numeric Type Conversions
+
+For numeric types (including: `Int8`, `Int16`, `Int32`, `Int64`, `UInt8`, `UInt16`, `UInt32`, `UInt64`, `Float16`, `Float32`, `Float64`), Cangjie supports using the `T(e)` syntax to obtain a value equal to `e` with type `T`. Here, the expression `e` and type `T` can be any of the aforementioned numeric types.
+
+The following example demonstrates conversions between integer types, conversions between integer and floating-point types, and conversions between floating-point types:
+
+<!-- verify -->
+
+```cangjie
+main() {
+    // Conversions between integer types
+    let a: Int8 = 10
+    let b: Int16 = 20
+    let r1 = Int16(a)
+    println("The type of r1 is 'Int16', and r1 = ${r1}")
+    let r2 = Int8(b)
+    println("The type of r2 is 'Int8', and r2 = ${r2}")
+
+    // Conversions between integer and floating-point types
+    let c: Int64 = 1024
+    let d: Float64 = 1024.1024
+    let r3 = Float64(c)
+    println("The type of r3 is 'Float64', and r3 = ${r3}")
+    let r4 = Int64(d)
+    println("The type of r4 is 'Int64', and r4 = ${r4}")
+
+    // Conversions between floating-point types
+    let e: Float32 = 1.0
+    let f: Float64 = 1.123456789
+    let r5 = Float64(e)
+    println("The type of r5 is 'Float64', and r5 = ${r5}")
+    let r6 = Float32(f)
+    println("The type of r6 is 'Float32', and r6 = ${r6}")
+}
+```
+
+The execution result of the above code is:
+
+```text
+The type of r1 is 'Int16', and r1 = 10
+The type of r2 is 'Int8', and r2 = 20
+The type of r3 is 'Float64', and r3 = 1024.000000
+The type of r4 is 'Int64', and r4 = 1024
+The type of r5 is 'Float64', and r5 = 1.000000
+The type of r6 is 'Float32', and r6 = 1.123457
+```
+
+> **Note:**
+>
+> Overflow may occur during type conversion. If the overflow can be detected by the compiler in advance, the compiler will directly report an error. Otherwise, an exception will be thrown according to the default overflow policy.
