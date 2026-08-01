@@ -96,13 +96,13 @@ type C = (B, Int64)
     var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
-需要注意的是，当前用户自定义的类型别名暂不支持在类型转换表达式中使用，参考如下示例：
+用户自定义的类型别名可以用于类型转换表达式，参考如下示例：
 
-<!-- compile.error  -->
+<!-- compile -->
 
 ```cangjie
 type MyInt = Int32
-MyInt(0)  // Error, no matching function for operator '()' function call
+var a = MyInt(0)  // a 的类型为 Int32
 ```
 
 ## 泛型别名

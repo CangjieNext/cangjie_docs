@@ -94,13 +94,13 @@ A type alias does not define a new type; it merely provides another name for the
     var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
-Note that currently, user-defined type aliases are not supported in type conversion expressions. Refer to the following example:
+User-defined type aliases can be used in type conversion expressions. Refer to the following example:
 
-<!-- compile.error  -->
+<!-- compile -->
 
 ```cangjie
 type MyInt = Int32
-MyInt(0)  // Error, no matching function for operator '()' function call
+var a = MyInt(0)  // a is of type Int32
 ```
 
 ## Generic Type Aliases
