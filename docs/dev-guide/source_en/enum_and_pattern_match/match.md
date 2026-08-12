@@ -37,6 +37,32 @@ x = 0
 
 The `match` expression requires that all matches must be exhaustive, meaning all possible values of the expression to be matched should be considered. When the `match` expression is not exhaustive, or the compiler cannot determine whether it is exhaustive, a compilation error will occur. In other words, the union of the value ranges covered by all `case` branches (including pattern guards) should include all possible values of the expression to be matched. A common way to ensure the exhaustiveness of the `match` expression is to use the wildcard pattern `_` in the last `case` branch, as `_` can match any value.
 
+### Exhaustive Matching of Sealed Types
+
+For a `sealed abstract class` or `sealed interface` whose definition and `match` expression are in the current package, the final wildcard pattern `_` can be omitted when the type patterns in the `case` branches list every possible subtype. For example:
+
+<!-- compile -->
+
+```cangjie
+sealed interface Color {}
+
+class Red <: Color {}
+class Green <: Color {}
+class Blue <: Color {}
+
+func describe(color: Color): String {
+    match (color) {
+        case _: Red => "red"
+        case _: Green => "green"
+        case _: Blue => "blue"
+    }
+}
+```
+
+Here, `Color` and its subtypes are in the current package, and none of the three subtypes can be inherited further, so the type patterns cover every possible `Color` value. A trailing `_` is unnecessary; if it is added, the compiler reports an `unreachable pattern` warning.
+
+Keep `_` when the compiler cannot determine that the set of subtypes is closed. For example, this is the case when the `sealed` type is imported from another package, a subtype is declared `private` in another source file and cannot be named at the matching location, or a subtype can be inherited further, such as an `open`, `abstract`, or `sealed` subtype or a child interface. The same rule applies to nested type patterns in tuples and in arguments of enum constructors.
+
 The exhaustiveness of the `match` expression ensures that there must be a `case` branch that matches the value to be matched. The following example will result in a compilation error because not all possible values of `x` are covered by the `case` branches:
 
 <!-- compile.error -->

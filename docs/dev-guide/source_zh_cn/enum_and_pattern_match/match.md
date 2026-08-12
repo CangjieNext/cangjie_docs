@@ -37,6 +37,32 @@ x = 0
 
 `match` 表达式要求所有匹配必须是穷尽（exhaustive）的，意味着待匹配表达式的所有可能取值都应该被考虑到。当 `match` 表达式非穷尽，或者编译器判断不出是否穷尽时，均会编译报错，换言之，所有 `case` 分支（包含 pattern guard）所覆盖的取值范围的并集，应该包含待匹配表达式的所有可能取值。常用的确保 `match` 表达式穷尽的方式是在最后一个 `case` 分支中使用通配符模式 `_`，因为 `_` 可以匹配任何值。
 
+### sealed 类型的穷尽匹配
+
+对于定义和匹配都位于当前包中的 `sealed abstract class` 或 `sealed interface`，如果 `case` 中的类型模式已经列出了所有可能的子类型，则可以省略最后的通配符模式 `_`。例如：
+
+<!-- compile -->
+
+```cangjie
+sealed interface Color {}
+
+class Red <: Color {}
+class Green <: Color {}
+class Blue <: Color {}
+
+func describe(color: Color): String {
+    match (color) {
+        case _: Red => "red"
+        case _: Green => "green"
+        case _: Blue => "blue"
+    }
+}
+```
+
+这里的 `Color` 及其子类型均在当前包中，且三个子类型都不能继续被继承，因此这些类型模式已经覆盖 `Color` 的所有可能取值。末尾不需要再添加 `_`；若添加该分支，编译器会提示该模式不可达。
+
+当编译器无法确定子类型集合是否封闭时，仍需保留 `_`。例如，`sealed` 类型从其他包导入、子类型在其他源文件中以 `private` 声明而无法在当前匹配位置命名，或者某个子类型仍可继续被继承（如 `open`、`abstract`、`sealed` 子类型或子接口）时，均应使用 `_` 作为兜底。该规则同样适用于元组中以及有参 `enum` 构造器参数中的嵌套类型模式。
+
 `match` 表达式的穷尽性保证了一定存在和待匹配值相匹配的 `case` 分支。下面的例子将编译报错，因为所有的 `case` 并没有覆盖 `x` 的所有可能取值：
 
 <!-- compile.error -->
