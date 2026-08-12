@@ -503,7 +503,7 @@ cjc --scan-dependency pkgA.cjo
 **值得注意的是：**
 
 1. `Windows` 和 `macOS` 平台（不含 `iOS`）不支持该功能。
-2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能，仅支持编译静态库（见 `--lto-staticlib-format` 选项），暂不支持同时启用代码混淆功能。
+2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能，支持编译静态库（见 `--lto-staticlib-format` 选项）、动态库和可执行程序，暂不支持同时启用代码混淆功能。
 3. 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
 `LTO` 优化支持两种编译模式：
