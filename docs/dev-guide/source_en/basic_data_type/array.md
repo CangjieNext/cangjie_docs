@@ -179,7 +179,7 @@ type varr2 = VArray // Error
 
 > **Note:**
 >
-> Due to runtime backend limitations, the element type `T` of `VArray<T, $N>` or its members cannot contain reference types, enum types, lambda expressions (except `CFunc`), or uninstantiated generic types.
+> Due to runtime backend limitations, the element type `T` of `VArray<T, $N>` or its members cannot contain reference types, enum types, lambda expressions (except `CFunc`), or uninstantiated generic types. The size of `VArray<T, $N>` may also be limited by the platform and scenario.
 
 A `VArray` can be initialized using an array literal, where the left-hand side `a` must specify the instantiated type of `VArray`:
 
