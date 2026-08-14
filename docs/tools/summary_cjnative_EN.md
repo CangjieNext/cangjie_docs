@@ -5,6 +5,7 @@
     - [Static Analysis Tool](source_en/cmd-tools/cjlint_manual.md)
     - [Coverage Statistics Tool](source_en/cmd-tools/cjcov_manual.md)
     - [Cangjie Profile Tool](source_en/cmd-tools/cjprof_manual.md)
+    - [Compatibility Check Tool](source_en/cmd-tools/cjcompat_manual.md)
     - [HLE Tool](source_en/cmd-tools/HLE_manual.md)
         - [Conversion Rules for Generating Cangjie Glue Code from ArkTS Third-Party Modules](source_en/cmd-tools/cj-dts2cj-translation-rules.md)
         - [Rules for Converting C Language to Cangjie Glue Code](source_en/cmd-tools/cj-c2cj-translation-rules.md)
