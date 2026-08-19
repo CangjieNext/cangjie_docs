@@ -599,7 +599,7 @@ Specifies package names whose symbol visibility is preserved in LTO mode. Symbol
 > - Only effective when --lto is enabled, otherwise an error will be reported.
 > - Cannot be used together with --compile-as-exe, otherwise an error will be reported.
 > - Only effective when compiling dynamic libraries on `Linux`, `Android`, and `OpenHarmony` platforms.
-> - Only effective when compiling static libraries on `iOS`, and some symbols may not be hidden in `--lto=thin` scenarios.
+> - Effective when compiling static libraries, dynamic libraries, and executables on `iOS`, and some symbols may not be hidden in `--lto=thin` scenarios.
 
 **Usage Example:**
 
