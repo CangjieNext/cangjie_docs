@@ -585,7 +585,7 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 > - 仅在开启 `--lto` 时有效，否则将报错。
 > - 不能与 `--compile-as-exe` 同时使用，否则将报错。
 > - `Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库有效。
-> - `iOS` 平台中仅编译静态库时有效，且`--lto=thin` 场景下可能部分符号未被隐藏。
+> - `iOS` 平台中编译静态库、动态库和可执行程序时有效，且`--lto=thin` 场景下可能部分符号未被隐藏。
 
 **使用示例：**
 
