@@ -13,7 +13,7 @@ Developers can cross-compile their Cangjie programs to run on different architec
 |<!--DelRow--> macOS (aarch64)     | Android (arm32)       | Android physical devices | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
 |<!--DelRow--> macOS (aarch64)         | iOS (aarch64)         | iOS physical devices | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
-<!--Del-->The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 26+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.<!--DelEnd-->
+<!--Del-->The Cangjie programming language now supports cross-compilation to `Android` (`aarch64` defaults to `API 23+`, and `arm32` defaults to `API 23+`) and `iOS`, enabling developers to build applications across different platforms.<!--DelEnd-->
 
 ## Supported Compilation Targets and Target Triple Names
 
@@ -71,7 +71,8 @@ Cross-compiling Cangjie to `Android` requires the following three dependency dir
 
 When using `cjc` for cross-compilation, the following additional options must be specified (replace `< >` parts with actual directories):
 
-- `--target=aarch64-linux-android` defaults to Android API 26 for cross-compilation; append the API level suffix explicitly for a higher version, e.g. `--target=aarch64-linux-android31` for Android API 31.
+- `--target=aarch64-linux-android` defaults to Android API 23 for cross-compilation; append the API level suffix explicitly for a higher version, e.g. `--target=aarch64-linux-android31` for Android API 31.
+- `--target=aarch64-linux-android23` explicitly specifies the `aarch64` target platform for cross-compiling to Android API 23.
 - `--target=arm-linux-android23` specifies the `arm32` target platform (Android API 23).
 - `--sysroot=<sysroot-path>` specifies the toolchain's root directory path `<sysroot-path>`
 - `-L<lib-path>` specifies the directory `<lib-path>` containing `libclang_rt.builtins-<arch>-android.a`
@@ -112,7 +113,7 @@ $ cjc test.cj --target=arm-linux-android23 \
 After compilation, the following files need to be pushed to the `Android` device:
 
 - The executable and all its dependent dynamic libraries: e.g., `main` and its dependent `.so` files
-- Cangjie runtime dependencies: choose the corresponding directory based on the target platform (for example, `aarch64-linux-android31` uses `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`, while `arm-linux-android23` uses `$CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/*.so`; actual directory names depend on the SDK)
+- Cangjie runtime dependencies: choose the corresponding directory based on the target platform (for example, `aarch64-linux-android31` uses `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`, `aarch64-linux-android23` uses `$CANGJIE_HOME/runtime/lib/linux_android_aarch64_cjnative/*.so`, while `arm-linux-android23` uses `$CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/*.so`; actual directory names depend on the SDK)
 
 Use the `Android` Debug Bridge `adb` tool to push the executable and Cangjie libraries to the device. Example:
 

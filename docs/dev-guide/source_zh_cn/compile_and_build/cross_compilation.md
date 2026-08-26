@@ -13,7 +13,7 @@
 |<!--DelRow--> macOS (aarch64)     | Android (arm32)       | Android 真机 | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
 |<!--DelRow--> macOS (aarch64)         | iOS (aarch64)         | iOS 真机 | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
-<!--Del-->仓颉编程语言现已支持交叉编译至 `Android`（`aarch64` 默认目标为 `API 26+`，`arm32` 默认目标为 `API 23+`）和 `iOS`，方便开发者在不同平台上进行应用开发。<!--DelEnd-->
+<!--Del-->仓颉编程语言现已支持交叉编译至 `Android`（`aarch64` 默认目标为 `API 23+`，`arm32` 默认目标为 `API 23+`）和 `iOS`，方便开发者在不同平台上进行应用开发。<!--DelEnd-->
 
 ## 支持的编译目标和目标三元组名称
 
@@ -71,7 +71,8 @@
 
 使用 `cjc` 交叉编译仓颉代码时需要额外指定以下选项（`<>` 部分需要替换为实际目录）：
 
-- `--target=aarch64-linux-android` 默认以 Android API 26 为目标平台进行交叉编译；若需更高版本，可显式追加数字后缀，例如 `--target=aarch64-linux-android31` 则指定 Android API 31
+- `--target=aarch64-linux-android` 默认以 Android API 23 为目标平台进行交叉编译；若需更高版本，可显式追加数字后缀，例如 `--target=aarch64-linux-android31` 则指定 Android API 31
+- `--target=aarch64-linux-android23` 显式指定 `aarch64` 目标平台以 Android API 23 进行交叉编译
 - `--target=arm-linux-android23` 指定 `arm32` 目标平台（Android API 23）
 - `--sysroot=<sysroot-path>` 指定工具链的根目录路径 `<sysroot-path>`
 - `-L<lib-path>` 指定 `libclang_rt.builtins-<arch>-android.a` 所在目录 `<lib-path>`
@@ -112,7 +113,7 @@ $ cjc test.cj --target=arm-linux-android23 \
 编译完成后需要将以下文件推送到 `Android` 设备：
 
 - 可执行程序以及其依赖的所有动态库： 例如 `main` 和其依赖的 `.so` 动态库文件
-- 仓颉运行时依赖：根据目标平台选择对应目录（例如 `aarch64-linux-android31` 对应 `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`，`arm-linux-android23` 对应 `$CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/*.so`，目录命名请以实际 SDK 为准）
+- 仓颉运行时依赖：根据目标平台选择对应目录（例如 `aarch64-linux-android31` 对应 `$CANGJIE_HOME/runtime/lib/linux_android31_aarch64_cjnative/*.so`，`aarch64-linux-android23` 对应 `$CANGJIE_HOME/runtime/lib/linux_android_aarch64_cjnative/*.so`，`arm-linux-android23` 对应 `$CANGJIE_HOME/runtime/lib/linux_android23_arm_cjnative/*.so`，目录命名请以实际 SDK 为准）
 
 通过使用 `Android` 调试桥 `adb` 工具可以将可执行程序以及仓颉库推送至设备，示例如下：
 
