@@ -697,13 +697,13 @@ Currently, `cjc` supports the following host and target platforms for cross-comp
 | Host Platform       | Target Platform          | Supported Packages |
 | ------------------- | ------------------------ | ------------------ |
 | x86_64-linux-gnu    | x86_64-windows-gnu       | cangjie-sdk-linux-x64-x.y.z.tar.gz |
-| x86_64-linux-gnu   | aarch64-linux-android26     | cangjie-sdk-linux-x64-android-x.y.z.tar.gz |
+| x86_64-linux-gnu   | aarch64-linux-android23     | cangjie-sdk-linux-x64-android-x.y.z.tar.gz |
 | aarch64-linux-gnu   | x86_64-windows-gnu       | cangjie-sdk-linux-aarch64.x.y.z.tar.gz |
-| x86_64-apple-darwin | aarch64-linux-android26  | cangjie-sdk-mac-x64-android.x.y.z.tar.gz |
-| aarch64-apple-darwin | aarch64-linux-android26 | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz |
+| x86_64-apple-darwin | aarch64-linux-android23  | cangjie-sdk-mac-x64-android.x.y.z.tar.gz |
+| aarch64-apple-darwin | aarch64-linux-android23 | cangjie-sdk-mac-aarch64-android.x.y.z.tar.gz |
 | aarch64-apple-darwin | arm-linux-android23     | cangjie-sdk-mac-aarch64-android-arm32-x.y.z.tar.gz |
 | aarch64-apple-darwin | aarch64-apple-ios       | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
-| x86_64-windows-gnu | aarch64-linux-android26 | cangjie-sdk-windows-x64-android.x.y.z.tar.gz |
+| x86_64-windows-gnu | aarch64-linux-android23 | cangjie-sdk-windows-x64-android.x.y.z.tar.gz |
 | aarch64-apple-darwin | aarch64-apple-ios-simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 | aarch64-apple-darwin | x86_64-apple-ios-simulator | cangjie-sdk-mac-aarch64-ios.x.y.z.tar.gz |
 
