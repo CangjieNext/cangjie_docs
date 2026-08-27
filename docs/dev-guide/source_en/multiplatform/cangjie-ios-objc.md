@@ -1069,7 +1069,7 @@ C enumeration declarations are mirrored into series of top-level `public`
 `const` variable declarations. The name of each `const` variable matches the
 name of an enum constant, and its initializer is the respective value.
 Additionally, a type alias is declared for the Cangjie value type that mirrors
-the underlying type of the original enumeration, whether the latter is explictly
+the underlying type of the original enumeration, whether the latter is explicitly
 specifed or implied. The alias equals the name of the original enumeration,
 unless the latter is anonymous, in which case a unique name is synthesized.
 Any _usages_ of the enum are then mirrored into that type alias.

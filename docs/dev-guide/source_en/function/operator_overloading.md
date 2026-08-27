@@ -142,7 +142,7 @@ The conventions for parameter types in operator functions are as follows:
 
     class B <: A {
         public init() {
-            super() // OK, super()  calls the constuctor of the super class
+            super() // OK, super()  calls the constructor of the super class
         }
 
         public func goo() {
