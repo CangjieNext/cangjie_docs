@@ -92,7 +92,7 @@ Refer to the following examples:
 - Use macro `M2` in `main.cj`
 
   <!-- compile -macro5 -->
-  <!-- cfg="--compile-macro -L. -lB" -->
+  <!-- cfg="-L. -lB" -->
 
   ```cangjie
   import C.*
@@ -104,11 +104,14 @@ Refer to the following examples:
 
   The compilation command is as follows:
 
-  ```cangjie
+  ```shell
   cjc main.cj -o main -L. -lB
   ```
 
   The expanded result of macro `M2` in `main.cj` is as follows:
+
+  <!-- compile -->
+  <!-- cfg="-L. -lB" -->
 
   ```cangjie
   import C.*

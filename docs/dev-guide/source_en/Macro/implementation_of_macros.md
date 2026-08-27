@@ -557,9 +557,14 @@ Inner macros can use the library function `assertParentContext` to ensure they a
 
 Macro definitions:
 
-<!-- code_no_check -->
+<!-- compile.error -macro92 -->
+<!-- cfg="--compile-macro" -->
 
 ```cangjie
+macro package define
+
+import std.ast.*
+
 public macro Outer(input: Tokens): Tokens {
     return input
 }
@@ -572,9 +577,11 @@ public macro Inner(input: Tokens): Tokens {
 
 Macro calls:
 
-<!-- code_no_check -->
+<!-- compile.error -macro92 -->
 
 ```cangjie
+import define.*
+
 @Outer
 var a = 0
 
