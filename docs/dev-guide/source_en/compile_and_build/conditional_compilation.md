@@ -388,6 +388,7 @@ The target platforms supported by Cangjie's cross-compilation are determined by 
 | aarch64-linux-ohos            | "aarch64" | "Linux"   | "ohos"      |
 | arm64-apple-ios[11+]<sup>[ios target]</sup>           | "aarch64" | "iOS"     |    ""         |
 | arm64-apple-ios[11+]-simulator<sup>[ios target]</sup> | "aarch64" | "iOS"     | "simulator" |
+| arm-linux-android23             | "arm"     | "Linux"     | "android"   |
 
 <sup>'[android target]</sup> x86_64-linux-android[26+], the number following the android suffix the API Level. If no number is specified, the default API Level is 26; specifying a number(e.g., x86_64-linux-android33)indicates that the Android API Level is 33, and the number of API Level must greater than or equal to 26.
 <sup>[ios target]</sup> arm64-apple-ios[11+],  the number following the ios suffix the ios version. If no number is specified, the default ios version is 11; specifying a number(e.g., arm64-apple-ios26)indicates that the ios version is 26,and the number of ios version must greater than or equal to 11.
