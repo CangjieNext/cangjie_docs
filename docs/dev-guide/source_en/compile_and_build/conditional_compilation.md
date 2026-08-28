@@ -53,6 +53,8 @@ Cangjie provides the following built-in conditional variables: `os`, `arch`, `en
 
 `os` represents the target platform's operating system. It supports `==` and `!=` operators. Supported operating systems include: `Windows`, `Linux`, `macOS`, `iOS`.
 
+> Note: When compiling for HarmonyOS (OpenHarmony) target platforms (such as `x86_64-linux-ohos` and `aarch64-linux-ohos`), the value of `os` is `Linux`; use `env == "ohos"` to distinguish them. To detect a HarmonyOS platform, use `@When[env == "ohos"]` instead of `@When[os == "HarmonyOS"]`.
+
 Usage example:
 
 <!-- run -->

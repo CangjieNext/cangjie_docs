@@ -57,6 +57,8 @@ main(): Int64 {
 
 os 表示目标平台的操作系统。`os` 支持 `==` 和 `!=` 两种操作符。支持的操作系统有：`Windows`、`Linux`、`macOS`、`iOS`。
 
+> 注：仓颉在 HarmonyOS（OpenHarmony）目标平台（如 `x86_64-linux-ohos`、`aarch64-linux-ohos`）上编译时，`os` 的值为 `Linux`，可通过 `env == "ohos"` 进一步区分。因此判断 HarmonyOS 平台请使用 `@When[env == "ohos"]`，而非 `@When[os == "HarmonyOS"]`。
+
 使用方式如下：
 
 <!-- run -->
