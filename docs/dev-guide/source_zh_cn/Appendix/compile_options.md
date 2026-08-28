@@ -681,6 +681,8 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 
 目前，`cjc` 已支持交叉编译的本地平台和目标平台如下表所示：
 
+需要说明的是，同一个目标平台存在多个同义的 triple 名称，编译器会将它们视为同一平台，可以互换使用，例如 `x86_64-linux-gnu` 与 `x86_64-unknown-linux-gnu`、`aarch64-linux-gnu` 与 `aarch64-unknown-linux-gnu`、`arm64-linux-gnu`、`x86_64-windows-gnu` 与 `x86_64-pc-windows-gnu`、`x86_64-w64-mingw32`、`aarch64-linux-ohos` 与 `aarch64-unknown-linux-ohos`、`arm64-linux-ohos` 等。各目标平台名称与别名的完整对照见《交叉编译》一章的“支持的目标平台与目标三元组名称”。
+
 | 本地平台 (host)    | 目标平台 (target)   | 支持的软件包 |
 | ------------------ | ------------------ | ------ |
 | x86_64-linux-gnu   | x86_64-windows-gnu     | cangjie-sdk-linux-x64-x.y.z.tar.gz |

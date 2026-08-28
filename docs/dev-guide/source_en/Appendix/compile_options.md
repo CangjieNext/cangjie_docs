@@ -694,6 +694,8 @@ The `<value>` parameter is generally a string in the following format: `<arch>(-
 
 Currently, `cjc` supports the following host and target platforms for cross-compilation:
 
+Note that a single target platform can be written as several synonymous triple names, which the compiler treats as the same platform and can be used interchangeably. For example, `x86_64-linux-gnu` and `x86_64-unknown-linux-gnu`; `aarch64-linux-gnu`, `aarch64-unknown-linux-gnu` and `arm64-linux-gnu`; `x86_64-windows-gnu`, `x86_64-pc-windows-gnu` and `x86_64-w64-mingw32`; and `aarch64-linux-ohos`, `aarch64-unknown-linux-ohos` and `arm64-linux-ohos`. For the complete mapping between target platform names and their aliases, see the "Supported Compilation Targets and Target Triple Names" section of the Cross-compilation chapter.
+
 | Host Platform       | Target Platform          | Supported Packages |
 | ------------------- | ------------------------ | ------------------ |
 | x86_64-linux-gnu    | x86_64-windows-gnu       | cangjie-sdk-linux-x64-x.y.z.tar.gz |
