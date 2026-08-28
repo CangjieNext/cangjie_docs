@@ -520,6 +520,13 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 2. Currently on `iOS`, this feature requires the `--experimental` flag. Enabling `LTO` supports building static libraries (see `--lto-staticlib-format` option), dynamic libraries, and executables, and does not yet support enabling code obfuscation at the same time.
 3. In `LTO` mode, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
 
+In `LTO` scenarios (for example, when enabled via the `profile.build.lto` configuration of `cjpm`), the `iOS` platform differs from other platforms as follows:
+
+> **Note:**
+>
+> - When `LTO` is enabled on `iOS`, `--output-type=staticlib` produces a bitcode file (`.bc`) by default. To output a native static library (`.a`) that has been LTO-optimized, use `--lto-staticlib-format=native` (this option automatically links standard library bitcode files to participate in `LTO`); it is currently only applicable to `iOS` development scenarios (see the `--lto-staticlib-format` option).
+> - The `--lto-keep-pkg-visibility` option is effective when compiling static libraries, dynamic libraries, and executables on `iOS` (on `Linux`, `Android`, and `OpenHarmony` platforms it is only effective when compiling dynamic libraries), and some symbols may not be hidden in `--lto=thin` scenarios (see the `--lto-keep-pkg-visibility` option).
+
 `LTO` supports two compilation modes:
 
 - `--lto=full`: `Full LTO` merges all compilation modules together and performs global optimization. This mode offers the highest optimization potential but requires longer compilation time.

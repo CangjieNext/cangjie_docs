@@ -506,6 +506,13 @@ cjc --scan-dependency pkgA.cjo
 2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能，支持编译静态库（见 `--lto-staticlib-format` 选项）、动态库和可执行程序，暂不支持同时启用代码混淆功能。
 3. 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
+在 `LTO` 场景下（如通过 `cjpm` 的 `profile.build.lto` 配置开启），`iOS` 平台与其他平台存在如下差异：
+
+> **注意：**
+>
+> - `iOS` 平台中开启 `LTO` 时，`--output-type=staticlib` 默认输出 bitcode 文件（`.bc`）；如需输出经过 `LTO` 优化的原生静态库（`.a`），需使用 `--lto-staticlib-format=native`（该选项自动链接标准库 bitcode 文件参与 `LTO`），目前仅适用于 `iOS` 开发场景（见 `--lto-staticlib-format` 选项）。
+> - `--lto-keep-pkg-visibility` 选项在 `iOS` 平台中编译静态库、动态库和可执行程序时均有效（`Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库时有效），且 `--lto=thin` 场景下可能部分符号未被隐藏（见 `--lto-keep-pkg-visibility` 选项）。
+
 `LTO` 优化支持两种编译模式：
 
 - `--lto=full`：`full LTO` 将所有编译模块合并到一起，在全局上进行优化，这种方式可以获得最大的优化潜力，同时也需要更长的编译时间。
