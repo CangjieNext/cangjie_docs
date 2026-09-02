@@ -965,9 +965,12 @@ Specifies linker options.
 
 Disables the reflection option, meaning no related reflection information will be generated during compilation.
 
+When used together with `--lto=[full|thin]`, reflection information left in import libraries is also cleaned up during the LTO link stage: useless data such as method reflection is removed, while necessary metadata such as field names and enum constructors is kept, reducing the size of the final binary.
+
 > **Note:**
 >
-> When cross-compiling to the `aarch64-linux-ohos` target, reflection information is disabled by default, and this option has no effect.
+> - When cross-compiling to the `aarch64-linux-ohos` target, reflection information is disabled by default, and this option has no effect.
+> - When the program directly or indirectly links/uses the `std.reflect` reflection APIs (such as `TypeInfo.of`), reflection information in import libraries is not cleaned up in the LTO scenario to keep runtime reflection working.
 
 ### `--profile-compile-time` <sup>[frontend]</sup>
 

@@ -952,9 +952,12 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 关闭反射选项，即编译过程中不生成相关反射信息。
 
+配合 `--lto=[full|thin]` 使用时，还会在 LTO 链接阶段清理导入库（import lib）中残留的反射信息，删除方法反射等无用数据，同时保留字段名、枚举构造器等必要元数据，减小最终产物体积。
+
 > **注意：**
 >
-> 交叉编译至 aarch64-linux-ohos 目标时，默认关闭反射信息，该选项不生效。
+> - 交叉编译至 aarch64-linux-ohos 目标时，默认关闭反射信息，该选项不生效。
+> - 当程序直接或间接链接/使用 `std.reflect` 反射 API（如 `TypeInfo.of`）时，为保证运行时反射功能正常，LTO 场景下不会清理导入库中的反射信息。
 
 ### `--profile-compile-time` <sup>[frontend]</sup>
 
