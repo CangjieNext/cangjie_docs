@@ -276,7 +276,7 @@ Hello World
 
 指定导入模块的 AST 文件的搜索路径。
 
-> **说明：** 关于 CJO 文件的详细信息，请参见 [CJO 产物说明](cjo_artifacts.md)。
+> **说明：** 关于 CJO 文件的详细信息，请参见 [CJO 产物说明](cjo_artifact.md)。
 
 假设已有以下目录结构，`libs/myModule` 目录中包含 `myModule` 模块的库文件和 `log` 包的 AST 导出文件：
 
