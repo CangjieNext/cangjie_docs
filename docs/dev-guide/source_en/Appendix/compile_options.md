@@ -514,11 +514,11 @@ The stack trace formats are described as follows:
 
 Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 
-**Important Notes:**
-
-1. This feature is not supported on `Windows` or `macOS` (excluding `iOS`).
-2. Currently on `iOS`, this feature requires the `--experimental` flag. Enabling `LTO` supports building static libraries (see `--lto-staticlib-format` option), dynamic libraries, and executables, and does not yet support enabling code obfuscation at the same time.
-3. In `LTO` mode, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
+> **Note:**
+> - This feature is not supported on `Windows` or `macOS`.
+> - On `iOS`, this feature is an experimental option; enable it with `--experimental`, and enabling code obfuscation at the same time is not yet supported.
+> - Currently, only the `iOS` platform supports compiling static libraries (see the `--lto-staticlib-format` option).
+> - In `LTO` mode, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
 
 `LTO` supports two compilation modes:
 
@@ -538,7 +538,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
     $ cjc test.cj --lto=thin
     ```
 
-2. Compile a static library (`.bc` file) required for `LTO` mode and use it to compile an executable file:
+2. Compile the bitcode file required in `LTO` mode using the following commands, and use this file to participate in compiling an executable file:
 
     ```shell
     # Generate bitcode file
@@ -551,27 +551,27 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
     >
     > In `LTO` mode, `--output-type=staticlib` produces a bitcode file by default.
 
-3. In `LTO` mode, when statically linking the standard library (`--static-std` & `--static-libs`), the standard library code participates in `LTO` optimization and is statically linked into the executable. When dynamically linking the standard library (`--dy-std` & `--dy-libs`), the dynamic library of the standard library is used for linking even in `LTO` mode.
+3. In `LTO` mode, when statically linking the standard library (`--static-std`), the standard library code participates in `LTO` optimization and is statically linked into the executable. When dynamically linking the standard library (`--dy-std`), the dynamic library of the standard library is used for linking even in `LTO` mode.
 
     ```shell
-    # Static linking: Standard library code participates in LTO optimization
+    # Static linking: Standard library code participates in `LTO` optimization
     $ cjc test.cj --lto=full --static-std
-    # Dynamic linking: Dynamic library is used for linking; standard library code does not participate in LTO optimization
+    # Dynamic linking: Dynamic library is used for linking; standard library code does not participate in `LTO` optimization
     $ cjc test.cj --lto=full --dy-std
     ```
 
-### --lto-staticlib-format=[native|bitcode]
+### `--lto-staticlib-format=[native|bitcode]`
 
-Specifies the output artifact format when compiling static libraries in LTO mode.
-
-Platform restriction: primarily designed for iOS development scenarios
-
-Prerequisite: Must be used together with the `--experimental` 、`--lto` option
+Specifies the output artifact format when compiling static libraries in `LTO` mode.
 
 | Value     | Output Format                | Description                                                                                                                                   |
 | :-------- | :--------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bitcode` | LLVM Bitcode (`.bc`)         | Outputs LLVM IR bitcode (this option can be omitted when in `LTO` mode with `--output-type=staticlib`)                                  |
-| `native`  | Native static library (`.a`) | Outputs an LTO-optimized static library, automatically linking standard library bitcode files to participate in LTO                      |
+| `bitcode` | LLVM Bitcode (`.bc`)         | Outputs LLVM IR bitcode                                  |
+| `native`  | Static library (`.a`) | Outputs a static library optimized by `LTO`                      |
+
+> **Note:**
+> - Must be used when compiling static libraries (`--output-type=staticlib`) in `LTO` mode; if unspecified, the default is `--lto-staticlib-format=bitcode`
+> - With `--lto-staticlib-format=native`, the dependent standard library participates in `LTO` compilation in the form of bitcode files and is archived into the static library along with the compilation output. When `--dy-std` is specified, the standard library does not participate in `LTO` compilation; its symbols remain undefined in the static library artifact. When the static library is linked downstream, the symbol definitions are provided by the standard library adopted for that linking (either static or dynamic linking).
 
 Example:
 
@@ -586,20 +586,23 @@ This option is deprecated and will be removed in a future version. Please use `-
 
 ### `--lto-keep-pkg-visibility=<value>`
 
-Specifies package names whose symbol visibility is preserved in LTO mode. Symbols from unspecified packages will be hidden, enabling LLVM to perform more aggressive dead code elimination.
+Specifies package names whose global symbol export visibility is preserved in `LTO` mode. The visibility of global symbols from unspecified packages will be downgraded to hidden: such symbols can still be referenced by any code participating in `LTO` during this compilation, but will not be exported from the final linking artifact, allowing `LTO` to perform more aggressive dead code elimination on them.
+
+This option only takes effect on packages participating in `LTO` optimization; libraries linked as prebuilt static or dynamic libraries are not affected. It is used in combination with `LTO` to reduce code size and prevent internal implementation symbols from leaking outside the linking artifact.
 
 **Parameter Description:**
 
 - `<value>` is a list of package names, separated by commas
 - `--lto-keep-pkg-visibility` can be used multiple times, with cumulative effect
-- `<value>` can be an empty string `""`, which means hiding symbols from all packages
+- `<value>` can be an empty string `""`, which means hiding the global symbols of all packages
+- If none of the package names in `<value>` match the packages compiled in this compilation, this option takes no effect (no error is reported); with a partial match, only the matched packages keep their symbol visibility
 
 > **Note:**
 >
-> - Only effective when --lto is enabled, otherwise an error will be reported.
-> - Cannot be used together with --compile-as-exe, otherwise an error will be reported.
+> - Only effective when `--lto` is enabled, otherwise an error will be reported.
+> - Cannot be used together with `--compile-as-exe`, otherwise an error will be reported.
 > - Only effective when compiling dynamic libraries on `Linux`, `Android`, and `OpenHarmony` platforms.
-> - Effective when compiling static libraries, dynamic libraries, and executables on `iOS`, and some symbols may not be hidden in `--lto=thin` scenarios.
+> - On `iOS`, in the static library generated with `--lto=thin`, downgraded symbols appear as `private external` in the archive symbol table, which differs from `external`, and they will not appear in the export symbol table of subsequent linking artifacts.
 
 **Usage Example:**
 
@@ -628,13 +631,15 @@ public func foo() {
 }
 ```
 ```shell
-# Compile LTO static library
+# Take the Linux environment as an example
 $ cjc lib2.cj --lto=full --output-type=staticlib -o lib2.bc
-# Preserve symbol visibility of lib1, hide all symbols from lib2
-# fxx() will be retained as an internal function, foo() will be removed as dead code
-$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1" -o lib.so
-# Hide symbols from all packages
+# Preserve symbol visibility of package lib1, hide symbols within package lib2, and lib3 is ignored
+# foo() is removed as dead code; fxx() is retained but its symbol is not exported from lib.so
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1,lib3" -o lib.so
+# The global symbols of all packages are hidden
 $ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="" -o lib.so
+# No valid package name is specified, so this option takes no effect
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib3,lib4" -o lib.so
 ```
 
 ### `--pgo-instr-gen`, `--pgo-instr-gen=<.profraw>`

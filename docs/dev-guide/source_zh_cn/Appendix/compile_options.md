@@ -498,13 +498,13 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--lto=[full|thin]`
 
-使能且指定 `LTO` （`Link Time Optimization` 链接时优化）优化编译模式。
+使能且指定 `LTO` （`Link Time Optimization` 链接时优化）编译模式。
 
-**值得注意的是：**
-
-1. `Windows` 和 `macOS` 平台（不含 `iOS`）不支持该功能。
-2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能，支持编译静态库（见 `--lto-staticlib-format` 选项）、动态库和可执行程序，暂不支持同时启用代码混淆功能。
-3. 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
+> **注意：**
+> - `Windows` 和 `macOS` 平台不支持该功能。
+> - `iOS` 平台中为实验选项，需同步使用 `--experimental` 启用该功能，且暂不支持同时启用代码混淆功能。
+> - 目前仅 `iOS` 平台支持编译静态库（见 `--lto-staticlib-format` 选项）。
+> - 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
 `LTO` 优化支持两种编译模式：
 
@@ -514,7 +514,7 @@ cjc --scan-dependency pkgA.cjo
     - 通常情况下优化效果对比：`full LTO` **>** `thin LTO` **>** 常规静态链接编译。
     - 通常情况下编译时间对比：`full LTO` **>** `thin LTO` **>** 常规静态链接编译。
 
-`LTO` 优化使用场景：
+`LTO` 使用场景：
 
 1. 使用以下命令编译可执行文件。
 
@@ -540,24 +540,24 @@ cjc --scan-dependency pkgA.cjo
 3. 在 `LTO` 模式下，静态链接标准库（`--static-std`）时，标准库的代码也会参与 `LTO` 优化，并静态链接到可执行文件；动态链接标准库（`--dy-std`）时，在 `LTO` 模式下依旧使用标准库中的动态库参与链接。
 
     ```shell
-    # 静态链接，标准库代码也参与 LTO 优化
+    # 静态链接，标准库代码也参与 `LTO` 优化
     $ cjc test.cj --lto=full --static-std
-    # 动态链接，依旧使用动态库参与链接，标准库代码不会参与 LTO 优化
+    # 动态链接，依旧使用动态库参与链接，标准库代码不会参与 `LTO` 优化
     $ cjc test.cj --lto=full --dy-std
     ```
 
 ### `--lto-staticlib-format=[native|bitcode]`
 
-该选项用于指定 LTO 模式下静态库编译的输出产物格式。
-
-平台限制：目前仅适用于 iOS 开发场景
-
-前置要求：需与 `--experimental` 、`--lto` 选项配合使用
+该选项用于指定 `LTO` 模式下编译的静态库产物格式。
 
 | 取值        | 输出格式                 | 行为说明                                                                      |
 | :-------- | :------------------- | :------------------------------------------------------------------------ |
-| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode （`LTO` 模式下且`--output-type=staticlib`时，该选项可缺省）|
-| `native`  | 原生静态库 (`.a`)         | 输出经过 LTO 优化的静态库，自动链接标准库 bitcode 文件参与 LTO                      |
+| `bitcode` | LLVM Bitcode (`.bc`) | 输出 LLVM IR bitcode |
+| `native`  | 静态库 (`.a`)         | 输出经过 `LTO` 优化的静态库                      |
+
+> **注意：**
+> - 需在 `LTO` 模式下编译静态库（`--output-type=staticlib`）时使用，未指定时默认为 `--lto-staticlib-format=bitcode`
+> - `--lto-staticlib-format=native` 时，依赖的标准库以 bitcode 文件的形式参与 `LTO` 编译，并随编译产物一同归档至静态库。指定 `--dy-std` 时，标准库不参与 `LTO` 编译，其符号在静态库产物中保持未定义状态；下游使用该静态库进行链接时，符号定义由链接所采用的标准库（静态或动态链接方式均可）提供。
 
 用法如下：
 
@@ -572,20 +572,23 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 
 ### `--lto-keep-pkg-visibility=<value>`
 
-指定 LTO 模式下保持符号可见性的包名。未指定的包符号将被隐藏，LLVM 可据此执行更激进的无用代码删除。
+指定 `LTO` 模式下保持全局符号导出可见性的包名，未被指定包内全局符号的可见性（visibility）将被降级为隐藏（hidden）：该类符号仍可被本次编译中参与 `LTO` 的任意代码引用，但不会从最终的链接产物中导出，因此 `LTO` 能够进行更激进的无用代码删除。
+
+该选项仅对参与 `LTO` 优化的包生效，以预编译静态库、动态库形式链接的库不受影响。此选项配合 `LTO` 使用，用于缩减代码体积，同时防止内部实现符号泄漏至链接产物之外。
 
 **参数说明：**
 
 - `<value>` 为包名列表，多个包名用逗号分隔
 - `--lto-keep-pkg-visibility` 可以被多次使用，效果累加
-- `<value>` 可以为空字符串`""`， 表示隐藏所有包的符号
+- `<value>` 可以为空字符串`""`，表示隐藏所有包的符号
+- 若 `<value>` 中的包名均与本次编译输入的包不匹配，该选项不生效（不会报错）；部分匹配时，仅匹配的包保持符号可见性
 
 > **注意：**
 >
 > - 仅在开启 `--lto` 时有效，否则将报错。
 > - 不能与 `--compile-as-exe` 同时使用，否则将报错。
 > - `Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库有效。
-> - `iOS` 平台中编译静态库、动态库和可执行程序时有效，且`--lto=thin` 场景下可能部分符号未被隐藏。
+> - `iOS` 平台在 `--lto=thin` 场景下生成的静态库中，被降级符号在归档符号表中为 `private external`，有别于 `external`，不会出现在后续链接产物的导出符号表中。
 
 **使用示例：**
 
@@ -615,13 +618,15 @@ public func foo() {
 ```
 
 ```shell
-# 编译 LTO bitcode 文件
+# 以 Linux 环境为例
 $ cjc lib2.cj --lto=full --output-type=staticlib -o lib2.bc
-# 保持 lib1 包的符号可见性，隐藏 lib2 包内符号
-# fxx()将被作为内部函数保留，foo()将被作为死代码删除
-$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1" -o lib.so
-# 隐藏所有包中符号
+# 保持 lib1 包的符号可见性，隐藏 lib2 包内符号，lib3 被忽略
+# foo()被作为死代码删除，fxx()被保留但符号不会在lib.so中导出
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib1,lib3" -o lib.so
+# 所有包中的全局符号均被隐藏
 $ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="" -o lib.so
+# 未指定有效包名，该选项不生效
+$ cjc lib1.cj lib2.bc --lto=full --output-type=dylib --lto-keep-pkg-visibility="lib3,lib4" -o lib.so
 ```
 
 ### `--pgo-instr-gen`, `--pgo-instr-gen=<.profraw>`
