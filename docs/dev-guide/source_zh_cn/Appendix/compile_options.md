@@ -498,13 +498,14 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--lto=[full|thin]`
 
-使能且指定 `LTO` （`Link Time Optimization` 链接时优化）优化编译模式。
+使能且指定 `LTO` （`Link Time Optimization` 链接时优化）编译模式。
 
-**值得注意的是：**
+**注意：**
 
-1. `Windows` 和 `macOS` 平台（不含 `iOS`）不支持该功能。
-2. 目前在 `iOS` 平台中需使用 `--experimental` 启用该功能，支持编译静态库（见 `--lto-staticlib-format` 选项）、动态库和可执行程序，暂不支持同时启用代码混淆功能。
-3. 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
+1. `Windows` 和 `macOS` 平台不支持该功能。
+2. `iOS` 平台中为实验选项，需同步使用 `--experimental` 启用该功能，且暂不支持同时启用代码混淆功能。
+3. 目前仅 `iOS` 平台支持编译原生静态库（见 `--lto-staticlib-format` 选项）。
+4. 在 `LTO` 模式下，不允许同时使用如下优化编译选项：`-Os`、`-Oz`。
 
 `LTO` 优化支持两种编译模式：
 
@@ -548,11 +549,11 @@ cjc --scan-dependency pkgA.cjo
 
 ### `--lto-staticlib-format=[native|bitcode]`
 
-该选项用于指定 LTO 模式下静态库编译的输出产物格式。
+该选项用于指定 LTO 模式下编译的静态库产物格式。
 
-平台限制：目前仅适用于 iOS 开发场景
-
-前置要求：需与 `--experimental` 、`--lto` 选项配合使用
+**注意：**
+1. 目前仅适用于 `iOS` 开发场景
+2. 需与 `--experimental` 、`--lto` 选项配合使用
 
 | 取值        | 输出格式                 | 行为说明                                                                      |
 | :-------- | :------------------- | :------------------------------------------------------------------------ |
@@ -572,7 +573,7 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 
 ### `--lto-keep-pkg-visibility=<value>`
 
-指定 LTO 模式下保持符号可见性的包名。未指定的包符号将被隐藏，LLVM 可据此执行更激进的无用代码删除。
+指定 LTO 模式下保持全局符号导出可见性的包名，未指定包中的全局符号的可见性（visibility）将被降级为隐藏（hidden）：这些符号仍可被本次编译中参与 LTO 的任意代码引用，但不再从最终的链接产物中导出，因此 LTO 可对其进行更激进的无用代码删除。该选项只影响参与 LTO 优化的包，以现成静态库、动态库形式链接的库不受该选项影响。此选项常用于配合 LTO 缩减代码体积，并避免内部实现符号泄漏到链接产物之外。
 
 **参数说明：**
 
@@ -585,7 +586,7 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 > - 仅在开启 `--lto` 时有效，否则将报错。
 > - 不能与 `--compile-as-exe` 同时使用，否则将报错。
 > - `Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库有效。
-> - `iOS` 平台中编译静态库、动态库和可执行程序时有效，且`--lto=thin` 场景下可能部分符号未被隐藏。
+> - `iOS`平台在 `--lto=thin` 场景下生成的原生静态库中，被降级符号在归档符号表中为 `private external`，有别于 `external`，不会出现在后续链接产物的导出符号表中。
 
 **使用示例：**
 
@@ -615,6 +616,7 @@ public func foo() {
 ```
 
 ```shell
+# 以linux环境为例
 # 编译 LTO bitcode 文件
 $ cjc lib2.cj --lto=full --output-type=staticlib -o lib2.bc
 # 保持 lib1 包的符号可见性，隐藏 lib2 包内符号
