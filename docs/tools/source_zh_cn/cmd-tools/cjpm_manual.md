@@ -164,7 +164,7 @@ Error: can not find the following dependencies
     pro2.zoo (imported by: package_c)
 ```
 
-缺失依赖包名及其直接导入方包名均按字典序输出，保证诊断信息稳定。
+输出说明：缺失依赖包名，以及发起导入的包名，均按字典序输出，保证诊断信息稳定。
 
 ### update
 
