@@ -1,0 +1,1 @@
+- [Cangjie Release Notes](cangjie_1.2_release_notes.md)
