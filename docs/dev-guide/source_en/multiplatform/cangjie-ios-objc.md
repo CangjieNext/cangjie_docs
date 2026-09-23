@@ -601,7 +601,6 @@ Constructors and member functions of interop classes:
 * Non-`private` member properties may only have the Objective-C-mapped types
   listed above.
 
-
 * Generic Objective-C types are erased; mirror types have upper bounds in place
   of the respective type parameters.
 
@@ -877,7 +876,7 @@ sources, invoking it with the `-fobjc-arc` option.
 
 Declarations marked with the `unavailable` attribute are ignored.
 
-Global, file-level function and variable declarations are also ignored.
+Global, file-level variable declarations are also ignored.
 
 The order of declarations in the output Cangjie source code is the same
 as the order of the respective definitions in the input Objective-C source
@@ -1099,11 +1098,6 @@ The Cangjie language does not support C union types.
 Unions are mirrored into structs with sequential fields and a warning is issued.
 
 
-### `id`
-
-The type `id` is mirrored into a built-in mirror interface `ObjCId`.
-
-
 ### Classes and Protocols
 
 Objective-C classes and protocols are mirrored respectively into Cangjie
@@ -1114,9 +1108,9 @@ implement/inherit the built-in `ObjCId` mirror interface
 **Methods** (except `init`-methods, see below) are mirrored into `public open`
 member functions with the respective mirror types substituted for parameter
 types and return value type. Mirrors of `void` methods have the `Unit` return
-type. `instancetype` is mirrored into the name of the current declaration.
-Mirrors of class methods (those with the "`+`" prefix) are modified
-with `static`.
+type. `instancetype` is mirrored into the name of the class/protocol declaration
+that contains the methods. Mirrors of class methods (those with the "`+`"
+prefix) are modified with `static`.
 
 `init`-methods are a special case. They are mirrored into constructors,
 as described in [Classes](#classes).
@@ -1293,6 +1287,11 @@ are mirrored into Cangjie constructors, with three limitations:
   other mirrored methods.
   See [Classes and Protocols](#classes-and-protocols) for details.
 
+  **NOTE:** The return types of `@ObjCInit` member functions are _not_
+  [wrapped in `Option<T>`](#nil-handling). If an `init` method called from such
+  a function returns `nil`, the exception `objc.lang.ObjCInitException` gets
+  thrown (see below).
+
 * In Objective-C, `init` methods are inherited just like any other methods,
   whereas constructors in Cangjie are not inherited. The constructors that
   mirror the `init` methods of superclasses are therefore unavailable at the
@@ -1314,14 +1313,16 @@ are mirrored into Cangjie constructors, with three limitations:
   factories.) The use of `instancetype` ensures that the returned object
   at least belongs to the right class, but does not preclude the return
   of a `nil` value. In fact, returning `nil` from an `init` method is the
-  recommended way of signaling to the caller that the object could not be
-  initialized for a reason that does not warrant raising an exception.
+  recommended Objective-C way of signaling to the caller that the object could
+  not be initialized for a reason that does _not_ warrant raising an exception,
+  whereas in Cangjie the normal way of signaling a new instance initialization
+  failure _is_ throwing an exception from a constructor. Therefore, if an `init`
+  method called from Cangjie returns `nil`, `objc.lang.ObjCInitException` gets
+  thrown.
 
-  The current implementation expects `init` methods to return instances
-  of suitable classes and does not validate the returned value.
-  **WARNING: If an `init` method called from Cangjie returns `nil` or a pointer
-  to an instance of a class that is not (a subclass of) the receiver class,
-  the behavior is undefined.**
+  **WARNING: If an `init` method called from Cangjie returns a pointer to an
+  instance of a class that is not (a subclass of) the receiver class, the
+  behavior is undefined.**
 
 **Instance variables** are mirrored into instance member variables of the
 respective mirror types. There are no class variables in Objective-C.
@@ -1436,6 +1437,34 @@ the mirror type for `T`.
 
 
 
+#### Pointers to Class Instances
+
+Pointers to Objective-C class instances are mirrored as follows:
+
+* Pointers to class instances (`SomeClass*`) are mirrored into the
+  respective mirror class types.
+
+* The Objective-C type `id` is mirrored into a built-in mirror interface `ObjCId`.
+
+* The mirror of the Objective-C type `id` narrowed with a single protocol
+  (for example, `id<NSCopying>`), is the mirror interface for that protocol.
+
+* `id` narrowed with several protocols, e.g. `id<NSCopying, NSSecureCoding>`,
+  is mirrored into the built-in type `ObjCId` (an interface that all
+  `@ObjCMirror` classes and interfaces respectively implement and inherit),
+  with the actual protocol list specified in a comment.
+
+* If a generic type parameter is used inside a generic template
+  with a narrowing protocol specified, it is mirrored into a reference to that
+  protocol, with the name of the type parameter specified in a comment.
+
+When used as the type of a parameter, return value, member property or member
+variable, such mirror type additionally gets wrapped in `Option<T>`, _unless_
+the said entity is annotated an non-nullable. That wrapping enables the safe
+passage of `nil` values between Objective-C and Cangjie.
+See [`nil` Handling](#nil-handling) for details.
+
+
 #### Pointers to Functions
 
 Pointers to C functions are mirrored into a built-in type `ObjCFunc<F>`, where
@@ -1507,32 +1536,6 @@ let x = halve.call(2.0)    // x == 1.0d
 ```
 
 and passed over to mirrored Objective-C methods and functions as an argument.
-
-
-#### Pointers to Class Instances
-
-Pointers to Objective-C class instances are mirrored as follows:
-
-* Pointers to class instances (`SomeClass*`) are mirrored into the
-  respective mirror class types.
-
-* The mirror of the Objective-C type `id` narrowed with a single protocol
-  (for example, `id<NSCopying>`), is the mirror interface for that protocol.
-
-* `id` narrowed with several protocols, e.g. `id<NSCopying, NSSecureCoding>`,
-  is mirrored into the built-in type `ObjCId` (an interface that all
-  `@ObjCMirror` classes and interfaces respectively implement and inherit),
-  with the actual protocol list specified in a comment.
-
-* If a generic type parameter is used inside a generic template
-  with a narrowing protocol specified, it is mirrored into a reference to that
-  protocol, with the name of the type parameter specified in a comment.
-
-When used as the type of a parameter, return value, or member variable, such
-mirror type additionally gets wrapped in `Option<T>`, _unless_ the said entity
-is annotated an non-nullable. That enables the safe passage of `nil` values
-between Objective-C and Cangjie.
-See [`nil` Handling](#nil-handling) for details.
 
 
 #### Pointers to Pointers
@@ -1717,8 +1720,8 @@ public open class MyContainer <: NSObject {
 //       .  .  .
     public open func addItemWithUuid(item: ?MyItem, uuid: ?NSString): Unit
     public open func itemWithUuid(uuid: ?NSString): ?MyItem
-    public open func uuidForItem(item: ?MyItem): ?NSString
-    public open mut prop allItems: ?NSArray/*<MyItem>*/
+    public open func uuidForItem:(item: ?MyItem): ?NSString
+    public open mut prop allItems ?NSArray/*<MyItem>*/
 }
 ```
 
