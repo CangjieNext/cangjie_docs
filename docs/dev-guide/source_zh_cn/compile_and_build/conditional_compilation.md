@@ -4,7 +4,7 @@
 
 ## 导入和声明的条件编译
 
-仓颉内置编译标记 `@When` 用于实现条件编译，该编译标记参数为编译条件。`@When` 仅允许修饰 import 节点和除 package 声明外的其他所有声明类节点。
+仓颉内置编译标记 `@When` 用于实现条件编译，该编译标记参数为编译条件。`@When` 仅允许修饰 import 节点和除 package 声明外的其他所有声明类节点（包括函数体内的局部声明，如局部函数），不能修饰语句块。
 
 ### 使用方法
 
@@ -48,6 +48,26 @@ main(): Int64 {
     @When[os == "Linux"] // Error, unexpected when conditional compilation directive
     class A {}
     ```
+
+- `@When` 不能修饰语句块。事实上，仓颉不支持单独的语句块，不带 `@When` 的裸代码块同样无法通过编译，此时会报 `expected declaration` 相关的错误。如果需要按条件执行函数体内的若干条语句，推荐使用局部函数配合 `@When` 互斥实现的写法（各局部函数的函数体即为该条件下要执行的语句），例如：
+
+    <!-- run -->
+
+    ```cangjie
+    main() {
+        @When[os == "Linux"]
+        func impl(): Unit {
+            println("Linux")
+        }
+        @When[os != "Linux"]
+        func impl(): Unit {
+            println("NOT Linux")
+        }
+        impl()
+    }
+    ```
+
+    如果 cjc 编译目标平台为 Linux，实际运行时将打印 `Linux`；如果编译目标平台为其他系统，则实际运行时将打印 `NOT Linux`。
 
 ## 内置编译条件变量
 

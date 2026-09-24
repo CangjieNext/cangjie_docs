@@ -4,7 +4,7 @@ Developers can achieve conditional compilation through predefined or custom cond
 
 ## Conditional Compilation for Imports and Declarations
 
-Cangjie supports using the built-in compilation marker `@When` for conditional compilation. Compilation conditions are enclosed in `[]`, which can contain one or multiple sets of conditions. `@When` can be applied to import nodes and declaration nodes (except `package`).
+Cangjie supports using the built-in compilation marker `@When` for conditional compilation. Compilation conditions are enclosed in `[]`, which can contain one or multiple sets of conditions. `@When` can be applied to import nodes and declaration nodes (except `package`), including local declarations inside function bodies (such as local functions), but not to statement blocks.
 
 ### Usage Example
 
@@ -44,6 +44,26 @@ Important notes:
     @When[os == "Linux"] // Error, unexpected when conditional compilation directive
     class A {}
     ```
+
+- `@When` cannot be applied to statement blocks. In fact, Cangjie does not support standalone statement blocks — a bare code block without `@When` also fails to compile, reporting an `expected declaration` error. If you need to conditionally execute several statements inside a function body, the recommended approach is to wrap them in local functions with mutually exclusive `@When` conditions (the body of each local function contains the statements to be executed under that condition), for example:
+
+    <!-- run -->
+
+    ```cangjie
+    main() {
+        @When[os == "Linux"]
+        func impl(): Unit {
+            println("Linux")
+        }
+        @When[os != "Linux"]
+        func impl(): Unit {
+            println("NOT Linux")
+        }
+        impl()
+    }
+    ```
+
+    If the compilation target platform of cjc is Linux, the program prints `Linux` at runtime; if the target platform is any other system, the program prints `NOT Linux`.
 
 ## Built-in Conditional Variables
 
