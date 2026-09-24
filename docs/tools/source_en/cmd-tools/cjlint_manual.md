@@ -17,8 +17,8 @@ Options:
    -f <value>              Detected file directory (absolute or relative paths). If a directory is specified, the default output filename is cjReport
                                eg: ./cjlint -f fileDir -c . -m .
                                eg: ./cjlint -f "fileDir1 fileDir2" -c . -m .
-   -e <v1:v2:...>          Excluded files, directories, or configurations (separated by ':'). Supports regular expressions
-                               eg: ./cjlint -f fileDir -e fileDir/a/:fileDir/b/*.cj
+   -e <v1 v2 ...>          Excluded files, directories, or configurations relative to -f; separate paths with spaces
+                               eg: ./cjlint -f fileDir -e "fileDir/a/ fileDir/b/example.cj"
    -o <value>              Output file path (absolute or relative)
                                eg: ./cjlint -f fileDir -o ./out
    -r [csv|json]           Report file format (csv or json, default: json)
@@ -217,30 +217,46 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 
 1. `cjlint` supports file-level suppression via the `-e` option.
 
-    Specify exclusion patterns (relative to `-f` source directory, supports regex) within quotes, separated by spaces. Example: This command excludes all `.cj` files under `src/dir1/`, `src/dir2/a.cj`, and files matching `test*.cj` in `src/`.
+    Specify exclusion paths (relative to the `-f` source directory) within quotes, separated by spaces. Example: This command excludes all `.cj` files under `src/dir1/` and `src/dir2/a.cj`.
 
     ```bash
-    cjlint -f src/ -e "dir1/ dir2/a.cj test*.cj"
+    cjlint -f src/ -e "dir1/ dir2/a.cj"
+    ```
+
+    `-e` supports the following path-matching forms. Paths are matched relative to the source directory specified by `-f`. Paths specified directly with `-e` and paths read from `.cfg` configuration files use the same matching rules.
+
+    - `*`: matches any characters at the current path level, but does not cross `/`, for example, `test*.cj`.
+    - `**`: matches directories at any depth and can cross `/`, for example, `src/**/*.cj`.
+    - `?`: matches one character at the current path level, for example, `test?.cj`.
+    - Trailing `/`: matches the entire directory and its files, for example, `subdir/`.
+    - A filename rule without `/`: matches files with the same name at any depth below the base directory, for example, `a.cj`.
+    - Leading `!`: specifies an include rule that overrides a preceding exclusion rule, for example, `!subdir/`.
+
+    For example, the following command uses several matching forms:
+
+    ```bash
+    cjlint -f . -e "test*.cj src/**/*.cj subdir/ !subdir/keep.cj"
     ```
 
 2. `cjlint` supports batch exclusions via `.cfg` configuration files.
 
-    Use `-e` to specify `.cfg` files (separated by spaces). Example: This command excludes files matching patterns in `src/exclude_config_1.cfg` and `src/dir2/exclude_config_2.cfg`, plus `src/dir1/`.
+    Use `-e` to specify `.cfg` files (separated by spaces). Example: This command excludes files listed in `src/exclude_config_1.cfg` and `src/dir2/exclude_config_2.cfg`, plus `src/dir1/`.
 
     ```bash
     cjlint -f src/ -e "dir1/ exclude_config_1.cfg dir2/exclude_config_2.cfg"
     ```
 
-    `.cfg` files contain one pattern per line (relative to the config file's directory, supports regex). Example: If `src/dir2/exclude_config_2.cfg` contains these lines, the above command would exclude `src/dir2/subdir1/` and `src/dir2/subdir2/a.cj`.
+    `.cfg` files contain one exclusion path per line (relative to the config file's directory) and use the same path-matching rules as `-e`. Example: If `src/dir2/exclude_config_2.cfg` contains these lines, the above command would exclude files under `src/dir2/subdir1/` and files matching `*.cj` under `src/dir2/subdir2/`, while keeping `src/dir2/subdir2/keep.cj`.
 
     ```text
     subdir1/
-    subdir2/a.cj
+    subdir2/*.cj
+    !subdir2/keep.cj
     ```
 
 3. `cjlint` supports default configuration file for exclusions.
 
-    The default exclusion config file is `cjlint_file_exclude.cfg` in the `-f` source directory. Example: When `src/cjlint_file_exclude.cfg` exists, `cjlint -f src/` will apply its exclusion patterns. If other valid `.cfg` files are specified via `-e`, the default file is ignored.
+    The default exclusion config file is `cjlint_file_exclude.cfg` in the `-f` source directory. Example: When `src/cjlint_file_exclude.cfg` exists, `cjlint -f src/` will apply its exclusion paths. If other valid `.cfg` files are specified via `-e`, the default file is ignored.
 
 ## Supported Rules (Continuously Updated)
 

@@ -17,8 +17,8 @@ Options:
    -f <value>              Detected file directory, it can be absolute paths or relative paths, if it is directory, default file name is cjReport
                                eg: ./cjlint -f fileDir -c . -m .
                                eg: ./cjlint -f "fileDir1 fileDir2" -c . -m .
-   -e <v1:v2:...>          Excluded files, directories or configurations, splitted by ':'. Regular expressions are supported
-                               eg: ./cjlint -f fileDir -e fileDir/a/:fileDir/b/*.cj
+   -e <v1 v2 ...>          Excluded files, directories or configurations relative to -f; separate paths with spaces
+                               eg: ./cjlint -f fileDir -e "fileDir/a/ fileDir/b/example.cj"
    -o <value>              Output file path, it can be absolute path or relative path
                                eg: ./cjlint -f fileDir -o ./out
    -r [csv|json]           Report file format, it can be csv or json, default is json
@@ -233,30 +233,46 @@ func foo(a: Int64, b: Int64, c: Int64, d: Int64) {
 
 1. `cjlint` 可以通过 `-e` 选项支持文件级别的告警屏蔽。
 
-    通过在 `-e` 后添加屏蔽规则，即可将规则匹配的仓颉文件屏蔽，不会产生关于这些文件的告警。输入的规则为相对 `-f` 源码目录的相对路径（支持正则），输入字符串需要用双引号包含，多条屏蔽规则用空格分隔。例如，下面这条命令屏蔽了 `src/dir1/` 目录内的所有仓颉文件， `src/dir2/a.cj` 文件和 `src/` 目录下所有形如 `test*.cj` 的仓颉文件。
+    通过在 `-e` 后添加屏蔽路径，即可屏蔽指定路径对应的仓颉文件，不会产生关于这些文件的告警。输入的路径为相对 `-f` 源码目录的相对路径，输入字符串需要用双引号包含，多条屏蔽路径用空格分隔。例如，下面这条命令屏蔽了 `src/dir1/` 目录内的所有仓颉文件以及 `src/dir2/a.cj` 文件。
 
     ```bash
-    cjlint -f src/ -e "dir1/ dir2/a.cj test*.cj"
+    cjlint -f src/ -e "dir1/ dir2/a.cj"
     ```
 
-2. `cjlint` 可以通过后缀为 `.cfg` 的配置文件批量导入屏蔽规则。
+    `-e` 支持以下路径匹配形式，路径均相对于 `-f` 指定的源码目录。直接通过 `-e` 指定的路径，以及从 `.cfg` 配置文件中读取的路径，均使用相同的匹配规则。
 
-    通过 `-e` 选项导入配置文件，与其他屏蔽规则或配置文件用空格分隔。例如，下面这条命令屏蔽了 `src/dir1` 目录和 `src/exclude_config_1.cfg`、`src/dir2/exclude_config_2.cfg` 内配置的所有屏蔽规则对应的文件。
+    - `*`：匹配当前路径层级中的任意字符，但不跨越 `/`，例如 `test*.cj`。
+    - `**`：匹配任意层级的目录，可以跨越 `/`，例如 `src/**/*.cj`。
+    - `?`：匹配当前路径层级中的一个字符，例如 `test?.cj`。
+    - 以 `/` 结尾：匹配整个目录及其下的文件，例如 `subdir/`。
+    - 不包含 `/` 的文件名规则：可以匹配其下任意层级的同名文件，例如 `a.cj`。
+    - 以 `!` 开头：表示包含规则，用于覆盖前面的排除规则，例如 `!subdir/`。
+
+    例如，下面的命令使用多种匹配形式：
+
+    ```bash
+    cjlint -f . -e "test*.cj src/**/*.cj subdir/ !subdir/keep.cj"
+    ```
+
+2. `cjlint` 可以通过后缀为 `.cfg` 的配置文件批量导入屏蔽路径。
+
+    通过 `-e` 选项导入配置文件，与其他屏蔽路径或配置文件用空格分隔。例如，下面这条命令屏蔽了 `src/dir1` 目录和 `src/exclude_config_1.cfg`、`src/dir2/exclude_config_2.cfg` 内配置的所有屏蔽路径对应的文件。
 
     ```bash
     cjlint -f src/ -e "dir1/ exclude_config_1.cfg dir2/exclude_config_2.cfg"
     ```
 
-    `.cfg` 配置文件中可以配置多条屏蔽规则，每行均为一条屏蔽规则，屏蔽规则为相对该配置文件所在目录的相对路径（支持正则），无需双引号包含。例如在 `src/dir2/exclude_config_2.cfg` 中有以下配置，则上述的命令会将 `src/dir2/subdir1/` 目录和 `src/dir2/subdir2/a.cj` 文件加入屏蔽。
+    `.cfg` 配置文件中可以配置多条屏蔽路径，每行均为一条屏蔽路径，屏蔽路径为相对该配置文件所在目录的相对路径，无需双引号包含，并使用与 `-e` 相同的路径匹配规则。例如在 `src/dir2/exclude_config_2.cfg` 中有以下配置，则上述的命令会屏蔽 `src/dir2/subdir1/` 目录下的文件、`src/dir2/subdir2/` 目录下匹配 `*.cj` 的文件，但保留 `src/dir2/subdir2/keep.cj`。
 
     ```text
     subdir1/
-    subdir2/a.cj
+    subdir2/*.cj
+    !subdir2/keep.cj
     ```
 
-3. `cjlint` 可以通过默认配置文件批量导入屏蔽规则。
+3. `cjlint` 可以通过默认配置文件批量导入屏蔽路径。
 
-    `cjlint` 屏蔽功能的默认配置文件名为 `cjlint_file_exclude.cfg`，位置在 `-f` 源码目录下。例如，当 `src/` 目录下存在 `src/cjlint_file_exclude.cfg` 这一配置文件时，`cjlint -f src/` 命令会屏蔽 `src/cjlint_file_exclude.cfg` 内配置的屏蔽规则对应的文件。如果开发者已经在 `-e` 选项中配置了其他有效的 `.cfg` 配置文件，则 `cjlint` 不会检查默认配置文件。
+    `cjlint` 屏蔽功能的默认配置文件名为 `cjlint_file_exclude.cfg`，位置在 `-f` 源码目录下。例如，当 `src/` 目录下存在 `src/cjlint_file_exclude.cfg` 这一配置文件时，`cjlint -f src/` 命令会屏蔽 `src/cjlint_file_exclude.cfg` 内配置的屏蔽路径对应的文件。如果开发者已经在 `-e` 选项中配置了其他有效的 `.cfg` 配置文件，则 `cjlint` 不会检查默认配置文件。
 
 ## 支持检查的规范列表（持续新增中）
 
