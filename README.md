@@ -40,6 +40,7 @@ This section explains the purpose of each branch in the cangjie_docs repository.
 
 ### Release and Supporting Branches
 
+- [release/1.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.2): Cangjie 1.2 STS release branch. Click [here](https://atomgit.com/Cangjie/cangjie_docs/blob/release%2F1.2/release-notes/cangjie_1.2_release_notes.md) for version details.
 - [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.1): Cangjie 1.1.0 STS release branch. Click [here](https://atomgit.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md) for version details.
 - [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.0): Cangjie 1.0.x LTS release branch. Click [here](https://atomgit.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md) for version details.
 

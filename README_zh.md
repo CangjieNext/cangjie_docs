@@ -40,6 +40,7 @@
 
 ### 版本发布与配套分支
 
+- [release/1.2](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.2)：Cangjie 1.2 STS 版本发布分支。单击[此处](https://atomgit.com/Cangjie/cangjie_docs/blob/release%2F1.2/release-notes/cangjie_1.2_release_notes.md)了解版本详情。
 - [release/1.1](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.1)：Cangjie 1.1.0 STS 版本发布分支。单击[此处](https://atomgit.com/Cangjie/cangjie_docs/blob/release/1.1/release-notes/cangjie-1.1.0-release-notes.md)了解版本详情。
 - [release/1.0](https://atomgit.com/Cangjie/cangjie_docs/tree/release/1.0)：Cangjie 1.0.x LTS 版本发布分支。单击[此处](https://atomgit.com/Cangjie/cangjie_docs/blob/release/1.0/release-notes/cangjie-1.0.5-release-notes.md)了解版本详情。
 
