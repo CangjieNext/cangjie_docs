@@ -21,7 +21,7 @@ Clearly, `dprint` cannot be implemented as a regular function because functions 
 <!-- cfg="--compile-macro" -->
 
 ```cangjie
-macro package define
+macro package demo.define
 
 import std.ast.*
 
@@ -39,7 +39,7 @@ Before explaining each line, let's verify this macro achieves the desired effect
 <!-- verify -macro12 -->
 
 ```cangjie
-import define.*
+import demo.define.*
 
 main() {
     let x = 3
@@ -77,9 +77,9 @@ x + y = 5
 
 Now let's examine each part of the code:
 
-- Line 1: `macro package define`
+- Line 1: `macro package demo.define`
 
-  Macros must be declared in separate packages (they cannot coexist with other public functions). Packages containing macros are declared using `macro package`. Here we declare a macro package named `define`.
+  Macros must be declared in separate packages (they cannot coexist with other public functions). Packages containing macros are declared using `macro package`. Here we declare a macro package named `demo.define`.
 
 - Line 2: `import std.ast.*`
 

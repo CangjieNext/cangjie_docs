@@ -21,7 +21,7 @@ let y = 2
 <!-- cfg="--compile-macro" -->
 
 ```cangjie
-macro package define
+macro package demo.define
 
 import std.ast.*
 
@@ -39,7 +39,7 @@ public macro dprint(input: Tokens): Tokens {
 <!-- verify -macro12 -->
 
 ```cangjie
-import define.*
+import demo.define.*
 
 main() {
     let x = 3
@@ -77,9 +77,9 @@ x + y = 5
 
 依次查看代码的每个部分：
 
-- 第 1 行：`macro package define`
+- 第 1 行：`macro package demo.define`
 
-  宏必须声明在独立的包中（不能和其他 public 函数一起），含有宏的包使用 `macro package` 来声明。这里声明了一个名为 `define` 的宏包。
+  宏必须声明在独立的包中（不能和其他 public 函数一起），含有宏的包使用 `macro package` 来声明。这里声明了一个名为 `demo.define` 的宏包。
 
 - 第 2 行：`import std.ast.*`
 
