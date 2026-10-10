@@ -48,6 +48,29 @@ main() {
 
 运行上面的代码，在命令行上输入一些文字，然后换行结束，即可看到输入的内容。
 
+按字节读取标准输入时，可以调用 `read(buffer)`，并根据返回值处理本次读取的有效数据。单次调用不保证填满 `buffer`。例如，标准输入来自管道时，即使写端尚未关闭，读取也可能在数组未填满时返回。没有数据可读且未到达流末尾时，读取仍可能阻塞等待；终端输入还受行缓冲等设置的影响。
+
+标准输入按字节读取示例：
+
+<!-- compile -->
+
+```cangjie
+import std.env.getStdIn
+
+main() {
+    let consoleReader = getStdIn()
+    let buffer = Array<Byte>(256, repeat: 0)
+    let readSize = consoleReader.read(buffer)
+    // 只处理本次实际读取的字节，不假定整个数组都已填满。
+    println("读取到的字节数：${readSize}")
+    if (readSize > 0) {
+        println(buffer.slice(0, readSize))
+    }
+}
+```
+
+上面的示例输出实际读取的字节数，并在读到数据时输出对应的字节数组。若需要读满数组，应循环调用 `read`，将后续数据读入数组中尚未填充的部分，并累计实际读取的字节数。若在读满前返回 `0`，应停止循环并处理未读满的情况。
+
 输出流分为标准输出流和标准错误流，默认情况下，它们都会输出到屏幕，例如在命令行界面中看到的文本。
 
 当需要往标准输出流中写入数据时，可以通过 `getStdOut`/`getStdErr` 全局函数获取 `ConsoleWriter` 来写入，例如通过 `write` 函数来向控制台打印内容。

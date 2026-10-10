@@ -25,6 +25,8 @@ A program reads data sources (including external devices like keyboards, files, 
 
 The Cangjie programming language uses the `InputStream` interface type to represent an input stream. It provides a `read` function, which writes readable data into a `buffer` and returns the total number of bytes read in that operation.
 
+A single `read` call does not guarantee that `buffer` is filled. The caller should save the actual number of bytes read, `n`, and process only the first `n` bytes in `buffer`. To read more data, call `read` again.
+
 Definition of the InputStream interface:
 
 <!-- run -->
@@ -39,14 +41,21 @@ When an input stream is available, byte data can be read as shown in the followi
 
 Example of reading from an input stream:
 
+<!-- run -->
+
 ```cangjie
 import std.io.InputStream
+import std.io.ByteBuffer
 
 main() {
-    let input: InputStream = ...
+    let input: InputStream = ByteBuffer("Hello World".toArray())
     let buf = Array<Byte>(256, repeat: 0)
-    while (input.read(buf) > 0) {
-        println(buf)
+    while (true) {
+        let readSize = input.read(buf)
+        if (readSize == 0) {
+            break
+        }
+        println(buf.slice(0, readSize))
     }
 }
 ```

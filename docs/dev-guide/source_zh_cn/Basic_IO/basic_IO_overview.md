@@ -25,6 +25,8 @@ Stream 主要面向处理原始二进制数据，Stream 中最小的数据单元
 
 仓颉编程语言用 `InputStream` 接口类型来表示输入流，它提供了 `read` 函数，这个函数会将可读的数据写入到 `buffer` 中，返回值表示了该次读取的字节总数。
 
+单次 `read` 调用不保证填满 `buffer`。调用方应保存返回的实际读取字节数 `n`，只处理 `buffer` 中前 `n` 个字节；需要读取更多数据时，可以继续调用 `read`。
+
 InputStream 接口定义：
 
 <!-- run -->
@@ -48,8 +50,12 @@ import std.io.ByteBuffer
 main() {
     let input: InputStream = ByteBuffer("Hello World".toArray())
     let buf = Array<Byte>(256, repeat: 0)
-    while (input.read(buf) > 0) {
-        println(String.fromUtf8(buf))
+    while (true) {
+        let readSize = input.read(buf)
+        if (readSize == 0) {
+            break
+        }
+        println(buf.slice(0, readSize))
     }
 }
 ```

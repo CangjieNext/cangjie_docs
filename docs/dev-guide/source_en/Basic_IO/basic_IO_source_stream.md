@@ -48,6 +48,29 @@ main() {
 
 Run the above code, enter some text in the command line, and then press Enter to see the input content.
 
+To read bytes from standard input, call `read(buffer)` and use the return value to process the data read by that call. A single call does not guarantee that `buffer` is filled. For example, when standard input comes from a pipe, a read may return before the array is full even if the write end remains open. Reading may still block when no data is available and the end of the stream has not been reached. Terminal input also depends on settings such as line buffering.
+
+Example of reading bytes from standard input:
+
+<!-- compile -->
+
+```cangjie
+import std.env.getStdIn
+
+main() {
+    let consoleReader = getStdIn()
+    let buffer = Array<Byte>(256, repeat: 0)
+    let readSize = consoleReader.read(buffer)
+    // Process only the bytes read by this call; do not assume the array is full.
+    println("Bytes read: ${readSize}")
+    if (readSize > 0) {
+        println(buffer.slice(0, readSize))
+    }
+}
+```
+
+The example prints the actual number of bytes read and, when data is read, the corresponding byte array. To fill the array, repeatedly read into its unfilled portion and accumulate the byte counts. If a call returns `0` before the array is full, stop the loop and handle the incomplete read.
+
 The output stream is divided into standard output stream and standard error stream. By default, both output to the screen, such as the text seen in the command-line interface.
 
 When data needs to be written to the standard output stream, the `ConsoleWriter` can be obtained via the `getStdOut`/`getStdErr` global functions to write data, such as using the `write` function to print content to the console.
