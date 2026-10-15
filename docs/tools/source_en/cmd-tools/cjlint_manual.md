@@ -272,7 +272,7 @@ Default enabled rules:
 - G.DCL.01 Avoid variable shadowing.
 - G.DCL.02 Explicitly declare types for public variables and function returns.
 - G.FUN.01 Functions should have single responsibility.
-- G.FUN.02 Functions must not have unused parameters.
+- G.FUN.02 Functions and lambdas must not have unused parameters. A local variable with the same name is not considered to be a use of the function or lambda parameter.
 - G.FUN.03 Avoid overloading unrelated functions with the same name.
 - G.CLS.01 Don't increase visibility when overriding methods.
 - G.ITF.02 Prefer implementing interfaces at type definition rather than via extension.
