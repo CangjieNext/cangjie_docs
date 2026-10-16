@@ -671,6 +671,8 @@ The `<value>` parameter is generally a string in the following format: `<arch>(-
 - `<os>` represents the operating system of the target platform, e.g., `Linux`, `Win32`, etc.
 - `<env>` represents the ABI or standard specification of the target platform, used to distinguish different runtime environments of the same OS, e.g., `gnu`, `musl`. If the OS does not require finer distinctions based on `<env>`, this can also be omitted.
 
+The `<vendor>` segment can be omitted or written as `unknown` when it causes no ambiguity, so some target triple names have multiple equivalent spellings (synonyms); for example, `x86_64-linux-gnu` and `x86_64-unknown-linux-gnu`, or `x86_64-windows-gnu` and `x86_64-w64-mingw32`, refer to the same compilation target. For all compilation target triple names supported by `cjc` and their aliases, see "Supported Compilation Targets and Target Triple Names" in [Cross-Compilation](../compile_and_build/cross_compilation.md).
+
 Currently, `cjc` supports the following host and target platforms for cross-compilation:
 
 | Host Platform       | Target Platform          | Supported Packages |

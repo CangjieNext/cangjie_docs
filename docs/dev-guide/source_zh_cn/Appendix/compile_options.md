@@ -658,6 +658,8 @@ $ cjc test.cj --pgo-instr-use=default.profdata -o testOptimized
 - `<os>` 表示目标平台的操作系统，例如 `Linux`，`Win32` 等；
 - `<env>` 表示目标平台的 ABI 或标准规范，用于更细粒度地区分同一操作系统的不同运行环境，例如 `gnu`，`musl` 等。在操作系统不需要根据 `<env>` 进行更细地区分的时候，此项也可以省略。
 
+`<vendor>` 段在不引起歧义时可以省略或写作 `unknown`，因此部分目标三元组名称存在多种等价写法（同义名称），例如 `x86_64-linux-gnu` 与 `x86_64-unknown-linux-gnu`、`x86_64-windows-gnu` 与 `x86_64-w64-mingw32` 均指向同一编译目标。`cjc` 支持的全部编译目标三元组名称及其别名，参见[交叉编译](../compile_and_build/cross_compilation.md)中的「支持的编译目标和目标三元组名称」。
+
 目前，`cjc` 已支持交叉编译的本地平台和目标平台如下表所示：
 
 | 本地平台 (host)    | 目标平台 (target)   | 支持的软件包 |
