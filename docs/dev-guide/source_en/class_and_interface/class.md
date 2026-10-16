@@ -324,6 +324,8 @@ There are some restrictions on using finalizers that developers should note:
         return 0
     }
     ```
+13. The `this` variable cannot escape out of a finalizer.
+14. Invoking instance methods in a finalizer is forbidden.
 
 ### Class Member Functions
 
