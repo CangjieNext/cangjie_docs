@@ -38,8 +38,6 @@ body:
       label: 分支版本信息 | Involved Branches
       description: 在哪些分支版本存在该缺陷？| In which branches does this defect exist?
       options:
-        - label: dev
-          required: false
         - label: main
           required: false
         - label: release/1.0
