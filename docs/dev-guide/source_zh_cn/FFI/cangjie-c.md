@@ -256,6 +256,8 @@ main() {
 
 `@CallingConv` 只能用于修饰 `foreign` 块、单个 `foreign` 函数和顶层作用域中的 `CFunc` 函数。当 `@CallingConv` 修饰 `foreign` 块时，会为 `foreign` 块中的每个函数分别加上相同的 `@CallingConv` 修饰。
 
+注意：截至 1.2.0，编译器尚不支持 `foreign` 块形式（编译报 `unexpected modifier 'foreign'` 错误），请使用单条 `foreign func` 声明的形式；后续版本对块形式的支持情况以对应版本的发布说明为准。
+
 ## 使用说明
 
 - 操作系统线程局部变量使用约束

@@ -250,6 +250,8 @@ main() {
 
 `@CallingConv` can only modify `foreign` blocks, individual `foreign` functions, and top-level `CFunc` functions. When modifying a `foreign` block, it applies the same convention to all functions within.
 
+Note: As of 1.2.0, compilers do not yet support the `foreign` block form (compilation fails with an `unexpected modifier 'foreign'` error); use individual `foreign func` declarations instead. For block-form support in later versions, refer to the corresponding release notes.
+
 ## Usage Guidelines
 
 - **OS Thread-Local Variable Constraints**
