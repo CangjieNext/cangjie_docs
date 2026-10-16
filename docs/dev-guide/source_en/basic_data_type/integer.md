@@ -116,6 +116,14 @@ main() {
     println("The type of r5 is 'Float64', and r5 = ${r5}")
     let r6 = Float32(f)
     println("The type of r6 is 'Float32', and r6 = ${r6}")
+
+    // Conversions involving unsigned integer types
+    let g: UInt8 = 200
+    let r7 = UInt16(g)
+    println("The type of r7 is 'UInt16', and r7 = ${r7}")
+    let h: UInt32 = 4096
+    let r8 = Int64(h)
+    println("The type of r8 is 'Int64', and r8 = ${r8}")
 }
 ```
 
@@ -128,12 +136,28 @@ The type of r3 is 'Float64', and r3 = 1024.000000
 The type of r4 is 'Int64', and r4 = 1024
 The type of r5 is 'Float64', and r5 = 1.000000
 The type of r6 is 'Float32', and r6 = 1.123457
+The type of r7 is 'UInt16', and r7 = 200
+The type of r8 is 'Int64', and r8 = 4096
 ```
 
 > **Note:**
 >
 > Overflow may occur during type conversion. If the overflow can be detected by the compiler in advance, the compiler will directly report an error. Otherwise, an exception will be thrown according to the default overflow policy.
 
+## Conversions Between `Float16` and Other Floating-Point Types
+
+The following example shows conversions between `Float16` and other floating-point types, also using `T(e)`:
+
+<!-- compile -->
+
+```cangjie
+main() {
+    let a: Float32 = 2.5
+    let b = Float16(a) // Float32 to Float16
+    let c = Float64(b) // Float16 to Float64
+    println(c)
+}
+```
 ## Conversion from `Rune` to `UInt32` and from Integer Types to `Rune`
 
 Conversion from `Rune` to `UInt32` uses the `UInt32(e)` syntax, where `e` is a `Rune`-type expression. The result of `UInt32(e)` is the `UInt32`-type integer value corresponding to the Unicode scalar value of `e`.
