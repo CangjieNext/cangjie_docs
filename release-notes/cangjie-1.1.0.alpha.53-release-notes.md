@@ -26,18 +26,18 @@
 * 互操作支持 ObjC 使用 Cangjie Open class 类型，详见[仓颉-ObjC 互操作](../docs/dev-guide/source_zh_cn/multiplatform/cangjie-ios-objc.md)。
 * 互操作支持 ObjC 使用 Cangjie 泛型类型，详见[仓颉-ObjC 互操作](../docs/dev-guide/source_zh_cn/multiplatform/cangjie-ios-objc.md)。
 * 支持 iOS x86_64 模拟器交叉编译能力，详见[`cjc` 编译选项](../docs/dev-guide/source_zh_cn/Appendix/compile_options.md) `--target` 编译选项的说明。
-* platform 声明函数返回类型支持为 common 的子类型，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* common/platform 有初始值的变量支持不显式指定类型，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* 当 common class/struct/enum 或 common extend 的所有成员函数都包含实现时，支持省略 platform 声明，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* 支持 common abstract class 匹配 platform sealed abstract class，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* platform 声明函数返回类型支持为 common 的子类型，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* common/platform 有初始值的变量支持不显式指定类型，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* 当 common class/struct/enum 或 common extend 的所有成员函数都包含实现时，支持省略 platform 声明，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* 支持 common abstract class 匹配 platform sealed abstract class，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
 
 ### 变更特性
 
-* common/platform 声明新增了注解一致性检查，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* common/platform 不支持修饰主构造函数，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* abstract platform class 不支持添加额外的抽象成员，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* common sealed class 的所有直接子类型必须在同一个 source set，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
-* 函数默认参数可在 common 或 platform 声明任一侧定义，详见[跨平台](docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* common/platform 声明新增了注解一致性检查，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* common/platform 不支持修饰主构造函数，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* abstract platform class 不支持添加额外的抽象成员，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* common sealed class 的所有直接子类型必须在同一个 source set，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
+* 函数默认参数可在 common 或 platform 声明任一侧定义，详见[跨平台](../docs/dev-guide/source_zh_cn/multiplatform/common_platform.md)。
 
 ### 修复问题
 
