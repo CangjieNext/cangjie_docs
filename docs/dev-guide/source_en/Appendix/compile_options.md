@@ -518,7 +518,7 @@ Enables and specifies the `LTO` (`Link Time Optimization`) compilation mode.
 >
 > - This feature is not supported on `Windows` or `macOS`.
 > - On `iOS`, this feature is an experimental option; enable it with `--experimental`, and enabling code obfuscation at the same time is not yet supported.
-> - Currently, only the `iOS` platform supports compiling static libraries (see the `--lto-staticlib-format` option).
+> - Currently, the `iOS` platform supports compiling both static and dynamic libraries (for the static library artifact format, see the `--lto-staticlib-format` option).
 > - In `LTO` mode, the following optimization compilation options cannot be used simultaneously: `-Os`, `-Oz`.
 
 `LTO` supports two compilation modes:
