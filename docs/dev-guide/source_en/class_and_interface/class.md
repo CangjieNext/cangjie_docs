@@ -325,6 +325,9 @@ There are some restrictions on using finalizers that developers should note:
     }
     ```
 
+13. The `this` variable cannot escape out of a finalizer.
+14. Invoking instance methods in a finalizer is forbidden.
+
 ### Class Member Functions
 
 Class member functions are similarly divided into instance member functions and static member functions (modified with the `static` modifier). Instance member functions can only be accessed through objects, while static member functions can only be accessed through the class type name. Static member functions cannot access instance member variables or call instance member functions, but instance member functions can access static member variables and call static member functions.
