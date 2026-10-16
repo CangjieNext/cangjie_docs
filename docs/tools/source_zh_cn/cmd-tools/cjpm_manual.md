@@ -102,7 +102,7 @@ Available options:
 
 `init` 有多个可配置项：
 
-- `--workspace` 新建一个工作空间配置文件，指定该选项时以上其它选项无效会自动忽略
+- `--workspace` 新建一个工作空间配置文件，指定该选项时以上其他选项无效会自动忽略
 - `--name <value>` 指定新建模块的 `root` 包名，不指定时默认为上一级子文件夹名称
 - `--path <value>` 指定新建模块的路径，不指定时默认为当前文件夹
 - `--type=<executable|static|dynamic>` 指定新建模块的产物类型，缺省时默认为 `executable`
@@ -612,7 +612,7 @@ cjpm run finished
 - `--show-all-output` 启用测试输出打印，包括通过的测试用例
 - `--no-capture-output` 禁用测试输出捕获，输出将在测试执行期间立即打印
 - `--report-path <value>` 指定测试执行后的报告生成路径
-- `--report-format <value>` 指定报告输出格式，当前单元测试报告仅支持 `xml` 和 `xml-per-package` 格式（可忽略大小写），使用其它值将会抛出异常
+- `--report-format <value>` 指定报告输出格式，当前单元测试报告仅支持 `xml` 和 `xml-per-package` 格式（可忽略大小写），使用其他值将会抛出异常
 - `--skip-script` 配置后，将会跳过构建脚本的编译运行
 - `--no-progress` 禁用进度报告。如果指定选项 `--dry-run`，则隐含选项 `--no-progress`
 - `--progress-brief` 显示简短（单行）进度报告而不是详细进度报告
@@ -1110,7 +1110,7 @@ link-option = "-z noexecstack -z relro -z now --strip-all"
 | "executable" | 可执行程序 |
 | "static" | 静态库 |
 | "dynamic" | 动态库 |
-| 其它 |  报错 |
+| 其他 |  报错 |
 
 ### src-dir
 
@@ -1378,7 +1378,7 @@ demo
 
 > **注意：**
 >
-> `package` 字段用于配置模块的通用信息，不允许和 `workspace` 字段出现在同一个 `cjpm.toml` 中，除 `package` 外的其它字段均可在工作空间中使用。
+> `package` 字段用于配置模块的通用信息，不允许和 `workspace` 字段出现在同一个 `cjpm.toml` 中，除 `package` 外的其他字段均可在工作空间中使用。
 
 工作空间目录举例：
 
@@ -1415,7 +1415,7 @@ abc = { path = "libs" }
 
 ### dependencies
 
-该字段通过源码方式导入依赖的其它仓颉模块，里面配置了当前构建所需要的其它模块的信息。目前，该字段支持本地路径依赖，远程 `git` 依赖和中心仓依赖。
+该字段通过源码方式导入依赖的其他仓颉模块，里面配置了当前构建所需要的其他模块的信息。目前，该字段支持本地路径依赖，远程 `git` 依赖和中心仓依赖。
 
 要指定本地依赖项，请使用 `path` 字段，并且它必须包含有效的本地路径。例如，下面的两个子模块 `pro0` 和 `pro1` 和主模块的代码结构如下：
 
@@ -1759,7 +1759,7 @@ PATH = { value = "/usr/bin", splice-type = "prepend" }
     - `random-seed` 用来指定随机种子的值，参数值类型为正整数
     - `no-color` 指定执行结果在控制台中是否无颜色显示，值为 `true` 或 `false`
     - `report-path` 指定测试执行后的报告生成路径（不能通过 `@Configure` 配置）
-    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 格式和 `xml-per-package`（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置），性能测试报告仅支持 `csv` 和 `csv-raw` 格式
+    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 格式和 `xml-per-package`（可忽略大小写），使用其他值将会抛出异常（不能通过 `@Configure` 配置），性能测试报告仅支持 `csv` 和 `csv-raw` 格式
     - `verbose` 指定显示编译过程详细信息，参数值类型为 `BOOL`，即值可为 `true` 或 `false`
 
 #### profile.test.build
@@ -1800,7 +1800,7 @@ verbose = true
     - `random-seed` 用来指定随机种子的值, 参数值类型为正整数
     - `no-color` 指定执行结果在控制台中是否无颜色显示，值为 `true` 或 `false`
     - `report-path` 指定测试执行后的报告生成路径（不能通过 `@Configure` 配置）
-    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 和 `xml-per-package` 格式（可忽略大小写），使用其它值将会抛出异常（不能通过 `@Configure` 配置）, 性能测试报告仅支持 `csv` 和 `csv-raw` 格式
+    - `report-format` 指定报告输出格式，当前单元测试报告仅支持 `xml` 和 `xml-per-package` 格式（可忽略大小写），使用其他值将会抛出异常（不能通过 `@Configure` 配置）, 性能测试报告仅支持 `csv` 和 `csv-raw` 格式
     - `verbose` 指定显示编译过程详细信息，参数值类型为 `BOOL`, 即值可为 `true` 或 `false`
     - `baseline-path` 与当前性能结果进行比较的现有报告的路径。默认情况下它使用 `--report-path` 值。
 
@@ -1963,7 +1963,7 @@ main(): Int64 {
   compile-macros-for-target = "all" # 配置项为字符串形式，可选值必须为 all
 ```
 
-方式三：指定该模块内的某些宏包在交叉编译时同时编译本地平台和目标平台的产物，其它未指定的宏包采取方式一的默认模式
+方式三：指定该模块内的某些宏包在交叉编译时同时编译本地平台和目标平台的产物，其他未指定的宏包采取方式一的默认模式
 
 ```text
 [target.目标平台]
