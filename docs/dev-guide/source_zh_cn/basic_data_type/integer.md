@@ -118,6 +118,14 @@ main() {
     println("The type of r5 is 'Float64', and r5 = ${r5}")
     let r6 = Float32(f)
     println("The type of r6 is 'Float32', and r6 = ${r6}")
+
+    // 无符号整数类型参与的转换
+    let g: UInt8 = 200
+    let r7 = UInt16(g)
+    println("The type of r7 is 'UInt16', and r7 = ${r7}")
+    let h: UInt32 = 4096
+    let r8 = Int64(h)
+    println("The type of r8 is 'Int64', and r8 = ${r8}")
 }
 ```
 
@@ -130,12 +138,28 @@ The type of r3 is 'Float64', and r3 = 1024.000000
 The type of r4 is 'Int64', and r4 = 1024
 The type of r5 is 'Float64', and r5 = 1.000000
 The type of r6 is 'Float32', and r6 = 1.123457
+The type of r7 is 'UInt16', and r7 = 200
+The type of r8 is 'Int64', and r8 = 4096
 ```
 
 > **注意：**
 >
 > 类型转换时可能发生溢出，若溢出可提前被编译器检测出来，则编译器会直接给出报错，否则根据默认的溢出策略将抛出异常。
 
+## `Float16` 与其他浮点类型之间的转换
+
+下面的例子展示了 `Float16` 与其他浮点类型之间的转换，转换方式同样是使用 `T(e)`：
+
+<!-- compile -->
+
+```cangjie
+main() {
+    let a: Float32 = 2.5
+    let b = Float16(a) // Float32 转换为 Float16
+    let c = Float64(b) // Float16 转换为 Float64
+    println(c)
+}
+```
 ## `Rune` 到 `UInt32` 和整数类型到 `Rune` 的转换
 
 `Rune` 到 `UInt32` 的转换使用 `UInt32(e)` 的方式，其中 `e` 是一个 `Rune` 类型的表达式，`UInt32(e)` 的结果是 `e` 的 Unicode scalar value 对应的 `UInt32` 类型的整数值。
