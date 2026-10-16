@@ -57,6 +57,8 @@ main(): Int64 {
 
 os 表示目标平台的操作系统。`os` 支持 `==` 和 `!=` 两种操作符。支持的操作系统有：`Windows`、`Linux`、`macOS`、`iOS`。
 
+需要说明的是，HarmonyOS/OpenHarmony 目标平台的 `os` 取值为 `Linux`（此时 `env` 取值为 `ohos`），因此 `os` 的可用项不包含 `HarmonyOS`，详见附录中的「目标平台和条件编译映射表」。
+
 使用方式如下：
 
 <!-- run -->
