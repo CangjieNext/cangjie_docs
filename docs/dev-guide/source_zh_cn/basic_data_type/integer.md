@@ -37,6 +37,7 @@
 let x: Int8 = 128 // Error, 128 out of the range of Int8
 let y: UInt8 = 256 // Error, 256 out of the range of UInt8
 let z: Int32 = 0x8000_0000 // Error, 0x8000_0000 out of the range of Int32
+
 ```
 
 在使用整数类型字面量时，可以通过加入后缀来明确整数字面量的类型，后缀与类型的对应为：
@@ -56,6 +57,7 @@ let z: Int32 = 0x8000_0000 // Error, 0x8000_0000 out of the range of Int32
 var x = 100i8 // x is 100 with type Int8
 var y = 0x10u64 // y is 16 with type UInt64
 var z = 0o432i32 // z is 282 with type Int32
+
 ```
 
 ## 字符字节字面量
@@ -71,6 +73,7 @@ main(): Unit {
     var c = b'\u{78}' // c is 120 with type UInt8
     c = b'\u{90}' - b'\u{66}' + c // c is 162 with type UInt8
 }
+
 ```
 
 `b'x'` 表示类型为 UInt8 大小是 120 的字面值。另外还可以通过 `b'\u{78}'` 这种转义形式表示类型为 `UInt8`，16 进制大小为 0x78 或 10 进制大小为 120 的字面值。需要注意的是，`\u` 内部最多有两位 16 进制数，并且值必须小于 256（十进制）。
@@ -118,7 +121,16 @@ main() {
     println("The type of r5 is 'Float64', and r5 = ${r5}")
     let r6 = Float32(f)
     println("The type of r6 is 'Float32', and r6 = ${r6}")
+
+    // 无符号整数类型参与的转换
+    let g: UInt8 = 200
+    let r7 = UInt16(g)
+    println("The type of r7 is 'UInt16', and r7 = ${r7}")
+    let h: UInt32 = 4096
+    let r8 = Int64(h)
+    println("The type of r8 is 'Int64', and r8 = ${r8}")
 }
+
 ```
 
 上述代码的执行结果为：
@@ -130,11 +142,30 @@ The type of r3 is 'Float64', and r3 = 1024.000000
 The type of r4 is 'Int64', and r4 = 1024
 The type of r5 is 'Float64', and r5 = 1.000000
 The type of r6 is 'Float32', and r6 = 1.123457
+The type of r7 is 'UInt16', and r7 = 200
+The type of r8 is 'Int64', and r8 = 4096
+
 ```
 
 > **注意：**
 >
 > 类型转换时可能发生溢出，若溢出可提前被编译器检测出来，则编译器会直接给出报错，否则根据默认的溢出策略将抛出异常。
+
+## `Float16` 与其他浮点类型之间的转换
+
+下面的例子展示了 `Float16` 与其他浮点类型之间的转换，转换方式同样是使用 `T(e)`：
+
+<!-- compile -->
+
+```cangjie
+main() {
+    let a: Float32 = 2.5
+    let b = Float16(a) // Float32 转换为 Float16
+    let c = Float64(b) // Float16 转换为 Float64
+    println(c)
+}
+
+```
 
 ## `Rune` 到 `UInt32` 和整数类型到 `Rune` 的转换
 
@@ -155,6 +186,7 @@ main() {
     println("The type of r1 is 'UInt32', and r1 = ${r1}")
     println("The type of r2 is 'Rune', and r2 = ${r2}")
 }
+
 ```
 
 上述代码的执行结果为：
@@ -162,4 +194,5 @@ main() {
 ```text
 The type of r1 is 'UInt32', and r1 = 97
 The type of r2 is 'Rune', and r2 = A
+
 ```

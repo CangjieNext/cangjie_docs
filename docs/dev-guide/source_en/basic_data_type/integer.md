@@ -37,6 +37,7 @@ If the value of an integer literal exceeds the representable range of the requir
 let x: Int8 = 128 // Error, 128 out of the range of Int8
 let y: UInt8 = 256 // Error, 256 out of the range of UInt8
 let z: Int32 = 0x8000_0000 // Error, 0x8000_0000 out of the range of Int32
+
 ```
 
 When using integer literals, suffixes can be added to explicitly specify the type of the literal. The correspondence between suffixes and types is as follows:
@@ -56,6 +57,7 @@ Integer literals with suffixes can be used in the following ways:
 var x = 100i8 // x is 100 with type Int8
 var y = 0x10u64 // y is 16 with type UInt64
 var z = 0o432i32 // z is 282 with type Int32
+
 ```
 
 ## Character Byte Literals
@@ -69,6 +71,7 @@ var a = b'x'                    // a is 120 with type UInt8
 var b = b'\n'                   // b is 10 with type UInt8
 var c = b'\u{78}'               // c is 120 with type UInt8
 c = b'\u{90}' - b'\u{66}' + c   // c is 162 with type UInt8
+
 ```
 
 `b'x'` represents a literal value of type `UInt8` with a value of 120. Additionally, the escape form `b'\u{78}'` can be used to represent a literal value of type `UInt8` with a hexadecimal value of 0x78 or a decimal value of 120. Note that the `\u` escape sequence can contain at most two hexadecimal digits, and the value must be less than 256 (in decimal).
@@ -116,7 +119,16 @@ main() {
     println("The type of r5 is 'Float64', and r5 = ${r5}")
     let r6 = Float32(f)
     println("The type of r6 is 'Float32', and r6 = ${r6}")
+
+    // Conversions involving unsigned integer types
+    let g: UInt8 = 200
+    let r7 = UInt16(g)
+    println("The type of r7 is 'UInt16', and r7 = ${r7}")
+    let h: UInt32 = 4096
+    let r8 = Int64(h)
+    println("The type of r8 is 'Int64', and r8 = ${r8}")
 }
+
 ```
 
 The execution result of the above code is:
@@ -128,11 +140,30 @@ The type of r3 is 'Float64', and r3 = 1024.000000
 The type of r4 is 'Int64', and r4 = 1024
 The type of r5 is 'Float64', and r5 = 1.000000
 The type of r6 is 'Float32', and r6 = 1.123457
+The type of r7 is 'UInt16', and r7 = 200
+The type of r8 is 'Int64', and r8 = 4096
+
 ```
 
 > **Note:**
 >
 > Overflow may occur during type conversion. If the overflow can be detected by the compiler in advance, the compiler will directly report an error. Otherwise, an exception will be thrown according to the default overflow policy.
+
+## Conversions Between `Float16` and Other Floating-Point Types
+
+The following example shows conversions between `Float16` and other floating-point types, also using `T(e)`:
+
+<!-- compile -->
+
+```cangjie
+main() {
+    let a: Float32 = 2.5
+    let b = Float16(a) // Float32 to Float16
+    let c = Float64(b) // Float16 to Float64
+    println(c)
+}
+
+```
 
 ## Conversion from `Rune` to `UInt32` and from Integer Types to `Rune`
 
@@ -153,6 +184,7 @@ main() {
     println("The type of r1 is 'UInt32', and r1 = ${r1}")
     println("The type of r2 is 'Rune', and r2 = ${r2}")
 }
+
 ```
 
 The execution result of the above code is:
@@ -160,4 +192,5 @@ The execution result of the above code is:
 ```text
 The type of r1 is 'UInt32', and r1 = 97
 The type of r2 is 'Rune', and r2 = A
+
 ```
