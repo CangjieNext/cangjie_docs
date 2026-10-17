@@ -60,7 +60,7 @@ main() {
 
 ```shell
 # 1.指定 --output-type 为 obj ，并明确 --compile-target 为 exe
-cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe 
+cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe
 
 # 2.将中间产物链接为可执行文件
 cjc main.o -lcangjie-std-core -o main --experimental
