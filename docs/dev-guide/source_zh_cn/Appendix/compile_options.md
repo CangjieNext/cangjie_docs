@@ -591,6 +591,7 @@ cjc main.cj libtest.bc --output-type=staticlib --target=aarch64-apple-ios17.5 -o
 > - 不能与 `--compile-as-exe` 同时使用，否则将报错。
 > - `Linux` 、`Android` 、`OpenHarmony` 平台中仅编译动态库有效。
 > - `iOS` 平台在 `--lto=thin` 场景下生成的静态库中，被降级符号在归档符号表中为 `private external`，有别于 `external`，不会出现在后续链接产物的导出符号表中。
+> - `iOS` 平台实验特性场景下（如 `--lto=thin` 编译原生动态库/静态库时），使用本选项可能存在部分符号无法被隐藏的情况，产物导出符号表以实际链接结果为准。
 
 **使用示例：**
 
