@@ -605,6 +605,7 @@ This option only takes effect on packages participating in `LTO` optimization; l
 > - Cannot be used together with `--compile-as-exe`, otherwise an error will be reported.
 > - Only effective when compiling dynamic libraries on `Linux`, `Android`, and `OpenHarmony` platforms.
 > - On `iOS`, in the static library generated with `--lto=thin`, downgraded symbols appear as `private external` in the archive symbol table, which differs from `external`, and they will not appear in the export symbol table of subsequent linking artifacts.
+> - In experimental `iOS` scenarios (for example, compiling native dynamic/static libraries with `--lto=thin`), some symbols may fail to be hidden when using this option; refer to the actual linking result for the export symbol table of the artifact.
 
 **Usage Example:**
 
