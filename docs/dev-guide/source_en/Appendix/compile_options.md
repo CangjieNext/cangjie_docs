@@ -52,7 +52,7 @@ main() {
 
 ```shell
 # Specify --output-type as obj and explicitly set --compile-target to exe
-cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe 
+cjc main.cj --output-type=obj --experimental -o main.o --compile-target=exe
 
 # Link the intermediate product into an executable file
 cjc main.o -lcangjie-std-core -o main --experimental
