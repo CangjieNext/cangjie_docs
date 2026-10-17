@@ -17,6 +17,8 @@ main() {
 
 In this code snippet, we use Cangjie's comment syntax. Single-line comments can be written after the `//` symbol, while multi-line comments can be written between `/*` and `*/` symbols, which is identical to the comment syntax in languages like C/C++. Comment content does not affect program compilation and execution.
 
+Note that Cangjie's multi-line (block) comments support nesting: a `/*` appearing inside a comment body opens a new nested block comment, and the same number of `*/` symbols is required to close them all. For example, writing a path wildcard such as `text/*` inside a comment causes its `*/` to be treated as the end of the inner comment, leaving the outer comment unclosed, and the compiler reports `unterminated block comment` (pointing at the position where the comment starts). Therefore, avoid an accidental `/*` ... `*/` sequence inside a comment body; to express a wildcard, rephrase it (for example as `text/` followed by the wildcard) or use a single-line `//` comment instead.
+
 Next, execute the following command in this directory:
 
 ```bash
