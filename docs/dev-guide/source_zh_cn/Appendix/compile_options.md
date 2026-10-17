@@ -943,7 +943,7 @@ cjc --target=arch-os-env --sysroot /usr/sdk/arch-os-env hello.cj -o hello
 
 输出各编译阶段内存消耗数据到一份文件中，该文件以 .mem.prof 为后缀， 保存在 `output` 指定的目录中，若`output` 指定的是一个文件，则 .mem.prof 与该文件同级。
 
-### `--sanitize==[address|thread|hwsaddress]` <sup>[frontend]</sup>
+### `--sanitize=[address|thread|hwaddress]` <sup>[frontend]</sup>
 
 用于开启 sanitizer 编译期间插桩功能，运行时检测程序中的各种错误。并链接对应 sanitizer 的库。使用该选项前需下载支持 sanitizer 功能的专属 SDK 包（如 cangjie-sdk-linux-aarch64-sanitizer.tar.gz），并确保 SDK 已正确部署。
 
