@@ -920,11 +920,11 @@ Objective-C 的 `@implementation` 声明将被忽略。
 
 * 在 Objective-C 中 `init` 方法与其他方法一样可继承，而仓颉构造函数不继承。因此镜像类或互操作类实例化时，无法调用父类 `init` 所镜像的构造函数。上一项中的工厂函数**可**继承，但不得用作 `super` 构造器，因其返回的是已完全初始化的超类实例。
 
-* 与仓颉等语言中的构造函数不同，Objective-C `init` 方法可返回替代对象且有显式返回类型。现代 Objective-C 中返回类型通常为 `instancetype`，表示指向接收者类（或其子类）实例的指针，但仍可能返回 `nil` 以表示初始化失败（且不必抛异常）。当前实现期望 `init` 方法返回**合适类**的实例，不校验返回值。
+* 与仓颉等语言中的构造函数不同，Objective-C `init` 方法可返回替代对象且有显式返回类型。现代 Objective-C 中返回类型通常为 `instancetype`，表示指向接收者类（或其子类）实例的指针，但仍可能返回 `nil` 以表示初始化失败（且不必抛异常）。返回 `nil` 是 Objective-C 中表示「对象因某种原因无法完成初始化、但无需抛出异常」的惯用方式，而仓颉中构造失败通常通过在构造函数里抛异常来表示。
 
 > **注意**：
 >
-> 若从仓颉调用的 `init` 返回 `nil` 或指向非接收者类（及其子类）实例的指针，行为未定义。
+> 从仓颉调用的 `init` 方法返回 `nil` 时，会抛出 `objc.lang.ObjCInitException`，异常信息中包含被实例化的类名。
 
 **实例变量** 镜像为相应镜像类型的实例成员变量。Objective-C 中不存在类变量。
 
@@ -1156,7 +1156,7 @@ public open class G/*<T>*/ <: NSObject {
 
 * Objective-C 类型 `SEL` 与 `Class` 尚不支持。
 
-* 镜像 Objective-C 类实例的构造存在若干细节：通常将 `init` 镜像为构造函数，但若多个 `init` 形参个数与类型完全相同，则改为带 `@ObjCInit` 的静态工厂函数（不可作 `super` 构造器）；仓颉构造函数不继承而 `init` 可继承（工厂函数可继承）；`init` 可能返回 `nil`，当前版本可能导致异常终止，未来版本将抛出 `NoneValueException`。详见 [Objective-C 类](#objective-c-类)。
+* 镜像 Objective-C 类实例的构造存在若干细节：通常将 `init` 镜像为构造函数，但若多个 `init` 形参个数与类型完全相同，则改为带 `@ObjCInit` 的静态工厂函数（不可作 `super` 构造器）；仓颉构造函数不继承而 `init` 可继承（工厂函数可继承）；`init` 可能返回 `nil`，此时会抛出 `objc.lang.ObjCInitException`（异常信息包含被实例化的类名）。详见 [Objective-C 类](#objective-c-类)。
 
 * 泛型 Objective-C 类镜像为非泛型仓颉类。详见 [Objective-C 泛型](#objective-c-泛型)。
 

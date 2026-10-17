@@ -1317,11 +1317,15 @@ are mirrored into Cangjie constructors, with three limitations:
   recommended way of signaling to the caller that the object could not be
   initialized for a reason that does not warrant raising an exception.
 
-  The current implementation expects `init` methods to return instances
-  of suitable classes and does not validate the returned value.
-  **WARNING: If an `init` method called from Cangjie returns `nil` or a pointer
-  to an instance of a class that is not (a subclass of) the receiver class,
-  the behavior is undefined.**
+  Returning `nil` from an `init` method is the recommended Objective-C way
+  of signaling to the caller that the object could not be initialized for a
+  reason that does not warrant raising an exception, whereas in Cangjie a
+  constructor failure is normally signaled by throwing an exception from
+  the constructor.
+
+  **NOTE: If an `init` method called from Cangjie returns `nil`,
+  `objc.lang.ObjCInitException` is thrown, with a message containing the
+  name of the class being instantiated.**
 
 **Instance variables** are mirrored into instance member variables of the
 respective mirror types. There are no class variables in Objective-C.
@@ -1668,9 +1672,9 @@ differences between the two languages.
   - Constructors in Cangjie are not inherited, unlike `init` methods
     (but the factory functions are).
 
-  - An `init` method may return `nil`, which Cangjie does not expect in the
-    current version, leading to abnormal application termination.
-    Future versions will throw `NoneValueException` in such a case.
+  - An `init` method may return `nil`, in which case
+    `objc.lang.ObjCInitException` is thrown (the exception message contains
+    the name of the class being instantiated).
 
   See [Classes](#classes) for details.
 
