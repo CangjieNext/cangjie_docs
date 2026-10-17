@@ -956,7 +956,7 @@ Prints time consumption data for each compilation phase.
 
 Prints memory consumption data for each compilation phase.
 
-### --sanitize=[address|thread|hwsaddress]
+### --sanitize=[address|thread|hwaddress]
 
 Enables the Sanitizer compile-time instrumentation feature, detects various errors in the program during runtime, and links the corresponding Sanitizer runtime libraries. Prior to using this option, you need to download the dedicated SDK package with Sanitizer support (e.g., cangjie-sdk-linux-aarch64-sanitizer.tar.gz) and ensure the proper deployment of the SDK.
 
