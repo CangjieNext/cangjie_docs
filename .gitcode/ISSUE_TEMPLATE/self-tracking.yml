@@ -39,8 +39,6 @@ body:
       label: 受影响的分支版本 | Involved Branches
       description: 请选择自提修改涉及的文档分支版本：| Select the branches involved in the self-tracking modification.
       options:
-        - label: dev
-          required: false
         - label: main
           required: false
         - label: release/1.0
