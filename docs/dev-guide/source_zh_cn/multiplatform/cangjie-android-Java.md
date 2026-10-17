@@ -1498,7 +1498,7 @@ java -Djar.mode=true [system-properties]               \
 
 * `options` 是 Java 镜像生成器的若干 [命令行选项](#java-镜像生成器命令行参数)。
 
-* `type-names` 是需要为之生成镜像的的 Java 类和接口的完全限定名。
+* `type-names` 是需要为之生成镜像的 Java 类和接口的完全限定名。
 
 * `jar-file` 是单个 jar 文件的路径。
 
