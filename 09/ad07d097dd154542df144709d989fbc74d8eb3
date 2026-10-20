@@ -1,0 +1,21 @@
+docs/dev-guide/source_en/Appendix/compile_options.md
+  s_c24e9ea22d1a1c::t_e44af33af0e4ef 602
+docs/dev-guide/source_zh_cn/Appendix/compile_options.md
+  s_c24e9ea22d1a1c::t_8019e030ab1297 588
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "09ad07d097dd154542df144709d989fbc74d8eb3",
+  "prompts": {},
+  "sessions": {
+    "s_c24e9ea22d1a1c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fe8406028ffeNwD4wUICqwtaZD",
+        "model": "GLM-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
