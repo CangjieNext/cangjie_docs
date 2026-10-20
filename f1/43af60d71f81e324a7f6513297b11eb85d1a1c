@@ -1,0 +1,16 @@
+docs/dev-guide/source_en/compile_and_build/conditional_compilation.md
+  h_6a43e5c473a09a 385,391
+docs/dev-guide/source_zh_cn/compile_and_build/conditional_compilation.md
+  h_6a43e5c473a09a 393,400
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "f143af60d71f81e324a7f6513297b11eb85d1a1c",
+  "prompts": {},
+  "humans": {
+    "h_6a43e5c473a09a": {
+      "author": "Xu Zhaoheng <xuzhaoheng1@huawei.com>"
+    }
+  }
+}
