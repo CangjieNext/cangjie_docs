@@ -168,7 +168,7 @@ Error: can not find the following dependencies
 
 ### update
 
-`update` 用于将 `cjpm.toml` 里的内容更新到 `cjpm.lock`。当 `cjpm.lock` 不存在时，将会生成该文件。`cjpm.lock` 文件记录着 `git` 依赖和中心仓依赖的版本号等元信息，用于下次构建使用。
+`update` 用于将 `cjpm.toml` 里的内容更新到 `cjpm.lock`。当 `cjpm.lock` 不存在时，将会生成该文件。`cjpm.lock` 文件记录着 `git` 依赖和中心仓依赖的版本号等元信息，用于下次构建使用，详细说明请参见[锁文件说明](#锁文件说明)。
 
 如果配置了项目管理配置文件 `cangjie-repo.toml`，`cjpm update` 还将尝试更新本地的所有中心仓索引文件。
 
@@ -293,7 +293,7 @@ cjpm tree success
 
 编译生成的中间文件默认会存放在 `target` 文件夹，而可执行文件会根据编译模式存放到 `target/release/bin` 或 `target/debug/bin` 文件夹。运行可执行文件的方式可参考 [run](#run)。
 
-为了提供可复制的构建，此命令会创建 `cjpm.lock` 文件，该文件包含所有可传递依赖项的确切版本，这些依赖项将用于所有后续构建，需要更新该文件时请使用 `update` 命令。如果有必要保证每个项目参与者都有可复制的构建，那么此文件应提交到版本控制系统中。
+为了提供可复制的构建，此命令会创建 `cjpm.lock` 文件，该文件包含所有可传递依赖项的确切版本，这些依赖项将用于所有后续构建，需要更新该文件时请使用 `update` 命令。如果有必要保证每个项目参与者都有可复制的构建，那么此文件应提交到版本控制系统中。锁文件的格式和字段说明请参见[锁文件说明](#锁文件说明)。
 
 例如：
 
@@ -1457,7 +1457,7 @@ abc = { path = "libs" }
   pro1 = { git = "https://gitee.com/example", branch = "dev"}
 ```
 
-在这种情况下，`cjpm` 将下载对应存储库的最新版本，并将当前 `commit-hash` 保存在 `cjpm.lock` 文件中。所有后续的 `cjpm` 调用都将使用保存的版本，直到使用 `cjpm update`。
+在这种情况下，`cjpm` 将下载对应存储库的最新版本，并将当前 `commit-hash` 保存在 `cjpm.lock` 文件中。所有后续的 `cjpm` 调用都将使用保存的版本，直到使用 `cjpm update`。锁文件中 Git 依赖的记录方式请参见[锁文件说明](#锁文件说明)。
 
 通常需要一些身份验证才能访问 `git` 存储库。`cjpm` 不要求提供所需的凭据，因此应使用现有的 `git` 身份验证支持。如果用于 `git` 的协议是 `https`，则需要使用一些现有的 git 凭据帮助程序。在 `Windows` 上，可在安装 `git` 时一起安装凭据帮助程序，默认使用。在 `Linux/macOS` 上，请参见 `git` 官方文档中 `git-config` 的配置说明，了解有关设置凭据帮助程序的详细信息。如果协议是 `ssh` 或 `git`，则应使用基于密钥的身份验证。如果密钥受密码短语保护，则开发者应确保 `ssh-agent` 正在运行，并且在使用 `cjpm` 之前通过 `ssh-add` 添加密钥。
 
@@ -2068,6 +2068,94 @@ aoo = { path = "${DEPENDENCY_PATH}/aoo" }
     - 测试依赖列表 `test-dependencies` 中本地依赖项的 `path` 字段
     - 构建脚本依赖列表 `script-dependencies` 中本地依赖项的 `path` 字段
     - 二进制依赖字段 `bin-dependencies` 中的 `path-option` 和 `package-option` 字段
+
+## 锁文件说明
+
+锁文件 `cjpm.lock` 用于记录实际解析到的依赖版本、来源、制品校验值及直接依赖关系。`cjpm` 在执行 `build`、`check`、`test`、`update` 等需要解析依赖的命令时生成或更新该文件，后续解析会参考其中的锁定信息。建议将该文件提交到版本控制系统中，以便项目参与者使用一致的依赖版本。
+
+`cjpm.lock` 由工具自动维护。依赖声明应在 `cjpm.toml` 中修改，需要重新解析并更新锁定版本时，执行 `cjpm update`。
+
+锁文件 v1 格式如下所示：
+
+```toml
+version = 1 # 锁文件格式版本
+
+[requires."cangjie_tpc::ahoCorasick4cj"]
+version = "1.0.5" # 解析后的模块版本
+source = "registry+https://pkg.cangjie-lang.cn/registry"
+checksum = "sha256:fafc01a863a209a9d0a8a1309fa45f7582548a5b11b8738619b4ce3fd38a2fab"
+dependencies = []
+
+[requires."js_interop"]
+version = "1.0.0"
+source = "git+https://gitcode.com/Cangjie/cangjie_js_interop.git?branch=main#f9e9595bd13aa02f974e159942091022333af5be"
+dependencies = []
+
+[requires."test_cjpm_lib"]
+version = "1.0.0"
+source = "registry+https://pkg.cangjie-lang.cn/registry"
+checksum = "sha256:5087b007e942772c76c09199f9576500b820b1aad6577d3711dceb356f4777d3"
+dependencies = []
+```
+
+### 锁文件结构
+
+- 顶层 `version` 表示锁文件格式版本，当前为整数 `1`，与依赖条目中的模块版本不同。
+- `requires` 记录当前解析范围内的中心仓依赖和 Git 依赖，包括直接依赖及传递依赖。条目名称使用完整模块名，例如 `cangjie_tpc::ahoCorasick4cj`。
+- `scripts` 记录构建脚本的中心仓依赖和 Git 依赖，条目格式与 `requires` 相同；没有脚本依赖条目时省略该表。
+- 本地 `path` 依赖不生成独立的锁条目，其路径仍由模块配置文件解析。
+
+没有需要锁定的依赖时，文件内容如下：
+
+```toml
+version = 1
+
+[requires]
+```
+
+依赖条目中的字段说明如下：
+
+| 字段 | 说明 |
+| --- | --- |
+| `version` | 必需，记录实际解析到的模块版本，例如 `"1.0.0"`，不记录版本范围。Git 依赖也记录模块版本。 |
+| `source` | 必需，记录中心仓地址，或 Git 仓库地址、分支或标签及最终解析到的完整 commit。 |
+| `checksum` | 仅中心仓条目必需，格式为 `sha256:<64 个小写十六进制字符>`；Git 条目省略。 |
+| `dependencies` | 必需，记录当前解析范围内该模块的普通和测试直接依赖，使用完整模块名，排序并去重，无依赖时为 `[]`。 |
+| `output-type` | 非必需，保留依赖指定的编译产物类型，取值为 `"static"` 或 `"dynamic"`。 |
+
+### 依赖来源与制品校验值
+
+中心仓依赖的 `source` 格式为 `registry+<url>`，其中 `<url>` 为解析依赖时使用的中心仓地址。
+
+Git 依赖的 `source` 格式如下：
+
+| 依赖选择方式 | `source` 格式 |
+| --- | --- |
+| 指定分支 | `git+<url>?branch=<branch>#<resolved-commit>` |
+| 指定标签 | `git+<url>?tag=<tag>#<resolved-commit>` |
+| 未指定分支或标签 | `git+<url>#<resolved-commit>` |
+
+`<resolved-commit>` 为最终解析到的完整提交哈希。分支或标签中的特殊字符使用百分号编码，例如分支 `feature/lock` 记录为 `feature%2Flock`。Git 来源信息统一保存在 `source` 中，v1 不再单独输出 `git`、`branch`、`tag` 和 `commitId` 字段。
+
+中心仓条目的 `checksum` 来自所选模块版本的仓库索引 `sha256sum`，写入锁文件时增加 `sha256:` 前缀。校验值对应原始 `.cjp` 制品文件，不是解压后的源码目录或 `cjpm.toml` 文件。每个中心仓条目，包括传递依赖，都需要有效的校验值；索引中的值为空或格式不符合要求时，无法生成 v1 锁文件。
+
+### 直接依赖记录范围
+
+条目中的 `dependencies` 只记录该模块的直接依赖名称，不展开为所有传递依赖，也不在名称后拼接版本号。组织名会保留，例如 `"org::core"`。
+
+如果某模块的普通依赖为 `org::core`，测试依赖为 `org::core` 和 `mock`，在解析包含测试依赖时，该条目记录：
+
+```toml
+dependencies = ["mock", "org::core"]
+```
+
+执行普通构建或 `cjpm check --no-tests` 时，未纳入解析范围的测试依赖不会记录到本次生成的 `requires` 中，上述条目的 `dependencies` 为 `["org::core"]`。因此，不同命令的依赖解析范围可能导致锁文件内容发生变化。
+
+### 旧版本锁文件迁移
+
+新版 `cjpm` 兼容读取 `version = 0` 的锁文件。在执行依赖解析时，工具复用已有的锁定信息，补齐模块版本、`source`、`checksum` 和 `dependencies`，然后在写回锁文件时自动升级为 `version = 1`，无需手动修改版本号。
+
+迁移时，满足当前依赖约束的中心仓锁定版本会继续使用；Git 依赖配置与锁定信息兼容时，继续使用已锁定的 commit，不因分支新增提交而自动切换。需要更新这些锁定信息时，请执行 `cjpm update`。重复执行相同解析且结果不变时，锁文件内容保持一致。
 
 ## 项目管理配置文件说明
 
