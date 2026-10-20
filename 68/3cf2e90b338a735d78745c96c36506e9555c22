@@ -1,0 +1,22 @@
+docs/dev-guide/source_en/Appendix/compile_options.md
+  s_2849b813f0d840::t_94972dbbb7daf7 573-574
+  s_2849b813f0d840::t_8bf380e442a576 552
+  s_2849b813f0d840::t_d0e353b0fc668e 521
+  s_2849b813f0d840::t_580bb1142a3a5b 601-602
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "683cf2e90b338a735d78745c96c36506e9555c22",
+  "prompts": {},
+  "sessions": {
+    "s_2849b813f0d840": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "66e1a320-94c5-4a94-b5fb-faf59c0e8b77",
+        "model": "deepseek-v4-pro"
+      },
+      "human_author": null
+    }
+  }
+}
