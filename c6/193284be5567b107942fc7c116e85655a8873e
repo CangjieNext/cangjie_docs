@@ -1,0 +1,21 @@
+docs/dev-guide/source_zh_cn/basic_data_type/array.md
+  s_01cadf111de964::t_423de5b784840b 181
+docs/dev-guide/source_en/basic_data_type/array.md
+  s_01cadf111de964::t_560d0f031881b4 182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c6193284be5567b107942fc7c116e85655a8873e",
+  "prompts": {},
+  "sessions": {
+    "s_01cadf111de964": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019fea54-e9b5-7723-aecf-97af4cc79a31",
+        "model": "k3-256k"
+      },
+      "human_author": null
+    }
+  }
+}
