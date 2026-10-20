@@ -1,0 +1,26 @@
+docs/dev-guide/source_en/Appendix/compile_options.md
+  s_c24e9ea22d1a1c::t_e44af33af0e4ef 602
+docs/dev-guide/source_zh_cn/Appendix/compile_options.md
+  h_6aa1082f789501 588
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "0ab22497a2a714458ef301b7831ccb0b3513e064",
+  "prompts": {},
+  "humans": {
+    "h_6aa1082f789501": {
+      "author": "jinbohang <jinbohang1@huawei.com>"
+    }
+  },
+  "sessions": {
+    "s_c24e9ea22d1a1c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fe8406028ffeNwD4wUICqwtaZD",
+        "model": "GLM-5.2"
+      },
+      "human_author": null
+    }
+  }
+}
