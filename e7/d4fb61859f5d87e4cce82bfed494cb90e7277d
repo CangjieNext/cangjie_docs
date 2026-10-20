@@ -1,0 +1,21 @@
+docs/dev-guide/source_zh_cn/Macro/builtin_compilation_flags.md
+  s_247b32fbbb5907::t_7ab8691997d2d6 128
+docs/dev-guide/source_en/Macro/builtin_compilation_flags.md
+  s_247b32fbbb5907::t_579270a2473c3e 126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e7d4fb61859f5d87e4cce82bfed494cb90e7277d",
+  "prompts": {},
+  "sessions": {
+    "s_247b32fbbb5907": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9e0eca2-333f-49ea-ac13-94e29f6f2ab9",
+        "model": "glm-5.3-flash"
+      },
+      "human_author": "lixin <lixin656@huawei.com>"
+    }
+  }
+}
