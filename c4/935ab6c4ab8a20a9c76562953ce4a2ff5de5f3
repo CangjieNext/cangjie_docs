@@ -1,0 +1,47 @@
+docs/tools/source_en/cmd-tools/cjcompat_manual.md
+  s_b34f50538a806d::t_cec2ea96432df8 1-81,84-115,118-151,154-189,192-226,229-262
+  h_fe069fe836a3e3 82-83,116-117,152-153,190-191,227-228
+docs/tools/source_zh_cn/library_evolution_spec/Chapter_00_Cover.md
+  h_fe069fe836a3e3 1-2
+docs/tools/source_zh_cn/library_evolution_spec/Chapter_03_Rules.md
+  h_fe069fe836a3e3 1-2470
+docs/tools/source_en/library_evolution_spec/Chapter_01_Change_Log.md
+  s_b34f50538a806d::t_b28678caaf59bf 1-5
+docs/tools/source_zh_cn/cmd-tools/cjcompat_manual.md
+  h_fe069fe836a3e3 2,4,6,8,10,12,27,29,31,33,37,45,47,49,51,55,57,59,61,65-67,69,71,77,79,81-83,87-94,98,100-101,104,106,110,114,116-119,122-133,135-136,139,141-142,145,149,151-154,157-168,170-171,174,176-179,183,187,189-192,195-206,208-209,212,214-217,221,225,227-230,233-244,246-247,250,252-255,259
+docs/tools/source_en/library_evolution_spec/Chapter_02_Overview.md
+  s_b34f50538a806d::t_926cd54280bab4 21-22
+  s_b34f50538a806d::t_f7f77b433a3daf 1-20
+docs/tools/summary_cjnative_EN.md
+  h_fe069fe836a3e3 8
+docs/tools/source_en/library_evolution_spec/Chapter_00_Cover.md
+  h_fe069fe836a3e3 1
+  s_b34f50538a806d::t_1a6e916721c16e 2
+  s_b34f50538a806d::t_6236ae472c3070 3-15
+docs/tools/source_en/library_evolution_spec/Summary.md
+  s_b34f50538a806d::t_02bd6dfd0d998a 1-2
+  s_b34f50538a806d::t_a00fcf1d3be986 3-6
+docs/tools/source_en/library_evolution_spec/Chapter_03_Rules.md
+  h_fe069fe836a3e3 1-2470
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "c4935ab6c4ab8a20a9c76562953ce4a2ff5de5f3",
+  "prompts": {},
+  "humans": {
+    "h_fe069fe836a3e3": {
+      "author": "zxudong <zxudong.zhang@huawei.com>"
+    }
+  },
+  "sessions": {
+    "s_b34f50538a806d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0021c83c9ffeyYSkNrWXlfGAOF",
+        "model": "unknown"
+      },
+      "human_author": null
+    }
+  }
+}
