@@ -165,7 +165,7 @@ Missing dependency names and their direct importer package names are printed in 
 
 ### update
 
-`update` is used to update the contents of `cjpm.toml` to `cjpm.lock`. When `cjpm.lock` does not exist, it will be generated. The `cjpm.lock` file records metadata such as version numbers of `git` dependencies for use in the next build.
+`update` is used to update the contents of `cjpm.toml` to `cjpm.lock`. When `cjpm.lock` does not exist, it will be generated. The `cjpm.lock` file records metadata such as version numbers of `git` dependencies for use in the next build. For details, see [Lock File Description](#lock-file-description).
 
 `update` has the following configurable option:
 
@@ -288,7 +288,7 @@ cjpm tree success
 
 Intermediate files generated during compilation are stored in the `target` folder by default, while executable files are stored in `target/release/bin` or `target/debug/bin` folders based on the compilation mode. To run the executable, refer to the `run` command.
 
-To ensure reproducible builds, this command creates a `cjpm.lock` file containing the exact versions of all transitive dependencies, which will be used for subsequent builds. To update this file, use the `update` command. If reproducible builds are required for all project participants, this file should be committed to the version control system.
+To ensure reproducible builds, this command creates a `cjpm.lock` file containing the exact versions of all transitive dependencies, which will be used for subsequent builds. To update this file, use the `update` command. If reproducible builds are required for all project participants, this file should be committed to the version control system. For the lock file format and fields, see [Lock File Description](#lock-file-description).
 
 Examples:
 
@@ -1159,7 +1159,7 @@ To specify a remote `git` dependency, use the `git` field, which must contain a 
   pro1 = { git = "https://gitee.com/example", branch = "dev"}
 ```
 
-In this case, `cjpm` will download the latest version of the corresponding repository and save the current `commit-hash` in the `cjpm.lock` file. All subsequent `cjpm` calls will use the saved version until `cjpm update` is executed.
+In this case, `cjpm` will download the latest version of the corresponding repository and save the current `commit-hash` in the `cjpm.lock` file. All subsequent `cjpm` calls will use the saved version until `cjpm update` is executed. For the Git dependency format in the lock file, see [Lock File Description](#lock-file-description).
 
 Authentication is often required to access `git` repositories. `cjpm` does not request credentials, so existing `git` authentication support should be used. If the protocol for `git` is `https`, an existing git credential helper must be used. On `Windows`, the credential helper is installed by default with `git`. On `Linux/macOS`, refer to the `git-config` documentation in the official `git` documentation for details on setting up a credential helper. If the protocol is `ssh` or `git`, key-based authentication should be used. If the key is protected by a passphrase, the developer must ensure that `ssh-agent` is running and the key is added via `ssh-add` before using `cjpm`.
 
@@ -1713,6 +1713,94 @@ The list of fields that support environment variable configuration includes:
     - The `path` field for local dependencies in the test dependency list `test-dependencies`
     - The `path` field for local dependencies in the build script dependency list `script-dependencies`
     - The `path-option` and `package-option` fields in the binary dependency field `bin-dependencies`
+
+## Lock File Description
+
+The lock file `cjpm.lock` records the dependency versions, sources, artifact checksums, and direct dependency relationships resolved for the project. `cjpm` generates or updates this file when running commands that resolve dependencies, such as `build`, `check`, `test`, and `update`, and uses the locked information during subsequent resolution. It is recommended to commit this file to version control so that all project participants use the same dependency versions.
+
+`cjpm.lock` is maintained by the tool. Modify dependency declarations in `cjpm.toml`; run `cjpm update` when the locked versions need to be resolved and updated.
+
+The `cjpm.lock` v1 format is as follows:
+
+```toml
+version = 1 # Lock file format version
+
+[requires."example_org::example_dep"]
+version = "1.0.5" # Resolved module version
+source = "registry+https://pkg.cangjie-lang.cn/registry"
+checksum = "sha256:xxx..."
+dependencies = []
+
+[requires."git_example"]
+version = "1.0.0"
+source = "git+https://gitcode.com/Cangjie/cangjie_git_example.git?branch=main#commitidxxx..."
+dependencies = []
+
+[requires."registry_example"]
+version = "1.0.0"
+source = "registry+https://pkg.cangjie-lang.cn/registry"
+checksum = "sha256:xxx..."
+dependencies = []
+```
+
+### Lock File Structure
+
+- The top-level `version` is the lock file format version. It is currently the integer `1`, which is different from the module version in a dependency entry.
+- `requires` records the central repository and Git dependencies in the current resolution scope, including direct and transitive dependencies. Entry names use the complete module name, such as `example_org::example_dep`.
+- `scripts` records central repository and Git dependencies used by build scripts, using the same entry format as `requires`. This table is omitted when there are no script dependencies.
+- Local `path` dependencies do not produce separate lock entries; their paths continue to be resolved from module configuration files.
+
+When there are no dependencies to lock, the file is as follows:
+
+```toml
+version = 1
+
+[requires]
+```
+
+The fields in a dependency entry are described below:
+
+| Field | Description |
+| --- | --- |
+| `version` | Required. Records the resolved module version, such as `"1.0.0"`; a version range is not recorded. Git dependencies also record the module version. |
+| `source` | Required. Records the central repository URL, or the Git repository URL, branch or tag, and final resolved commit. |
+| `checksum` | Required only for central repository entries. The format is `sha256:<64 lowercase hexadecimal characters>`; Git entries omit this field. |
+| `dependencies` | Required. Records the ordinary and test direct dependencies in the current resolution scope, using complete module names, sorted and deduplicated. It is `[]` when there are no dependencies. |
+| `output-type` | Optional. Preserves the dependency's requested artifact type, either `"static"` or `"dynamic"`. |
+
+### Dependency Sources and Artifact Checksums
+
+The `source` format for a central repository dependency is `registry+<url>`, where `<url>` is the central repository address used to resolve the dependency.
+
+The `source` formats for Git dependencies are as follows:
+
+| Dependency selection | `source` format |
+| --- | --- |
+| Branch specified | `git+<url>?branch=<branch>#<resolved-commit>` |
+| Tag specified | `git+<url>?tag=<tag>#<resolved-commit>` |
+| No branch or tag specified | `git+<url>#<resolved-commit>` |
+
+`<resolved-commit>` is the complete commit hash selected during resolution. Special characters in a branch or tag are percent-encoded; for example, the branch `feature/lock` is recorded as `feature%2Flock`. Git source information is stored in `source`; v1 no longer writes separate `git`, `branch`, `tag`, or `commitId` fields.
+
+The `checksum` of a central repository entry comes from the `sha256sum` field in the repository index for the selected module version. The `sha256:` prefix is added when it is written to the lock file. The checksum is for the original `.cjp` artifact, not the extracted source directory or the `cjpm.toml` file. Every central repository entry, including transitive dependencies, requires a valid checksum; an empty or invalid index value prevents generation of a v1 lock file.
+
+### Direct Dependency Scope
+
+The `dependencies` field records only the module's direct dependency names. It does not expand to all transitive dependencies and does not append versions to names. Organization names are preserved, for example, `"org::core"`.
+
+If a module has `org::core` as an ordinary dependency and `org::core` and `mock` as test dependencies, the entry records the following when test dependencies are included in resolution:
+
+```toml
+dependencies = ["mock", "org::core"]
+```
+
+During an ordinary build or `cjpm check --no-tests`, test dependencies outside the resolution scope are not recorded in the generated `requires`; the entry above becomes `dependencies = ["org::core"]`. Therefore, the lock file contents may change when the dependency resolution scope changes between commands.
+
+### Migrating Legacy Lock Files
+
+The current `cjpm` can read lock files with `version = 0`. During dependency resolution, it reuses the existing locked information, fills in `version`, `source`, `checksum`, and `dependencies`, and automatically upgrades the lock file to `version = 1` when writing it back. No manual version edit is required.
+
+During migration, a central repository version already locked and satisfying the current constraints continues to be used. When the Git dependency configuration remains compatible with the locked information, the locked commit continues to be used instead of switching to a newer commit on the branch. Run `cjpm update` when these locked selections need to be updated. Repeating the same resolution with unchanged results leaves the lock file unchanged.
 
 ## Project Management Configuration File Specification
 
