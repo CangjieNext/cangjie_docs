@@ -1,0 +1,21 @@
+docs/tools/source_en/cmd-tools/cjpm_manual.md
+  s_048de643d4ae87::t_dd529a5fc2e3c5 168,291,1162,1717-1796
+docs/tools/source_zh_cn/cmd-tools/cjpm_manual.md
+  s_048de643d4ae87::t_4e6e27afe6ac82 171,296,1460,2072-2151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9e8952547ff189aae66393c1f66e1993522f8f8",
+  "prompts": {},
+  "sessions": {
+    "s_048de643d4ae87": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1576e-6021-7320-9464-f3a572d5c74a",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Cangjie-SCH <sunchihao@h-partners.com>"
+    }
+  }
+}
