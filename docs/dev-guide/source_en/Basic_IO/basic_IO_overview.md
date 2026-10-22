@@ -27,6 +27,8 @@ The Cangjie programming language uses the `InputStream` interface type to repres
 
 A single `read` call does not guarantee that `buffer` is filled. The caller should save the actual number of bytes read, `n`, and process only the first `n` bytes in `buffer`. To read more data, call `read` again.
 
+For a nonempty buffer, a normal read returns `0` when EOF is reached without reading any data. A short read does not indicate EOF. The call may still block when no input is available; empty-buffer handling and read failures are documented by each implementation. For a fixed byte count, use `InputStream.readFully`: a normal return means the destination is full, and failure to fill it raises an exception.
+
 Definition of the InputStream interface:
 
 <!-- run -->
@@ -34,6 +36,7 @@ Definition of the InputStream interface:
 ```cangjie
 interface InputStream {
     func read(buffer: Array<Byte>): Int64
+    // The interface also provides a default readFully(buffer: Array<Byte>): Unit method.
 }
 ```
 

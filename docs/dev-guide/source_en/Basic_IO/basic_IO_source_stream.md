@@ -71,6 +71,37 @@ main() {
 
 The example prints the actual number of bytes read and, when data is read, the corresponding byte array. To fill the array, repeatedly read into its unfilled portion and accumulate the byte counts. If a call returns `0` before the array is full, stop the loop and handle the incomplete read.
 
+### Reading a Fixed Number of Bytes
+
+Use `InputStream.readFully` when a protocol requires a fixed byte count. For example, this program reads an 8-byte protocol header:
+
+<!-- compile -->
+
+```cangjie
+import std.env.getStdIn
+import std.io.IOException
+
+main() {
+    let header = Array<Byte>(8, repeat: 0)
+    try {
+        getStdIn().readFully(header)
+        println(header)
+    } catch (e: IOException) {
+        println("Header read failed: ${e.message}")
+    }
+}
+```
+
+With standard input redirected from a file containing `abcdefgh`, the output is:
+
+```text
+[97, 98, 99, 100, 101, 102, 103, 104]
+```
+
+If a pipe sends only `abc` and keeps its write end open, the program waits for the remaining 5 bytes. Once received, it completes without waiting for the writer to close. Early termination raises `IOException`. The destination may already be partially modified and must not be treated as a complete header.
+
+`readFully` does not close the stream, identify message boundaries, or provide timeouts or cancellation. Callers determine the required length from their protocol and coordinate other consumers of the same stream. An empty destination succeeds immediately. The current standard-input implementation may also map underlying read failures to `0`; in that case, `readFully` reports an incomplete read but cannot recover the original error cause.
+
 The output stream is divided into standard output stream and standard error stream. By default, both output to the screen, such as the text seen in the command-line interface.
 
 When data needs to be written to the standard output stream, the `ConsoleWriter` can be obtained via the `getStdOut`/`getStdErr` global functions to write data, such as using the `write` function to print content to the console.

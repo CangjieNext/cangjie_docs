@@ -27,6 +27,8 @@ Stream 主要面向处理原始二进制数据，Stream 中最小的数据单元
 
 单次 `read` 调用不保证填满 `buffer`。调用方应保存返回的实际读取字节数 `n`，只处理 `buffer` 中前 `n` 个字节；需要读取更多数据时，可以继续调用 `read`。
 
+对于非空缓冲区，正常读取到流末尾且本次未读到数据时返回 `0`。一次短读不表示流已经结束。没有数据可读时，调用仍可能阻塞；空缓冲区及读取失败的处理方式由具体实现说明。需要取得固定长度的数据时，可以使用 `InputStream.readFully`，其正常返回表示目标数组已填满，无法填满时会抛出异常。
+
 InputStream 接口定义：
 
 <!-- run -->
@@ -34,6 +36,7 @@ InputStream 接口定义：
 ```cangjie
 interface InputStream {
     func read(buffer: Array<Byte>): Int64
+    // readFully(buffer: Array<Byte>): Unit 由接口提供默认实现。
 }
 ```
 
