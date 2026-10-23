@@ -45,6 +45,7 @@ EXPLICIT_ID_RE = re.compile(r"^#{1,6}[ \t]+.*?\{#([^}\s]+)\}[ \t]*$", re.MULTILI
 HTML_ID_RE = re.compile(r"<[a-z]+[^>]*?\b(?:id|name)\s*=\s*[\"']([^\"']+)[\"']", re.I)
 INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 HTML_TAG_RE = re.compile(r"<[^>]+>")
+URL_RE = re.compile(r"(?:https?://|mailto:|tel:|cid:)\S+")
 SELF_LINK_RE = re.compile(
     r"https?://(?:www\.)?gitcode\.com/Cangjie/cangjie_docs/(?:blob|tree|raw)/([^/\s]+)/([^)\s#?]+)"
 )
@@ -155,13 +156,25 @@ class Repo:
     def _list_files(self) -> list[str]:
         try:
             out = subprocess.run(
-                ["git", "-C", self.root, "ls-files"],
+                # --others keeps new, not yet added documents in the list, so a
+                # pre-commit run sees the same working tree as the author does.
+                ["git", "-C", self.root, "ls-files", "--cached", "--others", "--exclude-standard"],
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
                 check=True,
             ).stdout
-            files = [line.strip() for line in out.splitlines() if line.strip()]
+            files = []
+            seen = set()
+            for line in out.splitlines():
+                rel = line.strip()
+                if not rel or rel in seen:
+                    continue
+                seen.add(rel)
+                # A tracked file deleted from the working tree is still in the
+                # index; checking it would only produce a spurious read error.
+                if os.path.isfile(os.path.join(self.root, rel.replace("/", os.sep))):
+                    files.append(rel)
             if files:
                 return files
         except (OSError, subprocess.CalledProcessError):
@@ -238,7 +251,13 @@ def check_file(
     wording: bool,
     anchors: bool,
 ) -> None:
-    raw = repo.read(rel)
+    try:
+        raw = repo.read(rel)
+    except OSError as error:
+        # One unreadable file must not abort the whole run and hide the
+        # findings already collected for the other files.
+        report.add(rel, 1, "read", f"cannot read file: {error}")
+        return
     text = strip_code(raw)
     base = os.path.dirname(rel)
 
@@ -247,7 +266,9 @@ def check_file(
         target = target.strip()
         if not target or target.startswith(("#", "mailto:", "cid:", "tel:")):
             if anchors and target.startswith("#") and len(target) > 1:
-                defined = anchor_cache.setdefault(rel, anchors_of(raw))
+                if rel not in anchor_cache:
+                    anchor_cache[rel] = anchors_of(raw)
+                defined = anchor_cache[rel]
                 fragment = urllib.parse.unquote(target[1:]).lower()
                 if fragment not in defined:
                     report.add(rel, line, "anchor", f"'{target}' matches no heading in this file")
@@ -277,7 +298,9 @@ def check_file(
         if fragment and anchors:
             target_file = resolved if resolved in repo.file_set else resolved + ".md"
             if target_file in repo.file_set:
-                defined = anchor_cache.setdefault(target_file, anchors_of(repo.read(target_file)))
+                if target_file not in anchor_cache:
+                    anchor_cache[target_file] = anchors_of(repo.read(target_file))
+                defined = anchor_cache[target_file]
                 if urllib.parse.unquote(fragment).lower() not in defined:
                     report.add(rel, line, "anchor", f"'{target}' matches no heading in '{target_file}'")
 
@@ -292,7 +315,13 @@ def iter_wording(text: str):
             line_start = text.rfind("\n", 0, match.start()) + 1
             line_end = text.find("\n", match.end())
             line = text[line_start : line_end if line_end != -1 else len(text)]
-            if "http" in line and wrong in line:
+            # Skip only a term that is itself part of a URL; a line that merely
+            # contains a link must still be checked, otherwise prose next to a
+            # link silently escapes the wording rule.
+            in_url = any(
+                url.start() <= match.start() - line_start < url.end() for url in URL_RE.finditer(line)
+            )
+            if in_url:
                 continue
             yield match.start(), (wrong, _right)
 
@@ -322,8 +351,22 @@ def main(argv: list[str] | None = None) -> int:
 
     selected = repo.markdown()
     if args.paths:
-        prefixes = tuple(posix(p).rstrip("/") + "/" for p in args.paths)
-        selected = [p for p in selected if p.startswith(prefixes) or p in prefixes]
+        # Separate files from directories: a file argument only matches itself,
+        # while a directory argument matches its sub-tree. Comparing both with a
+        # trailing slash made file arguments match nothing and let the script
+        # report success after scanning zero files.
+        wanted: set[str] = set()
+        for raw_path in args.paths:
+            path = posix(raw_path)
+            if os.path.isabs(path):
+                path = posix(os.path.relpath(path, repo.root))
+            wanted.add(path)
+        if "." not in wanted:
+            prefixes = tuple(path.rstrip("/") + "/" for path in wanted)
+            selected = [p for p in selected if p in wanted or p.startswith(prefixes)]
+    if not selected:
+        print(f"error: no markdown files to check under {repo.root}", file=sys.stderr)
+        return 2
 
     report = Report()
     anchor_cache: dict[str, set[str]] = {}

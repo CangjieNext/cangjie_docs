@@ -5,6 +5,8 @@
 
 import io
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -32,6 +34,9 @@ class DocsLintTest(unittest.TestCase):
         with redirect_stdout(out):
             code = docs_lint.main(["--root", self.root, *args])
         return code, out.getvalue()
+
+    def git(self, *args):
+        subprocess.run(["git", "-C", self.root, *args], check=True, capture_output=True, text=True)
 
     def test_existing_relative_link_passes(self):
         self.write("a.md", "[b](b.md)\n")
@@ -129,6 +134,69 @@ class DocsLintTest(unittest.TestCase):
         self.write("a.md", "其它\n")
         code, _out = self.run_lint("--no-wording")
         self.assertEqual(code, 0)
+
+    def test_wording_next_to_a_link_is_reported(self):
+        self.write("a.md", "其它细节见 https://example.com/spec\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 1)
+        self.assertIn("'其它' should be '其他'", out)
+
+    def test_wording_inside_a_url_is_ignored(self):
+        self.write("a.md", "https://example.com/其它\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 0, out)
+
+    def test_file_argument_is_checked(self):
+        self.write("docs/a.md", "[b](missing.md)\n")
+        code, out = self.run_lint("docs/a.md")
+        self.assertEqual(code, 1, out)
+        self.assertIn("docs/a.md:1: [link]", out)
+
+    def test_directory_argument_checks_subtree(self):
+        self.write("docs/a.md", "[b](missing.md)\n")
+        code, out = self.run_lint("docs")
+        self.assertEqual(code, 1, out)
+
+    def test_unknown_path_is_an_error(self):
+        self.write("a.md", "# A\n")
+        code, _out = self.run_lint("docs")
+        self.assertEqual(code, 2)
+
+    def test_anchor_target_is_read_once(self):
+        self.write("a.md", "[b](b.md#one) [b](b.md#two)\n")
+        self.write("b.md", "# One\n# Two\n")
+        reads = []
+        original = docs_lint.Repo.read
+
+        def counting(repo, rel):
+            reads.append(rel)
+            return original(repo, rel)
+
+        docs_lint.Repo.read = counting
+        self.addCleanup(setattr, docs_lint.Repo, "read", original)
+        code, out = self.run_lint("a.md", "--anchors")
+        self.assertEqual(code, 0, out)
+        self.assertEqual(reads.count("b.md"), 1)
+
+    @unittest.skipUnless(shutil.which("git"), "git is required")
+    def test_untracked_file_is_checked(self):
+        self.write("a.md", "[b](b.md)\n")
+        self.write("b.md", "# B\n")
+        self.git("init")
+        self.git("add", "a.md")
+        code, out = self.run_lint()
+        self.assertEqual(code, 0, out)
+
+    @unittest.skipUnless(shutil.which("git"), "git is required")
+    def test_deleted_tracked_file_is_a_link_finding(self):
+        self.write("a.md", "[b](b.md)\n")
+        self.write("b.md", "# B\n")
+        self.git("init")
+        self.git("add", "a.md", "b.md")
+        os.remove(os.path.join(self.root, "b.md"))
+        code, out = self.run_lint()
+        self.assertEqual(code, 1, out)
+        self.assertIn("[link]", out)
 
 
 if __name__ == "__main__":
