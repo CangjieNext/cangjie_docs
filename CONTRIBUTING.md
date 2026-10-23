@@ -57,3 +57,22 @@ Submission Steps:
 2. Clone the project to your local machine and create a branch for document changes.
 3. After completing the document changes locally, submit a PR.
 4. Wait for gatekeeper verification and review by the Cangjie Document team. Once approved, the changes will be merged.
+
+### Checking Your Changes Before Submitting
+
+`scripts/docs_lint.py` performs offline checks on the Markdown sources, so a broken link or an inconsistent term is caught before review:
+
+```shell
+python scripts/docs_lint.py            # whole repository
+python scripts/docs_lint.py docs/      # a sub-tree, for example the files you changed
+```
+
+The default checks are:
+
+- relative links and images resolve to a file that exists in the repository;
+- absolute links into this repository point to an existing path;
+- Chinese wording follows the agreed glossary, for example `其它` → `其他`.
+
+Pass `--anchors` to also verify `#fragment` targets against the headings of the target file. That mode is best effort: explicit `{#id}` anchors are supported, but the slug rules of the published site may differ in rare cases, so read the findings instead of applying them blindly.
+
+Code blocks and inline code are ignored by every check, because Cangjie syntax such as `@Foo[1+](2+3)` looks like a Markdown link. The script needs Python 3.8 or later and no third-party package; its own tests run with `python -m unittest discover scripts`. Please report problems with the script in an issue rather than mixing them into a documentation PR.

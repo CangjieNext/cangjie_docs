@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# Copyright (c) 2026 Cangjie documentation contributors.
+# Licensed under CC-BY-4.0. See LICENSE for details.
+"""Unit tests for docs_lint.py. Run with ``python -m unittest discover scripts``."""
+
+import io
+import os
+import sys
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import docs_lint  # noqa: E402
+
+
+class DocsLintTest(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+        self.addCleanup(self._tmp.cleanup)
+
+    def write(self, rel, content):
+        path = os.path.join(self.root, rel.replace("/", os.sep))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(content)
+
+    def run_lint(self, *args):
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = docs_lint.main(["--root", self.root, *args])
+        return code, out.getvalue()
+
+    def test_existing_relative_link_passes(self):
+        self.write("a.md", "[b](b.md)\n")
+        self.write("b.md", "# B\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 0, out)
+
+    def test_missing_relative_link_is_reported(self):
+        self.write("a.md", "[b](b.md)\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 1)
+        self.assertIn("a.md:1: [link]", out)
+
+    def test_missing_link_suggests_close_match(self):
+        self.write("a.md", "[b](b.mdl)\n")
+        self.write("b.md", "# B\n")
+        _code, out = self.run_lint()
+        self.assertIn("did you mean 'b.md'?", out)
+
+    def test_link_inside_fenced_code_is_ignored(self):
+        self.write("a.md", "```cangjie\n@Foo[1+](2+3)\n```\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
+    def test_link_inside_inline_code_is_ignored(self):
+        self.write("a.md", "Use `@Foo[1+](2+3)` syntax.\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
+    def test_absolute_self_link_is_checked(self):
+        self.write("a.md", "[b](https://gitcode.com/Cangjie/cangjie_docs/blob/main/b.mdl)\n")
+        self.write("b.md", "# B\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 1)
+        self.assertIn("[link]", out)
+
+    def test_external_link_is_not_checked(self):
+        self.write("a.md", "[x](https://example.com/does-not-exist)\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
+    def test_anchor_is_checked_only_on_request(self):
+        self.write("a.md", "[b](b.md#no-such-heading)\n")
+        self.write("b.md", "# B\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 1)
+        self.assertIn("[anchor]", out)
+
+    def test_explicit_heading_id_is_a_valid_anchor(self):
+        self.write("a.md", "[b](b.md#step-1)\n")
+        self.write("b.md", "#### Step 1: Design {#step-1}\n")
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
+    def test_heading_with_inline_code_and_html(self):
+        self.write("a.md", "[b](b.md#--output-dir-value-frontend)\n")
+        self.write("b.md", "### `--output-dir <value>` <sup>[frontend]</sup>\n")
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
+    def test_duplicate_headings_get_numbered_anchors(self):
+        self.write("a.md", "[b](b.md#note-1)\n")
+        self.write("b.md", "## Note\n## Note\n")
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
+    def test_wording_rule(self):
+        self.write("a.md", "这一项和其它项。\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 1)
+        self.assertIn("'其它' should be '其他'", out)
+
+    def test_wording_inside_code_is_ignored(self):
+        self.write("a.md", "```\n其它\n```\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
+    def test_no_wording_flag(self):
+        self.write("a.md", "其它\n")
+        code, _out = self.run_lint("--no-wording")
+        self.assertEqual(code, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
