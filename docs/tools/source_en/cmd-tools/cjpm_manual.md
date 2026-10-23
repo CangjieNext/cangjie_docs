@@ -2605,3 +2605,158 @@ In this case, `cjpm` will **implicitly** generate the default configuration as f
     src-dir = "./ohos"
     condition = ["feature.os.linux", "feature.env.ohos"]
 ```
+
+### Cangjie Central Repository Usage
+
+`cjpm` can connect to the Cangjie central repository: it uploads artifact source code to the central repository, or downloads artifact source code locally and uses it for compilation and builds.
+
+#### Central Repository Configuration File
+
+Before using central repository features, the related configuration files must be set up correctly; see [Project Management Configuration File Specification](#project-management-configuration-file-specification).
+
+#### Depending on Central Repository Modules
+
+Developers can configure central repository dependencies in a locally developed module in order to depend on source modules in the central repository; see the [`dependencies` field](#dependencies).
+
+Take the directory structure of the following Cangjie project as an example:
+
+```text
+cj_project
+├── src
+│    └── main.cj
+└── cjpm.toml
+```
+
+The module configuration file `cjpm.toml` is as follows:
+
+```toml
+# cj_project/cjpm.toml
+[package]
+cjc-version = "1.0.0"
+description = "test module"
+version = "1.0.0"
+name = "test"
+output-type = "executable"
+
+[dependencies]
+  # exactly one of path/git/version
+  aaa = { path = "path/to/aaa" }    # local dependency
+  bbb = { git = "git@bbb"}          # git dependency
+  ccc = "1.0.0"                     # shorthand for a central repository dependency
+  ddd = { version = "1.0.0" }       # central repository dependency on a specific version
+  "org::ddd" = { version = "2.0.0"} # central repository dependency with an organization name
+  eee = "[1.0.0, 2.0.0)"            # central repository dependency on any version in the range
+```
+
+Then the source code of module `test` can import the packages of the dependency modules:
+
+```cangjie
+// cj_project/src/main.cj
+package test
+
+import aaa.*
+import bbb.*
+import ccc.*
+import ddd.*
+import org::ddd.*
+import eee.*
+```
+
+#### Packaging a Local Module
+
+To package a locally developed module into a source distribution package accepted by the central repository, use the `bundle` command.
+
+#### Uploading a Module to the Central Repository
+
+To upload a locally developed module to the central repository, use the `publish` command. If no valid central repository package exists locally, `cjpm` runs the default `bundle` flow first.
+
+### cjpm Dependency Resolution Strategy
+
+After source code dependencies are introduced into a locally compiled module, the modules those dependencies refer to may have dependencies of their own, so the number of source modules actually used can far exceed the number the developer introduced. In this process, `cjpm` analyzes the dependency relationships between modules and any conflicts that may arise according to specific rules, and finally decides which modules are actually used for compilation.
+
+#### Dependency Collection
+
+`cjpm` starts from the current module and collects dependency modules layer by layer. For example, consider the following user module `demo`:
+
+```toml
+[package]
+  name = "demo"
+
+[dependencies]
+  aoo = { ... }
+  boo = { ... }
+```
+
+The configuration of modules `aoo` and `boo` is as follows:
+
+```toml
+# aoo/cjpm.toml
+[package]
+  name = "aoo"
+
+[dependencies]
+  coo = { ... }
+
+# boo/cjpm.toml
+[package]
+  name = "boo"
+
+[dependencies]
+  doo = { ... }
+```
+
+The resulting set of modules collected for compilation is `[demo, aoo, boo, coo, doo]`.
+
+#### Same-Name Dependency Conflict Analysis
+
+In the example above, if `aoo` and `boo` are changed to the following configuration:
+
+```toml
+# aoo/cjpm.toml
+[package]
+  name = "aoo"
+
+[dependencies]
+  coo = { ... }
+
+# boo/cjpm.toml
+[package]
+  name = "boo"
+
+[dependencies]
+  coo = { ... }
+```
+
+Now both of them depend on module `coo`, so the dependencies of `aoo` and `boo` on `coo` must not conflict before `cjpm` can use a single `coo` module for the final compilation. For same-name dependencies of two modules, the conflict rules are defined as follows:
+
+- If both are local dependencies and the paths in the `path` fields are the same, there is no conflict.
+- If both are `git` dependencies, the URLs in the `git` fields are the same, and the following conditions hold, there is no conflict:
+    - The `branch`, `tag` and `commitId` configured by both are the same;
+    - One of them configures `branch`, `tag` or `commitId` while the other does not, in which case the dependency module of the dependency that configures `branch`, `tag` or `commitId` is used.
+- If one dependency is a central repository dependency and the other is a local or `git` dependency, there is no conflict, and the dependency module of the local or `git` dependency is used.
+- If both are central repository dependencies and at least one version of the module in the central repository satisfies both specified dependency ranges, there is no conflict.
+- In all other cases an unavoidable dependency conflict occurs and `cjpm` reports an error.
+
+#### Central Repository Dependency Resolution Strategy
+
+Provided the dependency ranges are satisfied, `cjpm` uses the highest version of the module. In the example above, if `aoo` and `boo` are changed to the following configuration:
+
+```toml
+# aoo/cjpm.toml
+[package]
+  name = "aoo"
+
+[dependencies]
+  coo = "[1.0.0, 2.0.0)"
+
+# boo/cjpm.toml
+[package]
+  name = "boo"
+
+[dependencies]
+  coo = "(1.3.0, 2.2.0)"
+```
+
+Then, for module `coo` to satisfy both `aoo` and `boo`, the highest version in `(1.3.0, 2.0.0)` is taken. Suppose the versions of `coo` in the central repository are `[1.0.0, 1.3.0, 1.4.0, 1.5.0, 1.8.0, 2.0.0, 2.1.0]`; the version actually used is `1.8.0`.
+
+In the example above, `coo` may also have dependencies of its own. When `coo-1.8.0` is tried and thereby introduces a conflict in another module, `cjpm` tries `coo-1.5.0` and then `coo-1.4.0`, until it finds a version that does not conflict. If every version causes an unavoidable conflict in some module, `cjpm` reports an error.
