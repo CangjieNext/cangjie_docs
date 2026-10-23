@@ -1117,7 +1117,7 @@ abc = { path = "libs" }
 
 ### "dependencies"
 
-This field imports other Cangjie modules as dependencies via source code, containing information about other modules required for the current build. Currently, it supports both local path dependencies and remote `git` dependencies.
+This field imports other Cangjie modules as dependencies via source code, containing information about other modules required for the current build. Currently, this field supports local path dependencies, remote `git` dependencies and central repository dependencies.
 
 To specify a local dependency, use the `path` field, which must contain a valid local path. For example, the code structure of the two submodules `pro0` and `pro1` and the main module is as follows:
 
@@ -1163,6 +1163,38 @@ In this case, `cjpm` will download the latest version of the corresponding repos
 
 Authentication is often required to access `git` repositories. `cjpm` does not request credentials, so existing `git` authentication support should be used. If the protocol for `git` is `https`, an existing git credential helper must be used. On `Windows`, the credential helper is installed by default with `git`. On `Linux/macOS`, refer to the `git-config` documentation in the official `git` documentation for details on setting up a credential helper. If the protocol is `ssh` or `git`, key-based authentication should be used. If the key is protected by a passphrase, the developer must ensure that `ssh-agent` is running and the key is added via `ssh-add` before using `cjpm`.
 
+To specify a central repository dependency, use the `version` field. For example, the following configuration imports source modules from the central repository:
+
+```toml
+[dependencies]
+  aoo = { version = "1.0.0" }         # Import central repository module aoo, version 1.0.0
+  "org::boo" = { version = "2.0.0" }  # Import central repository module boo in the org organization, version 2.0.0
+  coo = { version = "[1.0.0, )" }     # Import central repository module coo, version 1.0.0 or later
+```
+
+The `version` field accepts the following values:
+
+1. A single version number, which means depending on the module of that specific version; the format is described in [`cjc-version`](#cjc-version).
+2. A version range, which means depending on any version in the range:
+    - The format is an interval with either end open or closed, for example "[1.0.0, 2.0.0)" or "(3.0.0, 4.0.0]";
+    - Version comparison is based on the three-part version number, with the leftmost number taking precedence, for example 1.0.0 < 2.0.0 and 2.1.0 > 1.123.0.
+3. An unbounded version range, which has no upper or lower bound. The missing bound is written as an open interval, for example [1.0.0, ), (, 2.0.0) or (,);
+4. A union of any of formats 1-3, separated by commas. For example, "(, 1.0.0), [2.0.0, 3.0.0), 4.0.0" matches any version below 1.0.0, any 2.x.x version, or version 4.0.0.
+
+`cjpm.toml` also provides a shorthand for central repository dependencies. The following configuration is equivalent to the one above:
+
+```toml
+[dependencies]
+  aoo = "1.0.0"
+  "org::boo" = "2.0.0"
+  coo = "[1.0.0, )"
+```
+
+> **Note:**
+>
+> - Central repository dependencies take effect only when the central repository is configured correctly; see [Project Management Configuration File Specification](#project-management-configuration-file-specification).
+> - If a configured version range, or a union of version ranges, is an empty set, `cjpm` reports an error.
+
 The `dependencies` field can specify the compilation output type via the `output-type` attribute. The specified type can differ from the compilation output type of the source dependency itself and can only be `static` or `dynamic`, as shown below:
 
 ```text
@@ -1172,6 +1204,10 @@ The `dependencies` field can specify the compilation output type via the `output
 ```
 
 After the above configuration, the `output-type` settings in the `cjpm.toml` files of `pro0` and `pro1` will be ignored, and the two modules' outputs will be compiled into `static` and `dynamic` types, respectively.
+
+> **Note:**
+>
+> When a potential dependency conflict occurs, `cjpm` decides the source module to use for compilation according to a specific strategy; see [`cjpm` Dependency Resolution Strategy](#cjpm-dependency-resolution-strategy).
 
 ### "test-dependencies"
 
@@ -2730,9 +2766,9 @@ In the example above, if `aoo` and `boo` are changed to the following configurat
 Now both of them depend on module `coo`, so the dependencies of `aoo` and `boo` on `coo` must not conflict before `cjpm` can use a single `coo` module for the final compilation. For same-name dependencies of two modules, the conflict rules are defined as follows:
 
 - If both are local dependencies and the paths in the `path` fields are the same, there is no conflict.
-- If both are `git` dependencies, the URLs in the `git` fields are the same, and the following conditions hold, there is no conflict:
+- If both are `git` dependencies, the URLs in the `git` fields are the same, and either of the following holds, there is no conflict:
     - The `branch`, `tag` and `commitId` configured by both are the same;
-    - One of them configures `branch`, `tag` or `commitId` while the other does not, in which case the dependency module of the dependency that configures `branch`, `tag` or `commitId` is used.
+    - One of them configures `branch`, `tag` or `commitId` while the other does not; in this case the dependency module of the configured dependency is used, and if it configures more than one of these fields, the ref is selected by the same priority order (`commitId` > `branch` > `tag`) as described above.
 - If one dependency is a central repository dependency and the other is a local or `git` dependency, there is no conflict, and the dependency module of the local or `git` dependency is used.
 - If both are central repository dependencies and at least one version of the module in the central repository satisfies both specified dependency ranges, there is no conflict.
 - In all other cases an unavoidable dependency conflict occurs and `cjpm` reports an error.
