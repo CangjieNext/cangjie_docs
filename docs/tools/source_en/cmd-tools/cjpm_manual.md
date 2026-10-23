@@ -825,6 +825,73 @@ Current Cangjie module name, also the root package name. Must be a valid identif
 >
 > Unicode characters are not supported. Module names must be ASCII-only identifiers.
 
+### "organization"
+
+Organization name of the current Cangjie module. If this field is not configured, the module has no organization.
+
+A valid Cangjie organization name must be a valid identifier, following the same rules as `name`.
+
+Once `organization` is configured, package declarations and package imports in the module code must carry the organization name as an `organization + ::` prefix, and the directory and artifact names of the module carry the organization name as an `@ + organization` suffix. For example:
+
+```toml
+# cjpm.toml
+[package]
+  name = "demo"
+  organization = "org"      # set the organization name
+```
+
+```text
+# demo module structure
+|-- src
+    |-- demo.cj
+    |-- xoo
+        |-- xoo.cj
+    |-- yoo
+        |-- yoo.cj
+```
+
+```cangjie
+// xoo.cj
+package org::demo.xoo      // package declaration with the organization name
+
+public let x: Int64 = 0
+```
+
+```cangjie
+// yoo.cj
+package org::demo.yoo      // package declaration with the organization name
+
+public let y: Int64 = 0
+```
+
+```cangjie
+// demo.cj
+package org::demo          // package declaration with the organization name
+
+import org::demo.xoo.*      // package import with the organization name
+import org::demo.yoo.*      // package import with the organization name
+
+main(): Int64 {
+    println(x)
+    println(y)
+    println("hello world")
+    return 0
+}
+```
+
+```text
+# module output directory and artifacts
+|-- target
+   |-- release
+        |-- demo@org                  # directory carries the organization name
+            |-- libdemo@org.so        # artifacts carry the organization name
+            |-- libdemo.xoo@org.so
+            |-- libdemo.yoo@org.so
+            |-- demo@org.cjo
+            |-- demo.xoo@org.cjo
+            |-- demo.yoo@org.cjo
+```
+
 ### "description"
 
 Module description (free-form text).
@@ -899,6 +966,14 @@ This field can specify the output directory for compiled artifacts. If not speci
 
 ```text
 target-dir = "temp"
+```
+
+### "script-dir"
+
+This field can specify the storage path for build script artifacts. If not specified, it defaults to the `build-script-cache` directory. If this field is not empty, executing `cjpm clean` deletes the directory it points to; developers must ensure that clearing this directory is safe.
+
+```text
+script-dir = "temp"
 ```
 
 ### "package-configuration"
@@ -1063,6 +1138,66 @@ The packaging scope for different configurations is as follows:
   exclude = ["*.txt"]
 # Result: bundle cjpm.toml, README.md, and files under src except .txt files
 ```
+
+### "authors"
+
+This field configures the list of module author IDs, which is displayed on the central repository pages.
+
+### "repository"
+
+If the source module is also hosted in an online code repository, set the corresponding URL here; it is displayed on the central repository pages.
+
+### "homepage"
+
+If the developer has created a home page for the source module, set the corresponding URL here; it is displayed on the central repository pages.
+
+### "documentation"
+
+If the developer has created a documentation site for the source module, set the corresponding URL here; it is displayed on the central repository pages.
+
+### "tag"
+
+This field specifies artifact tags for the source module, up to 5.
+
+### "category"
+
+This field specifies artifact categories for the source module, up to 5.
+
+The categories must be chosen from those provided by the Cangjie central repository:
+
+| category |
+| --- |
+| Network |
+| Database Driver |
+| Data Encapsulation and Transfer |
+| Data Analysis |
+| Database Framework |
+| Object Storage |
+| Distributed |
+| Task Scheduling |
+| Security |
+| Utility |
+| Logging |
+| Algorithm |
+| Audio and Video |
+| Character Encoding |
+| Image Processing |
+| Developer Tools |
+| Animation |
+| Infrastructure |
+| Geographic Information |
+| UI |
+| Scientific Computing |
+| Programming Framework |
+| Data Monitoring |
+| Circuit Breaker and Downgrading |
+| Message Queue |
+
+The value of `category` is case-insensitive, but it is converted to the standard form above in the generated metadata.
+
+### "license"
+
+This field specifies the list of licenses that the source module complies with.
 
 ### "workspace"
 
