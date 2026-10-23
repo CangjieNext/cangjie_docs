@@ -750,7 +750,7 @@ When `publish` runs, `cjpm` looks for a `module-name-version.cjp` source distrib
 
 > **Note:**
 >
-> The `publish` feature requires the central repository to be configured correctly; see the project management configuration file description in this manual.
+> The `publish` feature requires the central repository to be configured correctly; see [Project Management Configuration File Specification](#project-management-configuration-file-specification).
 
 ### install
 
