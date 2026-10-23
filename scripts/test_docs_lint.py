@@ -94,6 +94,20 @@ class DocsLintTest(unittest.TestCase):
         code, out = self.run_lint("--anchors")
         self.assertEqual(code, 0, out)
 
+    def test_punctuation_is_dropped_and_each_space_keeps_a_hyphen(self):
+        # ``cjcov -h | --help`` -> ``cjcov--h----help``: the bar disappears and
+        # leaves two spaces behind, so the run of hyphens is preserved.
+        self.write("a.md", "[b](b.md#cjcov--h----help)\n")
+        self.write("b.md", "### cjcov -h | --help\n")
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
+    def test_dots_are_not_part_of_the_anchor(self):
+        self.write("a.md", "[b](b.md#javalangjobject)\n")
+        self.write("b.md", "### `java.lang.JObject`\n")
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
     def test_duplicate_headings_get_numbered_anchors(self):
         self.write("a.md", "[b](b.md#note-1)\n")
         self.write("b.md", "## Note\n## Note\n")

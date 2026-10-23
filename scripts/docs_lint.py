@@ -113,8 +113,12 @@ def slugify(heading: str) -> str:
     text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = text.strip().lower()
     text = re.sub(r"[*_~`]", "", text)
-    text = re.sub(r"[^\w\u4e00-\u9fff.\-\s]", "", text)
-    return re.sub(r"\s+", "-", text)
+    # Punctuation goes away entirely (``java.lang.JObject`` -> ``javalangjobject``,
+    # ``cjcov -h | --help`` keeps two spaces where the bar was), and every
+    # whitespace character becomes one hyphen, so a run of spaces stays a run
+    # of hyphens. This is what the published pages use.
+    text = re.sub(r"[^\w\u4e00-\u9fff\-\s]", "", text)
+    return re.sub(r"\s", "-", text)
 
 
 def anchors_of(text: str) -> set[str]:
