@@ -13,8 +13,11 @@ The script performs three offline checks and never touches the network:
 An optional wording check reports a small set of Chinese terms that the
 documentation style guide asks us to spell consistently (see issue #251).
 
-Code blocks and inline code are ignored by every check, because Cangjie
-syntax such as ``@Foo[1+](2+3)`` looks like a Markdown link.
+Fenced code blocks (including fences inside blockquotes) and inline code are
+ignored by every check, because Cangjie syntax such as ``@Foo[1+](2+3)`` looks
+like a Markdown link. Indented code blocks are not masked: the sources use
+four-space indentation for nested lists and parameter descriptions, and
+treating every indented line as code would skip real links.
 
 Usage::
 
@@ -39,6 +42,7 @@ import urllib.parse
 LINK_RE = re.compile(r"(!?)\[([^\]]*)\]\(\s*<?([^)\s>]*)>?(?:\s+\"[^\"]*\")?\s*\)")
 REF_DEF_RE = re.compile(r"^[ \t]{0,3}\[([^\]]+)\]:[ \t]*<?([^>\s]+)>?", re.MULTILINE)
 HTML_ATTR_RE = re.compile(r"<(?:img|a|source)\b[^>]*?\b(?:src|href)\s*=\s*[\"']([^\"']+)[\"']", re.I)
+BLOCKQUOTE_RE = re.compile(r"^((?: {0,3}> ?)+)")
 FENCE_OPEN_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$", re.MULTILINE)
 EXPLICIT_ID_RE = re.compile(r"^#{1,6}[ \t]+.*?\{#([^}\s]+)\}[ \t]*$", re.MULTILINE)
@@ -66,22 +70,33 @@ def blank(text: str, start: int, end: int) -> str:
 
 
 def mask_fences(text: str) -> str:
-    """Blank out fenced code blocks, keeping offsets and line numbers."""
+    """Blank out fenced code blocks, keeping offsets and line numbers.
+
+    A fence may sit inside a blockquote (``> ``` ``). The blockquote prefix is
+    stripped before matching, and the closing fence must use the same prefix,
+    so a quoted block cannot accidentally close a top-level fence.
+    """
     out = []
     fence = None
+    quote = ""
     for line in text.splitlines(keepends=True):
         body = line.rstrip("\r\n")
+        match = BLOCKQUOTE_RE.match(body)
+        prefix = match.group(1) if match else ""
+        content = body[len(prefix) :]
         if fence is None:
-            match = FENCE_OPEN_RE.match(body)
-            if match and not (match.group(1)[0] == "`" and "`" in body[match.end() :]):
-                fence = match.group(1)
+            opener = FENCE_OPEN_RE.match(content)
+            if opener and not (opener.group(1)[0] == "`" and "`" in content[opener.end() :]):
+                fence = opener.group(1)
+                quote = prefix
                 out.append(blank(line, 0, len(line)))
                 continue
             out.append(line)
         else:
-            stripped = body.strip()
-            if stripped and set(stripped) == {fence[0]} and len(stripped) >= len(fence):
+            stripped = content.strip()
+            if prefix == quote and stripped and set(stripped) == {fence[0]} and len(stripped) >= len(fence):
                 fence = None
+                quote = ""
             out.append(blank(line, 0, len(line)))
     return "".join(out)
 

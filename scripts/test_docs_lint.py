@@ -61,6 +61,11 @@ class DocsLintTest(unittest.TestCase):
         code, _out = self.run_lint()
         self.assertEqual(code, 0)
 
+    def test_link_inside_blockquote_fence_is_ignored(self):
+        self.write("a.md", "> ```cangjie\n> @Foo[1+](2+3)\n> ```\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
     def test_link_inside_inline_code_is_ignored(self):
         self.write("a.md", "Use `@Foo[1+](2+3)` syntax.\n")
         code, _out = self.run_lint()
@@ -125,8 +130,19 @@ class DocsLintTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("'其它' should be '其他'", out)
 
+    def test_second_wording_rule(self):
+        self.write("a.md", "这一项做为示例。\n")
+        code, out = self.run_lint()
+        self.assertEqual(code, 1)
+        self.assertIn("'做为' should be '作为'", out)
+
     def test_wording_inside_code_is_ignored(self):
         self.write("a.md", "```\n其它\n```\n")
+        code, _out = self.run_lint()
+        self.assertEqual(code, 0)
+
+    def test_wording_inside_blockquote_fence_is_ignored(self):
+        self.write("a.md", "> ```\n> 其它\n> ```\n")
         code, _out = self.run_lint()
         self.assertEqual(code, 0)
 
