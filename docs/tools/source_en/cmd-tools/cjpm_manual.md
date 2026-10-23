@@ -970,7 +970,7 @@ target-dir = "temp"
 
 ### "script-dir"
 
-This field can specify the storage path for build script artifacts. If not specified, it defaults to the `build-script-cache` directory. If this field is not empty, executing `cjpm clean` deletes the directory it points to; developers must ensure that clearing this directory is safe.
+This field can specify the storage path for build script artifacts. If not specified, it defaults to the `build-script-cache` directory. Build script outputs are redirected to `build-script-cache/[target|release]/[module-name]/bin/script-log`; see [Build Scripts](#build-scripts) for details. If this field is not empty, executing `cjpm clean` deletes the directory it points to; developers must ensure that clearing this directory is safe.
 
 ```text
 script-dir = "temp"
@@ -1143,6 +1143,10 @@ The packaging scope for different configurations is as follows:
 
 This field configures the list of module author IDs, which is displayed on the central repository pages.
 
+```text
+authors = ["Tom", "Joan"]
+```
+
 ### "repository"
 
 If the source module is also hosted in an online code repository, set the corresponding URL here; it is displayed on the central repository pages.
@@ -1159,9 +1163,17 @@ If the developer has created a documentation site for the source module, set the
 
 This field specifies artifact tags for the source module, up to 5.
 
+```text
+tag = ["Network", "Utility"]
+```
+
 ### "category"
 
 This field specifies artifact categories for the source module, up to 5.
+
+```text
+category = ["Logging"]
+```
 
 The categories must be chosen from those provided by the Cangjie central repository:
 
@@ -1198,6 +1210,10 @@ The value of `category` is case-insensitive, but it is converted to the standard
 ### "license"
 
 This field specifies the list of licenses that the source module complies with.
+
+```text
+license = ["Apache-2.0"]
+```
 
 ### "workspace"
 
