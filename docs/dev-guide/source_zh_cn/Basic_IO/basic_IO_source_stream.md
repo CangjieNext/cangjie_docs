@@ -52,7 +52,7 @@ main() {
 
 需要按可用数据分块处理标准输入时，可以调用 `readSome(buffer)`。单次调用允许短读：内部缓存已有数据时返回缓存中的有效前缀，否则尝试读取输入；重定向管道读取不要求换行，也不等待数组填满或写端关闭。没有数据可读且未到达流末尾时，读取仍可能阻塞等待；交互终端仍受行缓冲等设置影响。允许短读不等于非阻塞读取。
 
-Windows 重定向输入中，旧的行读取路径保留默认文本语义：CRLF 转为 LF，`Ctrl+Z`（`0x1A`）作为 EOF。独立使用 `readSome` 时，按原始字节读取；若先调用 `read`、`readln` 或 `readUntil` 将数据预取到 `ConsoleReader` 缓存，后续 `readSome` 会先返回已经过文本转换的剩余数据。混用这些方法保持该实例内的消费顺序，但不保证还原输入的原始字节；依赖原始字节的协议应从开始就使用 `readSome` 或基于它的 `readFully`。
+Windows 重定向输入中，旧的行读取路径保留默认文本语义：CRLF 转为 LF，`Ctrl+Z`（`0x1A`）作为 EOF。独立使用 `readSome` 时，按原始字节读取；若先调用 `read`、`readln` 或 `readUntil` 将数据预取到 `ConsoleReader` 缓存，后续 `readSome` 会先返回已经过文本转换的剩余数据。混用这些方法保持该实例内的消费顺序，但不保证还原输入的原始字节；依赖原始字节的协议应从开始就使用 `readSome`。
 
 标准输入按字节读取示例：
 
@@ -73,55 +73,7 @@ main() {
 }
 ```
 
-上面的示例输出实际读取的字节数，并在读到数据时输出对应的字节数组。短读不表示输入结束，一次读取也不对应一条完整消息；继续读取时应根据协议累计数据。按字节分块还可能截断 UTF-8 字符，不应假定每块数据都能独立转换为字符串。`readSome` 保留了部分底层读取失败也返回 `0` 的行为，因此不能用 `0` 区分所有读取错误与正常 EOF。若需要严格读满数组，可以使用下面的 `ConsoleReader.readFully`。
-
-### 读取固定长度的数据
-
-当协议要求从标准输入取得固定长度的数据时，可以使用 `ConsoleReader.readFully`。它循环调用 `readSome`，将后续数据读入数组中尚未填充的部分。例如，下面的程序读取 8 字节协议头：
-
-<!-- compile -->
-
-```cangjie
-import std.env.getStdIn
-import std.io.IOException
-
-main() {
-    let header = Array<Byte>(8, repeat: 0)
-    try {
-        getStdIn().readFully(header)
-        println(header)
-    } catch (e: IOException) {
-        println("协议头读取失败：${e.message}")
-    }
-}
-```
-
-将包含 `abcdefgh` 的文件重定向为标准输入时，输出为：
-
-```text
-[97, 98, 99, 100, 101, 102, 103, 104]
-```
-
-若管道只发送 `abc` 且写端保持打开，程序会继续等待后续 5 字节；收到后立即完成，不等待写端关闭。若提前结束则抛出 `IOException`，目标数组可能已部分修改，不能将其作为完整协议头处理。
-
-`readFully` 不关闭输入流，不识别消息边界，也不提供超时或取消；多次读取不保证整体互斥，调用方应根据协议确定目标长度，并协调同一流上的其他消费者。空目标数组直接成功。标准输入现有实现还可能将底层读取失败映射为 `0`；此时 `readFully` 报告未填满，无法恢复原始错误原因。
-
-其他 `InputStream` 实现可以使用 `std.io` 包中的顶层函数 `readFully(input, buffer)`，其成功条件同样是填满目标数组。例如：
-
-<!-- run -->
-
-```cangjie
-import std.io.{ByteBuffer, readFully}
-
-main() {
-    let input = ByteBuffer("abcdefgh".toArray())
-    let header = Array<Byte>(8, repeat: 0)
-    readFully(input, header)
-    println(header)
-}
-```
-
-顶层函数循环调用 `input.read`，继承该方法原有的等待方式。将 `ConsoleReader` 作为 `InputStream` 传给顶层函数时，调用的仍是旧 `read` 路径，可能等待换行；这与直接调用 `getStdIn().readFully(buffer)` 的短读路径不同。`InputStream` 接口本身不提供 `readFully` 成员。
+上面的示例输出实际读取的字节数，并在读到数据时输出对应的字节数组。短读不表示输入结束，一次读取也不对应一条完整消息；继续读取时应根据协议累计数据。按字节分块还可能截断 UTF-8 字符，不应假定每块数据都能独立转换为字符串。`readSome` 保留了部分底层读取失败也返回 `0` 的行为，因此不能用 `0` 区分所有读取错误与正常 EOF。
 
 输出流分为标准输出流和标准错误流，默认情况下，它们都会输出到屏幕，例如在命令行界面中看到的文本。
 

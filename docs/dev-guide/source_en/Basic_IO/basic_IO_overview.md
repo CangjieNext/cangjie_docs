@@ -29,8 +29,6 @@ A single `read` call does not guarantee that `buffer` is filled. The caller shou
 
 For a nonempty buffer, a normal read returns `0` when EOF is reached without reading any data. A short read does not indicate EOF. The call may still block when no input is available; empty-buffer handling and read failures are documented by each implementation.
 
-For a fixed byte count, use the top-level function `readFully(input, buffer)` from `std.io`. It repeatedly calls the input stream's `read`: a normal return means the destination is full, and failure to fill it raises an exception. This function does not change how the underlying read waits for input. To read a fixed byte count from standard input through its short-read path, use `getStdIn().readFully(buffer)`, as described in [I/O Node Streams](basic_IO_source_stream.md#reading-a-fixed-number-of-bytes).
-
 Definition of the InputStream interface:
 
 <!-- run -->

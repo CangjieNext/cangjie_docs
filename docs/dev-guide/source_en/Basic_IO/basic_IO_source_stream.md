@@ -52,7 +52,7 @@ Run the above code, enter some text in the command line, and then press Enter to
 
 To process standard input in available chunks, call `readSome(buffer)`. A call allows a short read: it returns available buffered bytes, or attempts to read input if the buffer is empty. Reading from a redirected pipe does not require a newline or wait for the destination to fill or the writer to close. Reading may still block when no data is available and the end of the stream has not been reached. Interactive terminal input remains subject to settings such as line buffering. Allowing short reads does not mean nonblocking I/O.
 
-For redirected input on Windows, the legacy line-reading path preserves default text semantics: CRLF becomes LF, and `Ctrl+Z` (`0x1A`) acts as EOF. Used on its own, `readSome` reads raw bytes. If `read`, `readln`, or `readUntil` has prefetched data into the `ConsoleReader` buffer, subsequent `readSome` calls first return the remaining text-translated data. Mixing these methods preserves consumption order within that instance, but does not recover the original input bytes. Protocols requiring raw bytes should use `readSome`, or the `readFully` method built on it, from the start.
+For redirected input on Windows, the legacy line-reading path preserves default text semantics: CRLF becomes LF, and `Ctrl+Z` (`0x1A`) acts as EOF. Used on its own, `readSome` reads raw bytes. If `read`, `readln`, or `readUntil` has prefetched data into the `ConsoleReader` buffer, subsequent `readSome` calls first return the remaining text-translated data. Mixing these methods preserves consumption order within that instance, but does not recover the original input bytes. Protocols requiring raw bytes should use `readSome` from the start.
 
 Example of reading bytes from standard input:
 
@@ -73,55 +73,7 @@ main() {
 }
 ```
 
-The example prints the actual number of bytes read and, when data is read, the corresponding byte array. A short read does not indicate EOF, and one read does not correspond to one complete message. Accumulate data according to the protocol when reading further. Byte chunks may also split UTF-8 characters, so do not assume that each chunk can be independently converted to a string. `readSome` preserves the behavior of returning `0` for some underlying read failures, so `0` cannot distinguish all read errors from normal EOF. To require a full destination array, use `ConsoleReader.readFully` as described below.
-
-### Reading a Fixed Number of Bytes
-
-Use `ConsoleReader.readFully` when a protocol requires a fixed byte count from standard input. It repeatedly calls `readSome` to read into the unfilled portion of the array. For example, this program reads an 8-byte protocol header:
-
-<!-- compile -->
-
-```cangjie
-import std.env.getStdIn
-import std.io.IOException
-
-main() {
-    let header = Array<Byte>(8, repeat: 0)
-    try {
-        getStdIn().readFully(header)
-        println(header)
-    } catch (e: IOException) {
-        println("Header read failed: ${e.message}")
-    }
-}
-```
-
-With standard input redirected from a file containing `abcdefgh`, the output is:
-
-```text
-[97, 98, 99, 100, 101, 102, 103, 104]
-```
-
-If a pipe sends only `abc` and keeps its write end open, the program waits for the remaining 5 bytes. Once received, it completes without waiting for the writer to close. Early termination raises `IOException`. The destination may already be partially modified and must not be treated as a complete header.
-
-`readFully` does not close the stream, identify message boundaries, or provide timeouts or cancellation. Multiple reads are not guaranteed to be atomic as a whole. Callers determine the required length from their protocol and coordinate other consumers of the same stream. An empty destination succeeds immediately. The current standard-input implementation may also map underlying read failures to `0`; in that case, `readFully` reports an incomplete read but cannot recover the original error cause.
-
-Other `InputStream` implementations can use the top-level function `readFully(input, buffer)` from `std.io`, which likewise succeeds only after filling the destination. For example:
-
-<!-- run -->
-
-```cangjie
-import std.io.{ByteBuffer, readFully}
-
-main() {
-    let input = ByteBuffer("abcdefgh".toArray())
-    let header = Array<Byte>(8, repeat: 0)
-    readFully(input, header)
-    println(header)
-}
-```
-
-The top-level function repeatedly calls `input.read` and inherits that method's waiting behavior. Passing a `ConsoleReader` as an `InputStream` to this function still uses the legacy `read` path, which may wait for a newline. This differs from the short-read path used by `getStdIn().readFully(buffer)`. The `InputStream` interface itself does not provide a `readFully` member.
+The example prints the actual number of bytes read and, when data is read, the corresponding byte array. A short read does not indicate EOF, and one read does not correspond to one complete message. Accumulate data according to the protocol when reading further. Byte chunks may also split UTF-8 characters, so do not assume that each chunk can be independently converted to a string. `readSome` preserves the behavior of returning `0` for some underlying read failures, so `0` cannot distinguish all read errors from normal EOF.
 
 The output stream is divided into standard output stream and standard error stream. By default, both output to the screen, such as the text seen in the command-line interface.
 
