@@ -118,6 +118,15 @@ class DocsLintTest(unittest.TestCase):
         code, out = self.run_lint("--anchors")
         self.assertEqual(code, 0, out)
 
+    def test_html_id_and_name_are_valid_anchors(self):
+        self.write("a.md", "[b](b.md#custom-target)\n[c](b.md#legacy-anchor)\n")
+        self.write(
+            "b.md",
+            '<a id="custom-target"></a>\n<a name="legacy-anchor"></a>\n',
+        )
+        code, out = self.run_lint("--anchors")
+        self.assertEqual(code, 0, out)
+
     def test_duplicate_headings_get_numbered_anchors(self):
         self.write("a.md", "[b](b.md#note-1)\n")
         self.write("b.md", "## Note\n## Note\n")
