@@ -1,5 +1,9 @@
 # Copyable 与 demode
 
+> **说明：**
+>
+> local 模式是实验特性。本节示例都按开启 local 模式编写，编译时需要加上 `--experimental --enable-local-mode` 编译选项，参见[开启 local 模式](./modal_overview.md#开启-local-模式)。
+
 ## Copyable 接口
 
 有些类型的值不包含任何引用，赋值时复制的就是值本身，例如 `Int64`、`Bool`。对这样的类型来说，“对象是否逃逸出函数”没有意义，local 模式的限制也就不必施加在它们身上。标准库用 `Copyable` 接口来标识这类类型。
@@ -14,6 +18,7 @@
 实现了 `Copyable` 的类型的值，可以在 `@local!`、`@local?`、`@~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func toPlain(t: (Int64, Bool) @local?): (Int64, Bool) {
@@ -40,6 +45,7 @@ main() {
 如果 struct 的所有实例成员变量的类型都实现了 `Copyable`，可以声明该 struct 实现 `Copyable`。泛型 struct 可以通过泛型约束来满足这一条件：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 struct Point <: Copyable {
@@ -94,6 +100,7 @@ main() {
 - class 和 enum 类型，即使它们不包含任何引用类型的成员。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 struct Named <: Copyable {
@@ -112,6 +119,7 @@ enum Color <: Copyable { // Error, an enum cannot implement Copyable
 `Copyable` 只能作为 struct 的父接口或泛型约束（如 `where T <: Copyable`）使用，不能作为变量、参数等的类型：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func f(c: Copyable): Unit {} // Error, Copyable cannot be used as a parameter type
@@ -124,6 +132,7 @@ func g() {
 作为泛型约束时，可以让泛型函数对任何模式的实参都返回非 local 的结果：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func plain<T>(x: T @local?): T where T <: Copyable {
@@ -152,6 +161,7 @@ main() {
 - 相应地，不能把 local 值赋给它。
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 var defaultTag: String = "default"
@@ -187,6 +197,7 @@ default
 ```
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 var defaultTag: String = "default"
@@ -217,6 +228,7 @@ func f() {
 `Array<T> @local!` 的元素也是 local 的。如果想要一个随函数释放的临时数组，但其中存放的是普通对象，可以先定义一个只含 `demode` 成员的包装 struct，再用它作为数组元素：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 struct Detached<T> {

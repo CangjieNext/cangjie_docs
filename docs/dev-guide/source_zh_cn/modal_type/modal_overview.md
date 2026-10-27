@@ -10,6 +10,31 @@ local 模式用类型来描述“这个对象不会离开当前函数”。编�
 >
 > 本章所说的 local region 指为 local 对象划分的内存区域，与 GC 堆内部的 region 不是同一个概念。
 
+## 开启 local 模式
+
+local 模式目前是实验特性，默认关闭。使用时需要同时加上 `--experimental` 和 `--enable-local-mode` 两个编译选项，例如：
+
+```shell
+cjc --experimental --enable-local-mode main.cj -o main
+```
+
+使用 cjpm 构建时，可以在 `cjpm.toml` 的 `compile-option` 字段中加入这两个选项。`compile-option` 只对当前模块生效，用到 local 模式的依赖模块需要在各自的 `cjpm.toml` 中开启。也可以在入口模块的 `override-compile-option` 字段中统一开启，但这样所有依赖模块中的 `exclave`、`demode` 都会成为关键字。参见[cjpm 介绍](../compile_and_build/cjpm_usage.md)。本章的示例都按开启 local 模式编写。
+
+<!-- TODO(宋键): cjpm 是否会提供专门的开关（如 [profile] 下的配置）？目前按 compile-option / override-compile-option 写。 -->
+
+未开启 local 模式时：
+
+- `exclave`、`demode` 是普通标识符，已有代码中同名的变量、函数等不受影响。
+- 使用 `@local!`、`@local?`、`@~local` 等模式标注会报错 `local mode is disabled`，并提示开启方式。
+- 使用以 local 模式声明的 API 会报错 `cannot use local API '...' when local mode is disabled`。这类 API 包括：参数或返回值本身的模式为 `@local!` 或 `@local?` 的函数，`this` 模式为 `@local!` 的成员函数和构造函数，以及类型为 `@local!` 的属性。
+- 导入包含上述 API 的包不受影响，包中其他 API 可以照常使用。
+
+> **注意：**
+>
+> - local 模式仍属于实验特性，相关的语法、规则和编译选项可能在后续版本中发生变化，不保证兼容。
+> - 编译选项只决定源码中能否使用 local 模式。标准库中有些 API 的内部实现用到了 local 模式，无论是否开启，这些实现都照常生效。
+> - cjfmt、cjlint、LSP、cjdb 等工具对 local 模式的支持可能还不完整。
+
 ## 模式与模态类型
 
 在类型后面加上 `@` 和一个模式（mode），就得到模态类型（modal type）。与 local 相关的模式有三种：
@@ -20,7 +45,7 @@ local 模式用类型来描述“这个对象不会离开当前函数”。编�
 | `T @local!` | 一定是 local。对象的生命周期限定在当前函数（或调用者）的 local region 内，不能逃逸出去 |
 | `T @local?` | 可能是 local。值可能是 local 的，也可能不是；使用时按 local 的要求加以限制 |
 
-不写模式等价于写 `@~local`，因此已有代码中的类型含义不变。需要注意的是新增了 `exclave`、`demode` 两个关键字，已有代码中如果用它们作为标识符，需要改写为原始标识符，参见[关键字](../Appendix/keyword.md)。
+不写模式等价于写 `@~local`，因此开启 local 模式后，已有代码中的类型含义不变。需要注意的是，开启后 `exclave`、`demode` 成为关键字，已有代码中如果用它们作为标识符，需要改写为原始标识符，参见[关键字](../Appendix/keyword.md)。
 
 `T @~local` 和 `T @local!` 都是 `T @local?` 的子类型：`@local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@~local` 与 `@local!` 之间没有子类型关系，不能互相赋值。
 
@@ -48,6 +73,7 @@ local 模式用类型来描述“这个对象不会离开当前函数”。编�
 下面的示例在 `sumOfSquares` 中创建一个临时数组，把它标注为 `@local!`，并交给只读的辅助函数 `total` 求和。`total` 的参数标注为 `@local?`，因此它既能接收 local 数组，也能接收普通数组。`getAllocatedLocalObjectSize()` 返回当前活跃的 local region 所占用的内存，用来观察 local 数组何时被回收：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 import std.runtime.getAllocatedLocalObjectSize
@@ -90,6 +116,7 @@ local memory released: true
 local 对象不能离开创建它的函数。如果试图把上例中的 `squares` 作为返回值，编译器会报错：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func squaresOf(n: Int64): Array<Int64> {

@@ -1,5 +1,9 @@
 # local 模式的使用规则
 
+> **说明：**
+>
+> local 模式是实验特性。本节示例都按开启 local 模式编写，编译时需要加上 `--experimental --enable-local-mode` 编译选项，参见[开启 local 模式](./modal_overview.md#开启-local-模式)。
+
 本节介绍编写 local 代码时需要遵守的规则。本节的规则都由编译器在编译期检查，违反时直接报错。运行时可能出现的问题（如 local region 超出上限）见[模态类型概述](./modal_overview.md#何时值得使用-local-模式)。
 
 ## 赋值、返回与逃逸
@@ -11,6 +15,7 @@
 - 不能作为 `@~local` 的返回值返回。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 var cache: String = ""
@@ -26,6 +31,7 @@ func process(): String {
 `@local?` 的变量或参数可以接收 local 值和非 local 值，因此常用于只读取、不保存数据的函数参数：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func describe(s: String @local?): String {
@@ -54,6 +60,7 @@ size 9
 由于 `@local?` 的值可能是 local 的，它同样不能逃逸：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func keep(s: String @local?): String {
@@ -64,6 +71,7 @@ func keep(s: String @local?): String {
 上述限制只针对含有引用的类型。数值、`Bool`、`Rune` 等实现了 `Copyable` 接口的类型，赋值时复制的就是值本身，不会造成逃逸，因此不受 local 模式的限制，可以在各种模式之间自由转换（详见 [Copyable 与 demode](./copyable_and_demode.md)）：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func count(): Int64 {
@@ -92,6 +100,7 @@ class 和 struct 的实例成员变量声明时不写模式，它的模式由所
 不能给 `@local?` 实例的非 `Copyable` 成员赋值，也不能给 `@local?` 数组的非 `Copyable` 元素赋值。原因是 `@local?` 的实例实际上可能是非 local 的，如果允许赋值，就可能让一个非 local 对象引用 local 对象，而 local 对象会随 local region 释放。`Copyable` 类型的成员和元素不受此限制。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Order {
@@ -135,6 +144,7 @@ func fill(names: Array<String> @local?, counts: Array<Int64> @local?) {
 构造实例时，在构造调用之后写上模式来选择构造函数，例如 `Order("pen", 2) @local!`；也可以通过变量的类型来选择：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Order {
@@ -167,6 +177,7 @@ book pen ink
 如果类型没有对应模式的构造函数，就不能构造该模式的实例。例如下面的 `Point` 只有默认模式的构造函数：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Point {
@@ -184,6 +195,7 @@ main() {
 `this @local!` 或 `this @local?` 的构造函数如果没有写成 exclave，编译器会报错：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Label {
@@ -214,6 +226,7 @@ class Label {
 因此，如果希望某个只读的成员函数对任何模式的实例都可用，应把它声明为 `this @local?`。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Counter {
@@ -239,6 +252,7 @@ func use(c: Counter @local?) {
 同一个成员函数可以只按 `this` 模式重载。调用时选择 `this` 模式与实例模式最匹配的版本：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class C {
@@ -279,6 +293,7 @@ this @local?
 实现接口函数或覆盖父类函数时，`this` 模式必须与被实现或被覆盖的函数完全相同：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 interface Shape {
@@ -311,6 +326,7 @@ main() {
 ```
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 interface Shape {
@@ -341,6 +357,7 @@ class Derived <: Base {
 函数可以只按参数的模式重载。标准库中常见的做法是同时提供 `f(x: T)` 和 `f(x: T @local?)` 两个版本。调用时，编译器选择参数模式与实参模式最匹配的版本：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func f(_: String): String {
@@ -391,6 +408,7 @@ g(String @local?)
 如果没有任何版本能接收实参的模式，调用会报错。例如只提供 `@local!` 版本时，不能传入 `@~local` 或 `@local?` 的实参：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func h(s: String @local!): Int64 {
@@ -419,6 +437,7 @@ func test(p: String @local?) {
 - 不能用来调用 `this @local!` 的成员函数。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Doc {
@@ -452,6 +471,7 @@ func process(d: Doc @local!): Int64 {
 通过外部 local! 调用 `this @local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func size(s: String @local?): Int64 {
@@ -494,6 +514,7 @@ lambda 表达式和嵌套函数会捕获外部变量，捕获规则如下：
 - 不能创建 `@local!` 的函数对象，即 lambda 的类型不能是 `@local!` 的函数类型。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 var onDone: () -> Int64 = {=> 0}
@@ -511,6 +532,7 @@ func run() {
 捕获 `@local?` 变量的 lambda 可以在当前函数内正常调用：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func run() {
@@ -534,6 +556,7 @@ main() {
 嵌套函数默认是 `@~local` 的，不能捕获 `@local?` 和 `@local!` 的变量。要捕获 `@local?` 变量，在 `func` 前写上 `@local?`；嵌套函数同样不能捕获 `@local!` 变量：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func run() {
@@ -557,6 +580,7 @@ main() {
 ```
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func run() {
@@ -584,6 +608,7 @@ func run() {
 - **exclave 的使用位置**：try 块、catch 块、spawn 块、`main`、终结器和静态初始化器中不能使用 exclave，详见 [exclave 表达式](./exclave.md#使用限制)。
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 var lastError: Exception = Exception()
@@ -624,6 +649,7 @@ bad input
 ```
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func f() {
@@ -651,6 +677,7 @@ func fromC(p: CPointer<Int8> @local!): Unit {} // Error, @C function cannot use 
 泛型函数要接收 local 值时，把形参标注为 `@local?`：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func count<T>(xs: Array<T> @local?): Int64 {

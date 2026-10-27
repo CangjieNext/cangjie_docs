@@ -245,7 +245,7 @@ let r = Rectangle() // r.width = 10，r.height = 20
 
 ### class 终结器
 
-`class` 支持定义终结器，当类的实例被垃圾回收时，会触发该函数；对于 local 实例（参见[模态类型](../modal_type/modal_overview.md)），终结器最晚在其所属的 local region 结束时触发。终结器的函数名固定为 `~init`，通常用于释放系统资源。如下示例中的 `unsafe`，详见 [unsafe 小节](../FFI/cangjie-c.md)：
+`class` 支持定义终结器，当类的实例被垃圾回收时，会触发该函数；对于 local 实例（需开启 local 模式，参见[模态类型](../modal_type/modal_overview.md)），终结器最晚在其所属的 local region 结束时触发。终结器的函数名固定为 `~init`，通常用于释放系统资源。如下示例中的 `unsafe`，详见 [unsafe 小节](../FFI/cangjie-c.md)：
 
 <!-- compile -->
 
@@ -265,7 +265,7 @@ class C {
 
 使用终结器有些限制条件，需要开发者注意：
 
-1. 终结器没有参数，没有返回类型，没有泛型类型参数，没有任何修饰符，也不可以被显式调用。终结器可以带 `this` 模式说明，如 `~init(this @local?)`，详见[其他限制速查](../modal_type/local_mode_rules.md#其他限制速查)。
+1. 终结器没有参数，没有返回类型，没有泛型类型参数，没有任何修饰符，也不可以被显式调用。开启 local 模式后，终结器可以带 `this` 模式说明，如 `~init(this @local?)`，详见[其他限制速查](../modal_type/local_mode_rules.md#其他限制速查)。
 2. 带有终结器的类不可被 `open` 修饰，只有非 `open` 的类可以拥有终结器。
 3. 一个类最多只能定义一个终结器。
 4. 终结器不可以定义在扩展中。

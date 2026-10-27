@@ -1,5 +1,9 @@
 # exclave 表达式
 
+> **说明：**
+>
+> local 模式是实验特性。本节示例都按开启 local 模式编写，编译时需要加上 `--experimental --enable-local-mode` 编译选项，参见[开启 local 模式](./modal_overview.md#开启-local-模式)。
+
 ## 为什么需要 exclave
 
 每个函数都有自己的 local region，函数内创建的 local 对象在函数返回时随之释放。这带来两个问题：
@@ -10,6 +14,7 @@
 下例中，`normalize` 想把请求路径替换为一个新建的字符串，编译器会报错：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Request {
@@ -47,6 +52,7 @@ exclave 执行完就会离开函数，因此 exclave 表达式本身的类型是
 把上面的 `normalize` 改为在 exclave 中创建并赋值：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Request {
@@ -84,6 +90,7 @@ main() {
 在 exclave 中构造的 local 对象可以返回给调用者，调用者拿到的对象位于调用者自己的 local region 中，调用者返回时才释放：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func makeSquares(n: Int64): Array<Int64> @local! {
@@ -115,6 +122,7 @@ main() {
 不使用 exclave 时，函数内创建的 local 对象不能返回：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func makeSquares(n: Int64): Array<Int64> @local! {
@@ -128,6 +136,7 @@ func makeSquares(n: Int64): Array<Int64> @local! {
 如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：
 
 <!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Request {
@@ -170,6 +179,7 @@ exclave 只能用于以下函数（包括 lambda 和构造函数）：
 其他函数中使用 exclave 会报错。`abstract` 函数没有函数体，也不能用 `exclave` 修饰：
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func compute(): Int64 {
@@ -190,6 +200,7 @@ exclave 有以下限制：
 - 以下位置不能使用 exclave：try 块、catch 块、spawn 块、`main` 函数、终结器、静态初始化器。
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Request {
@@ -219,6 +230,7 @@ func reuse(req: Request @local!) {
 ```
 
 <!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 class Request {
