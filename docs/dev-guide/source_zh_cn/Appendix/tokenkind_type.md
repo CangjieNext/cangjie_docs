@@ -165,6 +165,8 @@ public enum TokenKind <: ToString {
     | RESUME //  "resume"
     | THROWING //  "throwing"
     | DOUBLE_COLON //  "::"
+    | EXCLAVE //  "exclave"
+    | DEMODE //  "demode"
         ...
 }
 ```

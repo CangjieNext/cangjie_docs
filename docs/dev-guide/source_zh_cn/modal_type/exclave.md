@@ -1,0 +1,268 @@
+# exclave 表达式
+
+## 为什么需要 exclave
+
+每个函数都有自己的 local region，函数内创建的 local 对象在函数返回时随之释放。这带来两个问题：
+
+- 函数无法把内部创建的 local 对象交给调用者，因为该对象在函数返回时就会被释放；
+- 函数无法让调用者传入的 `@local!` 参数引用函数内部创建的 local 对象，因为参数对象属于调用者的 local region，比函数内部的对象活得更久。
+
+下例中，`normalize` 想把请求路径替换为一个新建的字符串，编译器会报错：
+
+<!-- compile.error -->
+
+```cangjie
+class Request {
+    var path: String
+    init(path: String) {
+        this.path = path
+    }
+    exclave init(this @local!, path: String @local!) {
+        this.path = path
+    }
+}
+
+func normalize(req: Request @local!) {
+    let fixed: String @local! = "/index.html"
+    req.path = fixed // Error, fixed is released when normalize returns, but req lives longer
+}
+```
+
+exclave 表达式用于解决这类问题。
+
+## exclave 的含义
+
+exclave 表达式的形式为 `exclave { 块 }`，执行过程如下：
+
+1. 当前函数的 local region 先行结束，其中的 local 对象被释放；
+2. 接着执行块中的代码，块中新创建的 local 对象改为分配在调用者的 local region 中；
+3. 块执行完毕后，像 `return` 一样把块的值返回给调用者。
+
+exclave 执行完就会离开函数，因此 exclave 表达式本身的类型是 `Nothing`，块中最后一个表达式的类型需要符合函数的返回类型。
+
+在 exclave 中，`@local!` 参数与块内新建的 local 对象位于同一个 local region（即调用者的 local region），因此可以互相赋值，块内新建的 local 对象也可以作为返回值返回。
+
+## 修改 @local! 参数
+
+把上面的 `normalize` 改为在 exclave 中创建并赋值：
+
+<!-- verify -->
+
+```cangjie
+class Request {
+    var path: String
+    init(path: String) {
+        this.path = path
+    }
+    exclave init(this @local!, path: String @local!) {
+        this.path = path
+    }
+}
+
+func normalize(req: Request @local!) {
+    exclave {
+        let fixed: String @local! = "/index.html"
+        req.path = fixed // OK, both are in the caller's region
+    }
+}
+
+main() {
+    let req = Request("/") @local!
+    normalize(req)
+    println(req.path)
+}
+```
+
+执行结果为：
+
+```text
+/index.html
+```
+
+## 返回 local 对象
+
+在 exclave 中构造的 local 对象可以返回给调用者，调用者拿到的对象位于调用者自己的 local region 中，调用者返回时才释放：
+
+<!-- verify -->
+
+```cangjie
+func makeSquares(n: Int64): Array<Int64> @local! {
+    exclave {
+        Array<Int64>(n, {i => i * i}) @local!
+    }
+}
+
+func sumOfSquares(n: Int64): Int64 {
+    let squares = makeSquares(n) // squares lives in the region of sumOfSquares
+    var sum = 0
+    for (i in 0..squares.size) {
+        sum += squares[i]
+    }
+    sum
+}
+
+main() {
+    println(sumOfSquares(10))
+}
+```
+
+执行结果为：
+
+```text
+285
+```
+
+不使用 exclave 时，函数内创建的 local 对象不能返回：
+
+<!-- compile.error -->
+
+```cangjie
+func makeSquares(n: Int64): Array<Int64> @local! {
+    let squares = Array<Int64>(n, {i => i * i}) @local!
+    squares // Error, a @local! value created in this function cannot be returned
+}
+```
+
+## exclave 修饰符
+
+如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：
+
+<!-- verify -->
+
+```cangjie
+class Request {
+    var path: String
+    init(path: String) {
+        this.path = path
+    }
+    exclave init(this @local!, path: String @local!) {
+        this.path = path
+    }
+}
+
+exclave func redirect(req: Request @local!, target: String @local!): Unit {
+    req.path = target
+}
+
+main() {
+    let req = Request("/old") @local!
+    redirect(req, "/new")
+    println(req.path)
+}
+```
+
+执行结果为：
+
+```text
+/new
+```
+
+`this @local!` 和 `this @local?` 的构造函数必须写成 exclave，参见[构造 local 实例](./local_mode_rules.md#构造-local-实例)。
+
+## 使用条件
+
+exclave 只能用于以下函数（包括 lambda 和构造函数）：
+
+- 有非 `Copyable` 类型的 `@local!` 参数（包括 `this @local!`）；
+- 返回类型为非 `Copyable` 类型的 `@local!` 或 `@local?`；
+- `this @local!` 或 `this @local?` 的构造函数。
+
+其他函数中使用 exclave 会报错。`abstract` 函数没有函数体，也不能用 `exclave` 修饰：
+
+<!-- compile.error -->
+
+```cangjie
+func compute(): Int64 {
+    exclave { 1 } // Error, the function has no @local! parameter or local return type
+}
+
+abstract class Shape {
+    public exclave func reset(this @local!): Unit // Error, abstract function cannot be exclave
+}
+```
+
+## 使用限制
+
+exclave 有以下限制：
+
+- 同一个函数中的 exclave 不能嵌套：外层 exclave 已经结束了函数的 local region，内层无法再结束一次。
+- exclave 块中不能访问在块外声明的、非 `Copyable` 类型的 `@local!` 或 `@local?` 局部变量，因为它们所在的 local region 在进入 exclave 时已经结束。`Copyable` 类型的变量不受此限制。
+- 以下位置不能使用 exclave：try 块、catch 块、spawn 块、`main` 函数、终结器、静态初始化器。
+
+<!-- compile.error -->
+
+```cangjie
+class Request {
+    var path: String
+    init(path: String) {
+        this.path = path
+    }
+    exclave init(this @local!, path: String @local!) {
+        this.path = path
+    }
+}
+
+func twice(req: Request @local!) {
+    exclave {
+        exclave { () } // Error, exclave cannot be nested
+    }
+}
+
+func reuse(req: Request @local!) {
+    let prefix: String @local! = "/api"
+    let depth: Int64 @local! = 1
+    exclave {
+        let d = depth // OK, Int64 is Copyable
+        req.path = prefix // Error, prefix is declared outside exclave
+    }
+}
+```
+
+<!-- compile.error -->
+
+```cangjie
+class Request {
+    var path: String
+    static let count: Int64 = 0
+    init(path: String) {
+        this.path = path
+    }
+    exclave init(this @local!, path: String @local!) {
+        this.path = path
+    }
+    static init() {
+        exclave { () } // Error, not allowed in a static initializer
+    }
+}
+
+class Res {
+    init() {}
+    ~init() {
+        exclave { () } // Error, not allowed in a finalizer
+    }
+}
+
+func inTry(req: Request @local!) {
+    try {
+        exclave { () } // Error, not allowed in a try block
+    } catch (e: Exception) {}
+}
+
+func inCatch(req: Request @local!) {
+    try {
+        ()
+    } catch (e: Exception) {
+        exclave { () } // Error, not allowed in a catch block
+    }
+}
+
+func inSpawn(): Unit {
+    spawn {
+        exclave { () } // Error, not allowed in a spawn block
+    }
+}
+
+main() {
+    exclave { () } // Error, not allowed in main
+}
+```
