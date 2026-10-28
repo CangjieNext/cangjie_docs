@@ -12,3 +12,7 @@
     - [语言服务器工具](source_zh_cn/cangjie-language-server/LSPServer_manual.md)
     - [CHIR 反序列化工具](source_zh_cn/cmd-tools/chir_dis_manual.md)
     - [异常堆栈信息还原工具](source_zh_cn/cmd-tools/cjtrace_recover_manual.md)
+- [封面](source_zh_cn/library_evolution_spec/Chapter_00_Cover.md)
+- [修订记录](source_zh_cn/library_evolution_spec/Chapter_01_Change_Log.md)
+- [概述](source_zh_cn/library_evolution_spec/Chapter_02_Overview.md)
+- [兼容性规则](source_zh_cn/library_evolution_spec/Chapter_03_Rules.md)
