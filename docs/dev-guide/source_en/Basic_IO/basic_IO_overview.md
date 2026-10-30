@@ -25,6 +25,12 @@ A program reads data sources (including external devices like keyboards, files, 
 
 The Cangjie programming language uses the `InputStream` interface type to represent an input stream. It provides a `read` function, which writes readable data into a `buffer` and returns the total number of bytes read in that operation.
 
+A single `read` call does not guarantee that `buffer` is filled. The return value `n` specifies the actual number of bytes read; valid data occupies the first `n` bytes of `buffer`. The number of bytes read per call is not fixed, and read boundaries need not align with individual writer-side `write` calls, text lines, or protocol messages. Callers should process only valid data and call `read` again when additional data is required.
+
+Return conditions depend on the concrete input stream implementation: an implementation may return after obtaining partial data or continue reading to attempt to fill the array. For example, `ConsoleReader.read` replenishes its buffer through the line-reading path and attempts to fill the destination array. `InputStream` permits short reads but does not require every implementation to return immediately after obtaining partial data. For short reads from standard input, see [I/O Node Streams](basic_IO_source_stream.md#standard-streams).
+
+For a nonempty buffer, a normal read returns `0` when EOF is reached without reading any data. A short read does not indicate EOF. The call may still block when no input is available; handling of empty buffers and read failures is specified by each implementation.
+
 Definition of the InputStream interface:
 
 <!-- run -->
@@ -39,14 +45,21 @@ When an input stream is available, byte data can be read as shown in the followi
 
 Example of reading from an input stream:
 
+<!-- run -->
+
 ```cangjie
 import std.io.InputStream
+import std.io.ByteBuffer
 
 main() {
-    let input: InputStream = ...
+    let input: InputStream = ByteBuffer("Hello World".toArray())
     let buf = Array<Byte>(256, repeat: 0)
-    while (input.read(buf) > 0) {
-        println(buf)
+    while (true) {
+        let readSize = input.read(buf)
+        if (readSize == 0) {
+            break
+        }
+        println(buf.slice(0, readSize))
     }
 }
 ```

@@ -28,7 +28,7 @@ The `ConsoleReader` and `ConsoleWriter` types in the `env` package provide user-
 
 Most importantly, `ConsoleReader` and `ConsoleWriter` types guarantee thread safety, allowing safe reading and writing through their interfaces in any thread.
 
-By default, the standard input stream comes from keyboard input, such as text entered in a command-line interface.
+`getStdIn()` returns the `ConsoleReader` used to read the current process's standard input. The data source depends on the process's standard-input configuration: it is typically keyboard input when connected to a terminal, or file contents or data written by another process through a pipe when redirected. The function does not select an input file or establish a network connection.
 
 When data needs to be obtained from the standard input stream, the `ConsoleReader` type can be acquired via the `getStdIn` global function, and then the `readln` function of this type can be used to get command-line input.
 
@@ -47,6 +47,39 @@ main() {
 ```
 
 Run the above code, enter some text in the command line, and then press Enter to see the input content.
+
+`ConsoleReader.read(buffer)` consumes buffered data first. If the buffer contains insufficient data, the method replenishes it through the line-reading path until the destination array is filled, input ends, or reading fails. A newline terminates one line read but does not necessarily cause the current `read` call to return. For example, with a destination array of size 8, input `abc\n` may cause the method to wait for another line; input of 8 bytes without a newline may also require the line read to complete. When input ends or reading fails, the returned byte count may be smaller than the array length; an empty destination array returns `0`. Callers must process data according to the returned count. This method is unsuitable for pipe interactions in which the writer sends partial data and waits for a response.
+
+`readSome(buffer)` provides a short-read interface. It returns the actual number of bytes read, `n`, and valid data occupies the first `n` bytes of `buffer`. The returned count depends on the destination capacity and the data obtained by the call:
+
+- If the `ConsoleReader` instance buffer is nonempty, the method copies valid data and returns the smaller of the remaining buffered byte count and the destination capacity, without additional reads to fill the array.
+- For a redirected file or pipe, the method consumes the shared native buffer when the instance buffer is empty. If both buffers are empty, it returns the byte count obtained by the platform read operation (POSIX `read` or Windows `ReadFile`). Once data is obtained, the call returns without further reads to fill the array; neither a newline nor closure of the writer is required.
+- Interactive terminal input is subject to terminal modes; Windows character devices use the line-reading path. A terminal may provide data only after receiving a newline, so the short-read interface does not guarantee per-keystroke returns or nonblocking reads.
+
+A single read need not retrieve all currently available data, and read boundaries need not align with individual writes, network packets, or protocol messages. Data from one write may require multiple reads, and data from multiple writes may be returned by one read. Reading may still block when no data is available and EOF has not been reached.
+
+For redirected input on Windows, the line-reading path uses text semantics: CRLF is converted to LF, and `Ctrl+Z` (`0x1A`) acts as EOF. When used exclusively, `readSome` reads raw bytes. If `read`, `readln`, or `readUntil` has prefetched data into the `ConsoleReader` buffer, subsequent `readSome` calls first return the remaining text-translated data. Alternating these methods preserves consumption order within the same instance but cannot recover the original bytes before conversion. Protocols requiring raw bytes should use `readSome` throughout the reading process. Other standard-input interfaces may maintain independent buffers; use the instance returned by `getStdIn()` consistently for the same input sequence.
+
+Example of reading bytes from standard input:
+
+<!-- compile -->
+
+```cangjie
+import std.env.getStdIn
+
+main() {
+    let consoleReader = getStdIn()
+    let buffer = Array<Byte>(256, repeat: 0)
+    let readSize = consoleReader.readSome(buffer)
+    // Process only the bytes read by this call; do not assume the array is full.
+    println("Bytes read: ${readSize}")
+    if (readSize > 0) {
+        println(buffer.slice(0, readSize))
+    }
+}
+```
+
+The example prints the actual number of bytes read and, when data is obtained, the valid byte array. A short read does not indicate EOF, and a single read does not guarantee a complete message; callers should accumulate data according to the protocol. Read boundaries may occur within a multibyte UTF-8 character encoding, so the result of a single read cannot always be converted independently to a string. `readSome` may return `0` for an empty destination array, EOF with no data obtained by the call, or certain underlying read failures; the return value alone cannot distinguish these cases.
 
 The output stream is divided into standard output stream and standard error stream. By default, both output to the screen, such as the text seen in the command-line interface.
 
