@@ -141,7 +141,7 @@ func fill(names: Array<String> @local?, counts: Array<Int64> @local?) {
 
 `this @local!` 和 `this @local?` 的构造函数，整个函数体必须是一个 exclave 表达式，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，不受上一小节“不能给 `@local?` 实例的成员赋值”的限制。
 
-构造实例时，在构造调用之后写上模式来选择构造函数，例如 `Order("pen", 2) @local!`；也可以通过变量的类型来选择：
+构造实例时，可以在构造调用之后显式写上模式来选择构造函数，例如 `Order("pen", 2) @local!`。省略模式时，编译器会按上下文推断，例如变量类型、形参类型或返回类型；若无法推断，或没有对应模式的构造函数，则选择 `@~local` 模式的构造函数，再按参数类型等规则进行重载决议。下面通过变量类型选择构造函数：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -426,10 +426,12 @@ func test(p: String @local?) {
 
 `@local!` 的值分为两类，编译器的报错信息中分别称为 external 和 internal：
 
-- **外部 local!**（external）：函数的 `@local!` 参数，以及通过它访问到的成员。它们由调用者创建，属于调用者的 local region。
+- **外部 local!**（external）：函数的 `@local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。含有外部 local! 元素的数组或元组字面量也按外部处理。
 - **内部 local!**（internal）：在当前函数中创建的 `@local!` 值，属于当前函数的 local region，函数返回时就会释放。
 
 外部 local! 比内部 local! 活得更久，因此二者不能混用：内部 local! 不能赋给外部 local! 的成员（需要时使用 [exclave](./exclave.md)），内部 local! 不能作为返回值返回，而外部 local! 可以作为 `@local!` 的返回值返回给调用者。
+
+外部 local!（`Copyable` 类型除外）不能用来初始化 `@local!` 局部变量。需要在局部变量中保留对外部值的引用时，可以把该变量声明为 `@local?`，见下方的变通写法。
 
 此外，在 exclave 之外，外部 local!（`Copyable` 类型除外）还有两条限制：
 
@@ -509,8 +511,8 @@ main() {
 
 lambda 表达式和嵌套函数会捕获外部变量，捕获规则如下：
 
-- 不能捕获 `@local!` 的变量。
-- 捕获了 `@local?` 变量的 lambda，其自身的模式是 `@local?`，因此不能逃逸，例如不能赋值给 `@~local` 的变量。
+- 不能捕获非 `Copyable` 类型的 `@local!` 变量。
+- 捕获了非 `Copyable` 类型的 `@local?` 变量的 lambda，其自身的模式是 `@local?`，因此不能逃逸，例如不能赋值给 `@~local` 的变量。只捕获 `Copyable` 类型的 local 变量时，lambda 的模式仍是 `@~local`。
 - 不能创建 `@local!` 的函数对象，即 lambda 的类型不能是 `@local!` 的函数类型。
 
 <!-- compile.error -->
@@ -553,7 +555,7 @@ main() {
 5
 ```
 
-嵌套函数默认是 `@~local` 的，不能捕获 `@local?` 和 `@local!` 的变量。要捕获 `@local?` 变量，在 `func` 前写上 `@local?`；嵌套函数同样不能捕获 `@local!` 变量：
+嵌套函数默认是 `@~local` 的，不能捕获非 `Copyable` 类型的 `@local?` 和 `@local!` 变量。要捕获非 `Copyable` 类型的 `@local?` 变量，在 `func` 前写上 `@local?`；嵌套函数同样不能捕获非 `Copyable` 类型的 `@local!` 变量。`Copyable` 类型的 local 变量不受上述捕获限制：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -594,8 +596,6 @@ func run() {
     }
 }
 ```
-
-<!-- TODO(宋键): 嵌套函数模式说明符按实现写为前置 `@local? func name()`，请确认这是最终语法。 -->
 
 ## 约束
 

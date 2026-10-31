@@ -90,9 +90,7 @@ main() {
 2 2 3
 ```
 
-也可以通过扩展为已有的 struct 实现 `Copyable`，例如 `extend Point <: Copyable {}`，规则与在声明处实现相同。
-
-<!-- TODO(宋键): extend 实现 Copyable 按实现写（SDK 实测允许，且同样检查成员类型），请确认这是最终行为。 -->
+也可以通过扩展为已有的 struct 实现 `Copyable`，规则与在声明处实现相同。例如，已有一个尚未实现 `Copyable`、且所有实例成员变量的类型都实现了 `Copyable` 的 struct `Plain`，可以写 `extend Plain <: Copyable {}`。
 
 以下情况不能实现 `Copyable`：
 
@@ -116,7 +114,7 @@ enum Color <: Copyable { // Error, an enum cannot implement Copyable
 
 ## Copyable 的使用位置
 
-`Copyable` 只能作为 struct 的父接口或泛型约束（如 `where T <: Copyable`）使用，不能作为变量、参数等的类型：
+`Copyable` 只能作为 struct 的父接口（在 struct 声明处或扩展中声明），或作为泛型约束（如 `where T <: Copyable`）使用，不能作为变量、参数等的类型：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
