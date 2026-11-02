@@ -20,7 +20,7 @@ cjc --experimental --enable-local-mode main.cj -o main
 
 使用 cjpm 构建时，可以在 `cjpm.toml` 的 `compile-option` 字段中加入这两个选项。`compile-option` 只对当前模块生效，用到 local 模式的依赖模块需要在各自的 `cjpm.toml` 中开启。也可以在入口模块的 `override-compile-option` 字段中统一开启，但这样所有依赖模块中的 `exclave`、`demode` 都会成为关键字。参见[cjpm 介绍](../compile_and_build/cjpm_usage.md)。本章的示例都按开启 local 模式编写。
 
-<!-- TODO(宋键): cjpm 是否会提供专门的开关（如 [profile] 下的配置）？目前按 compile-option / override-compile-option 写。 -->
+local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 local 模式配置项。本章介绍的 local 语义规则及 `Copyable` 限制只在开启 local 模式后生效并进行检查。
 
 未开启 local 模式时：
 
@@ -32,8 +32,9 @@ cjc --experimental --enable-local-mode main.cj -o main
 > **注意：**
 >
 > - local 模式仍属于实验特性，相关的语法、规则和编译选项可能在后续版本中发生变化，不保证兼容。
+> - 使用 local 模式的包，需要与使用方用同一版本的 SDK 编译。
 > - 编译选项只决定源码中能否使用 local 模式。标准库中有些 API 的内部实现用到了 local 模式，无论是否开启，这些实现都照常生效。
-> - cjfmt、cjlint、LSP、cjdb 等工具对 local 模式的支持可能还不完整。
+> - 工具链默认关闭 local 特性。即使通过实验性选项启用，也不保证 cjfmt、cjlint、LSP、cjdb 等工具能识别或完整支持 local 模式。
 
 ## 模式与模态类型
 
@@ -127,8 +128,6 @@ func squaresOf(n: Int64): Array<Int64> {
 
 标准库中的常用类型（如 `Array`、`String`、`ArrayList`、`HashMap`）提供了接收或返回 local 值的重载版本，具体以各 API 文档的函数签名为准。
 
-<!-- TODO(宋键): 原计划用 stdx `JsonValue.fromStr` 的 local 重载做端到端示例；流水线 stdx 产物尚无该重载，暂用 std 示例，待产物更新后补 JSON 示例。 -->
-
 ## 何时值得使用 local 模式
 
 local 模式的收益体现在峰值内存，而不是吞吐量：它让临时对象在函数返回时立即释放，从而降低内存占用的峰值。适合的场景是函数内创建、函数内用完、体积较大或数量较多的临时对象。
@@ -139,8 +138,6 @@ local 模式的收益体现在峰值内存，而不是吞吐量：它让临时�
 - 调用 `getAllocatedLocalObjectSize()` 时会暂停所有仓颉线程，不宜在性能敏感的路径上频繁调用。该函数的详细说明参见标准库 `std.runtime` 包的 API 文档。
 
 单个 local region 的大小有上限，超出上限时会抛出 `LocalRegionOutOfMemoryError`。上限可以通过环境变量 `cjLocalRegionMaxSize` 配置，详见[运行时环境变量](../Appendix/runtime_env.md)。
-
-<!-- TODO(宋键): 是否有可公开的收益数据或推荐场景？目前只写测量方法，不写数字。 -->
 
 ## 本章内容
 

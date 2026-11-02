@@ -433,6 +433,15 @@ func test(p: String @local?) {
 
 外部 local!（`Copyable` 类型除外）不能用来初始化 `@local!` 局部变量。需要在局部变量中保留对外部值的引用时，可以把该变量声明为 `@local?`，见下方的变通写法。
 
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func keep(s: String @local!) {
+    let alias: String @local! = s // Error, cannot initialize an internal local! with an external local!
+}
+```
+
 此外，在 exclave 之外，外部 local!（`Copyable` 类型除外）还有两条限制：
 
 - 不能直接作为实参传给其他函数；
@@ -514,6 +523,29 @@ lambda 表达式和嵌套函数会捕获外部变量，捕获规则如下：
 - 不能捕获非 `Copyable` 类型的 `@local!` 变量。
 - 捕获了非 `Copyable` 类型的 `@local?` 变量的 lambda，其自身的模式是 `@local?`，因此不能逃逸，例如不能赋值给 `@~local` 的变量。只捕获 `Copyable` 类型的 local 变量时，lambda 的模式仍是 `@~local`。
 - 不能创建 `@local!` 的函数对象，即 lambda 的类型不能是 `@local!` 的函数类型。
+
+例如，捕获 `Copyable` 类型的 local 变量不会使 lambda 变成 local，嵌套函数也可以捕获这样的变量：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func makeCounter(): () -> Int64 {
+    let n: Int64 @local! = 42
+    func value(): Int64 { n }
+    {=> value() }
+}
+
+main() {
+    println(makeCounter()())
+}
+```
+
+执行结果为：
+
+```text
+42
+```
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -698,15 +730,15 @@ main() {
 
 ## 其他限制速查
 
-以下限制不常遇到，这里只简要列出，括号内为对应的诊断 ID：
+以下限制不常遇到，这里只简要列出：
 
-1. 终结器的 `this` 模式必须是所有构造函数 `this` 模式的父类型。例如同时有 `this @~local` 和 `this @local!` 的构造函数时，终结器需写成 `~init(this @local?)`（`sema_finalizer_this_mode_mismatch`）。
-2. 如果一个类型的构造函数能构造出不同模式的实例，那么它的非 `Copyable` 类型的成员变量不能在声明处写初始值，`demode` 成员变量除外（`sema_member_var_initalizer_in_mixed_init`）。
-3. 同名的实例成员属性可以按模式重载，但它们的数据类型必须相同（`sema_prop_redefinition`）。
-4. 静态成员属性不能按模式重载（`sema_static_prop_overload`）。
-5. `abstract` 函数不能用 `exclave` 修饰（`sema_abstract_exclave_func`）。
-6. 在 exclave 之外，`@local!` 参数不能直接作为实参传给其他函数，见[传递 @local! 参数](#传递-local-参数)（`sema_external_local_arg`）。
+1. 终结器的 `this` 模式必须是所有构造函数 `this` 模式的父类型。例如同时有 `this @~local` 和 `this @local!` 的构造函数时，终结器需写成 `~init(this @local?)`。
+2. 如果一个类型的构造函数能构造出不同模式的实例，那么它的非 `Copyable` 类型的成员变量不能在声明处写初始值，`demode` 成员变量除外。
+3. 同名的实例成员属性可以按模式重载，但它们的数据类型必须相同。
+4. 静态成员属性不能按模式重载。
+5. `abstract` 函数不能用 `exclave` 修饰。
+6. 在 exclave 之外，非 `Copyable` 类型的外部 `@local!` 参数不能直接作为实参传给其他函数，见[传递 @local! 参数](#传递-local-参数)。
 7. 对 `@local!` 参数做模式匹配时，绑定得到的变量是 `@local?` 而不是 `@local!`。
-8. `this` 模式说明只能用于实例成员函数和构造函数，写在全局函数或静态函数上会报错（`parse_unexpected_this_param`）。
-9. 模式只能写在构造调用之后，如 `C() @local!`，写在普通函数调用之后会报错（`sema_mode_on_non_constructor_call`）。
-10. 访问按模式重载的属性时，如果没有与实例模式匹配的版本会报错（`sema_no_match_prop_accessor_for_call`）。
+8. `this` 模式说明只能用于实例成员函数和构造函数，写在全局函数或静态函数上会报错。
+9. 模式只能写在构造调用之后，如 `C() @local!`，写在普通函数调用之后会报错。
+10. 访问按模式重载的属性时，如果没有与实例模式匹配的版本会报错。
