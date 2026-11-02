@@ -199,52 +199,23 @@ func reuse(req: Request @local!) {
 }
 ```
 
+下面的函数都有非 `Copyable` 类型的 `@local!` 参数，满足 exclave 的使用条件，但仍不能在 try 块或 catch 块中使用 exclave：
+
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-class Request {
-    var path: String
-    static let count: Int64 = 0
-    init(path: String) {
-        this.path = path
-    }
-    exclave init(this @local!, path: String @local!) {
-        this.path = path
-    }
-    static init() {
-        exclave { () } // Error, not allowed in a static initializer
-    }
-}
-
-class Res {
-    init() {}
-    ~init() {
-        exclave { () } // Error, not allowed in a finalizer
-    }
-}
-
-func inTry(req: Request @local!) {
+func inTry(paths: Array<String> @local!) {
     try {
         exclave { () } // Error, not allowed in a try block
     } catch (e: Exception) {}
 }
 
-func inCatch(req: Request @local!) {
+func inCatch(paths: Array<String> @local!) {
     try {
         ()
     } catch (e: Exception) {
         exclave { () } // Error, not allowed in a catch block
     }
-}
-
-func inSpawn(): Unit {
-    spawn {
-        exclave { () } // Error, not allowed in a spawn block
-    }
-}
-
-main() {
-    exclave { () } // Error, not allowed in main
 }
 ```
