@@ -22,9 +22,6 @@ class Request {
     init(path: String) {
         this.path = path
     }
-    exclave init(this @local!, path: String @local!) {
-        this.path = path
-    }
 }
 
 func normalize(req: Request @local!) {
