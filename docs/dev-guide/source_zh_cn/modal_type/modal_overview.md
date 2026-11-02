@@ -67,7 +67,7 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 以下位置不能标注模式：
 
 - class、struct 的实例成员变量：成员的模式由所在实例决定，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
-- 泛型实参，例如 `Array<String @local!>` 是错误写法；要表示“元素是 local 的数组”，应写作 `Array<String> @local!`。
+- 泛型实参本身不能带模式，`Array<String @local!>` 是错误写法。local 字符串数组应写作 `Array<String> @local!`：`String` 指定元素类型，`@local!` 指定整个数组的模式；从该数组读取的字符串也受 local 限制，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
 
 ## 第一个示例
 
