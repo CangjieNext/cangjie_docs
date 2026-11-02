@@ -96,13 +96,46 @@ type C = (B, Int64)
     var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
-需要注意的是，当前用户自定义的类型别名暂不支持在类型转换表达式中使用，参考如下示例：
+5. 当类型别名实际指向的类型为数值类型（整数类型或浮点类型）或 `Rune` 时，可以作为类型转换表达式的目标类型使用，也支持通过其他类型别名间接指向这些类型。转换规则与原类型相同，例如：
+
+    <!-- compile -->
+
+    ```cangjie
+    type MyInt = Int32
+    type SameInt = MyInt
+    type MyFloat = Float32
+    type MyRune = Rune
+
+    main() {
+        let i: MyInt = MyInt(0)
+        let j: SameInt = SameInt(i)
+        let f: MyFloat = MyFloat(20.5)
+        let r: MyRune = MyRune(97)
+    }
+    ```
+
+此类类型转换调用必须且只能接收一个非命名参数，不能通过参数名传入待转换的值：
 
 <!-- compile.error  -->
 
 ```cangjie
 type MyInt = Int32
-MyInt(0)  // Error, no matching function for operator '()' function call
+
+main() {
+    let i = MyInt(value: 0) // Error, named arguments are not supported
+}
+```
+
+转换结果的类型仍是别名所指向的原类型，使用别名不会引入隐式数值类型转换。例如，将 `MyInt(0)` 的结果赋给 `Int64` 变量仍会报类型不匹配错误：
+
+<!-- compile.error  -->
+
+```cangjie
+type MyInt = Int32
+
+main() {
+    let i: Int64 = MyInt(0) // Error, expected 'Int64', found 'Int32'
+}
 ```
 
 ## 泛型别名

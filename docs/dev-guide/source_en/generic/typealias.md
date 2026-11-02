@@ -94,13 +94,46 @@ A type alias does not define a new type; it merely provides another name for the
     var b = Time.Month // Use type alias Time to access constructors in TimeUnit
     ```
 
-Note that currently, user-defined type aliases are not supported in type conversion expressions. Refer to the following example:
+5. When a type alias resolves to a numeric type (an integer or floating-point type) or `Rune`, it can be used as the target type in a type conversion expression. This also applies to aliases that resolve to these types through other type aliases. The conversion rules are the same as those of the original type. For example:
+
+    <!-- compile -->
+
+    ```cangjie
+    type MyInt = Int32
+    type SameInt = MyInt
+    type MyFloat = Float32
+    type MyRune = Rune
+
+    main() {
+        let i: MyInt = MyInt(0)
+        let j: SameInt = SameInt(i)
+        let f: MyFloat = MyFloat(20.5)
+        let r: MyRune = MyRune(97)
+    }
+    ```
+
+These conversion calls require exactly one unnamed argument. The value to convert cannot be passed as a named argument:
 
 <!-- compile.error  -->
 
 ```cangjie
 type MyInt = Int32
-MyInt(0)  // Error, no matching function for operator '()' function call
+
+main() {
+    let i = MyInt(value: 0) // Error, named arguments are not supported
+}
+```
+
+The conversion result still has the original type referred to by the alias. Using an alias does not introduce implicit numeric conversions. For example, assigning the result of `MyInt(0)` to an `Int64` variable still causes a type mismatch:
+
+<!-- compile.error  -->
+
+```cangjie
+type MyInt = Int32
+
+main() {
+    let i: Int64 = MyInt(0) // Error, expected 'Int64', found 'Int32'
+}
 ```
 
 ## Generic Type Aliases
