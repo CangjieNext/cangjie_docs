@@ -11,22 +11,15 @@
 - 函数无法把内部创建的 local 对象交给调用者，因为该对象在函数返回时就会被释放；
 - 函数无法让调用者传入的 `@local!` 参数引用函数内部创建的 local 对象，因为参数对象属于调用者的 local region，比函数内部的对象活得更久。
 
-下例中，`normalize` 想把请求路径替换为一个新建的字符串，编译器会报错：
+下例中，`normalize` 想把调用者传入的数组中的第一个路径替换为一个新建的字符串，编译器会报错：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-class Request {
-    var path: String
-    init(path: String) {
-        this.path = path
-    }
-}
-
-func normalize(req: Request @local!) {
+func normalize(paths: Array<String> @local!) {
     let fixed: String @local! = "/index.html"
-    req.path = fixed // Error, fixed is released when normalize returns, but req lives longer
+    paths[0] = fixed // Error, fixed is released when normalize returns, but paths lives longer
 }
 ```
 
@@ -52,27 +45,17 @@ exclave 执行完就会离开函数，因此 exclave 表达式本身的类型是
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-class Request {
-    var path: String
-    init(path: String) {
-        this.path = path
-    }
-    exclave init(this @local!, path: String @local!) {
-        this.path = path
-    }
-}
-
-func normalize(req: Request @local!) {
+func normalize(paths: Array<String> @local!) {
     exclave {
         let fixed: String @local! = "/index.html"
-        req.path = fixed // OK, both are in the caller's region
+        paths[0] = fixed // OK, both are in the caller's region
     }
 }
 
 main() {
-    let req = Request("/") @local!
-    normalize(req)
-    println(req.path)
+    let paths: Array<String> @local! = ["/"]
+    normalize(paths)
+    println(paths[0])
 }
 ```
 
@@ -136,24 +119,14 @@ func makeSquares(n: Int64): Array<Int64> @local! {
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-class Request {
-    var path: String
-    init(path: String) {
-        this.path = path
-    }
-    exclave init(this @local!, path: String @local!) {
-        this.path = path
-    }
-}
-
-exclave func redirect(req: Request @local!, target: String @local!): Unit {
-    req.path = target
+exclave func redirect(paths: Array<String> @local!, target: String @local!): Unit {
+    paths[0] = target
 }
 
 main() {
-    let req = Request("/old") @local!
-    redirect(req, "/new")
-    println(req.path)
+    let paths: Array<String> @local! = ["/old"]
+    redirect(paths, "/new")
+    println(paths[0])
 }
 ```
 
