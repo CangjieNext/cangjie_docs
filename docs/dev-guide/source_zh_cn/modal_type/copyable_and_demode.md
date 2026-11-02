@@ -17,7 +17,7 @@
 
 实现了 `Copyable` 的类型的值，可以在 `@local!`、`@local?`、`@~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作。
 
-当函数的返回类型是接口时，应先把 `Copyable` 的 local 值复制到 `@~local` 变量，再返回该变量，不直接返回 `@local!` 或 `@local?` 的值。下面展示返回非接口类型的转换：
+在 exclave 之外，当函数的返回类型是接口时，应先把 `Copyable` 的 local 值复制到 `@~local` 变量，再返回该变量，不直接返回 `@local!` 或 `@local?` 的值。下面展示返回非接口类型的转换：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
