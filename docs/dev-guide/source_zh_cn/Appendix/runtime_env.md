@@ -49,6 +49,8 @@ export cjRegionSize=1024kb
 
 指定开启 [local 模式](../modal_type/modal_overview.md#开启-local-模式)后，单个 local region 可分配的内存上限，默认值为 256MB。超过上限时会抛出 `LocalRegionOutOfMemoryError`。
 
+这里的 local region 是为 local 对象划分的内存区域，与 `cjRegionSize` 所配置的 GC 堆 region 分配器的 thread local buffer 不是同一概念。
+
 支持单位为 kb（KB）、mb（MB）、gb（GB），必须带单位，大小需大于 0。单位解析后，KB 数转换为字节数时的检查范围如下：
 
 | 平台位数 | KB 数的检查范围（含端点） |
@@ -254,6 +256,16 @@ export MRT_LOG_CJTHREAD=/home/cangjie/runtime/cjthread_log.txt
 
 ```shell
 export cjHeapDumpOnOOM=on
+```
+
+#### `cjEnableLocalObjectDump`
+
+指定堆快照是否包含 local 对象，默认不包含。仅将该变量设置为 `1`、`true` 或 `TRUE` 时开启，其他值均不开启，包括 `on` 和 `True`；这与 `cjHeapDumpOnOOM` 的取值不同。
+
+例如：
+
+```shell
+export cjEnableLocalObjectDump=true
 ```
 
 #### `cjHeapDumpLog`
