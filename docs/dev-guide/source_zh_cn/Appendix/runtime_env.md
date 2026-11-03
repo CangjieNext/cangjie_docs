@@ -45,7 +45,6 @@ export cjHeapSize=4GB
 export cjRegionSize=1024kb
 ```
 
-<!--Del-->
 ### `cjLocalRegionMaxSize`
 
 指定开启 [local 模式](../modal_type/modal_overview.md#开启-local-模式)后，单个 local region 可分配的内存上限，默认值为 256MB。超过上限时会抛出 `LocalRegionOutOfMemoryError`。
@@ -64,7 +63,6 @@ export cjRegionSize=1024kb
 ```shell
 export cjLocalRegionMaxSize=128MB
 ```
-<!--DelEnd-->
 
 ### `cjLargeThresholdSize`
 

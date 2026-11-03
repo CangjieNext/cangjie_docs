@@ -1,5 +1,3 @@
-<!--Del-->
-
 # 模态类型概述
 
 ## 为什么需要 local 模式
@@ -151,5 +149,3 @@ local 模式的收益体现在峰值内存，而不是吞吐量：它让临时�
 - [local 模式的使用规则](./local_mode_rules.md)：赋值与逃逸、成员的模式、构造 local 实例、重载、闭包，以及使用约束。
 - [exclave 表达式](./exclave.md)：如何修改 local 参数、如何把 local 对象返回给调用者。
 - [Copyable 与 demode](./copyable_and_demode.md)：不受 local 限制的值类型，以及让成员变量不继承实例模式的方法。
-
-<!--DelEnd-->

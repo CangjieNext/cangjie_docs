@@ -1,5 +1,3 @@
-<!--Del-->
-
 # Copyable 与 demode
 
 > **说明：**
@@ -290,5 +288,3 @@ y
 ```
 
 这样，`Array<Demode<String>> @ local!` 这个数组在函数返回时随 local region 释放，而每个元素的 `value` 引用的是普通对象，不受影响，可以被返回或保存。
-
-<!--DelEnd-->

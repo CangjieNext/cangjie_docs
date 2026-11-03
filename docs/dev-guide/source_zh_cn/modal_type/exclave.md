@@ -1,5 +1,3 @@
-<!--Del-->
-
 # exclave 表达式
 
 > **说明：**
@@ -276,5 +274,3 @@ main() {
     exclave { () } // Error, exclave is not allowed here
 }
 ```
-
-<!--DelEnd-->

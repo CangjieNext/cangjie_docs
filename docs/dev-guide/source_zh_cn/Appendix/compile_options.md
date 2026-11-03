@@ -1941,7 +1941,7 @@ It is resumed, a = 9
 > **注意：**
 >
 > - Effect Handler 当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
-> - 使用 Effect Handler 需引入 `stdx.effect` 库。
+> - 使用 Effect Handler 需引入 `stdx.effect` 库。<!--DelEnd-->
 
 ### `--enable-local-mode` <sup>[frontend]</sup>
 
@@ -1951,7 +1951,6 @@ It is resumed, a = 9
 >
 > - 此选项必须配合 `--experimental` 选项一同使用。
 > - local 模式当前仍属于实验性特性，该选项可能在未来版本中发生变化，请谨慎使用。
-<!--DelEnd-->
 
 ### `--experimental` <sup>[frontend]</sup>
 
