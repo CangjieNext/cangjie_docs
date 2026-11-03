@@ -4,11 +4,36 @@
 >
 > local 模式是实验特性。本节示例都按开启 local 模式编写，编译时需要加上 `--experimental --enable-local-mode` 编译选项，参见[开启 local 模式](./modal_overview.md#开启-local-模式)。
 
-本节介绍编写 local 代码时需要遵守的规则。这些规则属于编译期约束，违反时应报错。运行时可能出现的问题（如 local region 超出上限）见[模态类型概述](./modal_overview.md#何时值得使用-local-模式)。
+本节介绍 local 模式的编译期约束。
 
 ## 赋值、返回与逃逸
 
-赋值时，除了数据类型相容，还需要满足值的模式与生命周期要求。以下赋值表针对非 `Copyable` 类型；`Copyable` 类型的值可以在不同模式之间按值复制。
+赋值时，除了数据类型相容，还需要满足值的模式与生命周期要求。
+
+`Copyable` 是用于标识可按值复制、并在不同模式间转换的类型的接口。数值、`Bool`、`Rune` 等类型已经实现了该接口，例如下面的 `Int64` 值可以从 `@ local!` 复制为 `@ ~local`，然后返回。完整规则见 [Copyable 与 demode](./copyable_and_demode.md)。
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func count(): Int64 {
+    let n: Int64 @ local! = 42
+    let m: Int64 = n // OK, Int64 is Copyable
+    return n + m
+}
+
+main() {
+    println(count())
+}
+```
+
+执行结果为：
+
+```text
+84
+```
+
+以下赋值规则针对非 `Copyable` 类型。
 
 `@ local!` 的值分为外部和内部两类：
 
@@ -19,12 +44,12 @@
 
 对于 `var x: T @ 模式`，整体赋值 `x = value` 的规则如下。`let` 变量初始化时也需要满足相同的模式要求，但初始化后不能再次赋值。
 
-| 目标变量的模式 | 可以赋入的值 |
+| 目标变量的模式及赋值位置 | 可以赋入的值 |
 |---|---|
 | `@ ~local` | 只能是 `@ ~local` |
 | `@ local!` | 只能是 `@ local!`，而且目标和值必须同为内部或同为外部 |
-| `@ local?`，不是当前函数的捕获变量 | 可以是 `@ ~local`、`@ local!` 或 `@ local?` |
-| `@ local?`，是当前 lambda 或嵌套函数的捕获变量 | 只能是 `@ ~local` |
+| `@ local?`，在定义该变量的函数或 lambda 内初始化或赋值 | 可以是 `@ ~local`、`@ local!` 或 `@ local?` |
+| `@ local?`，在捕获该变量的 lambda 或嵌套函数内部赋值 | 只能是 `@ ~local` |
 
 对于被捕获的、非 `Copyable` 类型的 `@ local?` 变量，在捕获它的 lambda 或嵌套函数内部给它赋值时，只能赋 `@ ~local` 值。不能给它赋一个在该函数中创建的 local 值，否则闭包返回后该变量可能仍引用已释放的对象。`Copyable` 类型的变量不受这条赋值限制。
 
@@ -39,39 +64,47 @@ func keep(s: String @ local!) {
 }
 ```
 
-普通变量和 local 变量分别接收相应模式的值，`@ local?` 变量可以在这两类值之间切换：
+下面的示例中，`@ local?` 变量 `any` 先后接收一个 `@ local!` 数组和一个 `@ ~local` 数组：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func reassign() {
-    var plain: String = "start"
-    var owned: String @ local! = "start"
-    var view: String @ local? = plain
-    plain = "plain"
-    owned = "local"
-    view = owned
-    println(view)
-    view = plain
-    println(view)
-    var count: Int64 @ local! = 1
-    let next: Int64 = 2
-    count = next // OK, Int64 is Copyable
-    println(count)
+func assign() {
+    var plain: Array<Int64> = [1, 2, 3] // @ ~local variable
+    var loc: Array<Int64> @ local! = Array<Int64>(2, {i => i * 10}) @ local! // @ local! variable
+    var any: Array<Int64> @ local? = plain // @ local? variable
+
+    any = loc // OK, @ local? accepts a @ local! value
+    println(any.size)
+    any = plain // OK, @ local? also accepts a @ ~local value
+    println(any.size)
 }
 
 main() {
-    reassign()
+    assign()
 }
 ```
 
 执行结果为：
 
 ```text
-local
-plain
 2
+3
+```
+
+`@ ~local` 与 `@ local!` 变量之间不能互相赋值：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func assign() {
+    var plain: Array<Int64> = [1, 2, 3]
+    var loc: Array<Int64> @ local! = Array<Int64>(2, {i => i * 10}) @ local!
+    plain = loc // Error, a @ ~local variable cannot accept a @ local! value
+    loc = plain // Error, a @ local! variable cannot accept a @ ~local value
+}
 ```
 
 非 `Copyable` 类型的 local 值不能保存到全局变量或静态成员变量中，因为它们只能采用 `@ ~local` 模式；也不能把 local 值直接作为 `@ ~local` 返回值返回：
@@ -90,9 +123,15 @@ func process(): String {
 }
 ```
 
+### 成员与实例的模式
+
+class 和 struct 的实例成员变量声明时不写模式，它的模式由所在实例决定：通过 `@ local!` 的实例访问到的成员是 `@ local!`，通过 `@ local?` 的实例访问到的成员是 `@ local?`。同理，`Array<T> @ local!` 的元素也是 `@ local!`。
+
+元组的模式由各元素共同决定：如果元素中既有 `@ local!` 的值又有 `@ ~local` 的值，元组的模式是 `@ local?`。
+
 ### 实例成员变量的赋值
 
-实例成员变量通常继承实例的模式，详见[成员与实例的模式](#成员与实例的模式)。对于非 `Copyable` 类型的成员，赋值规则如下：
+对于非 `Copyable` 类型的实例成员变量，赋值规则如下：
 
 | 成员的模式 | 可以赋入的值 |
 |---|---|
@@ -100,7 +139,11 @@ func process(): String {
 | `@ local!` | 只能是 `@ local!`，而且成员和值必须同为内部或同为外部 |
 | `@ local?` | 通常不允许赋值 |
 
-`@ local?` 的实例可能实际是非 local 的，因而不能把 local 引用写进它的成员。例外是在 `this @ local?` 构造函数或终结器中，可以给 `this` 的成员赋数据类型相容、任意模式的值。`Copyable` 类型的成员不受上述模式限制；`demode` 成员始终采用 `@ ~local` 模式，见[demode 成员变量](./copyable_and_demode.md#demode-成员变量)。
+`@ local?` 的实例可能实际是非 local 的，因而不能把 local 引用写进它的成员。
+
+构造函数、实例成员函数和终结器可以在参数列表开头用 `this @ 模式` 指定 `this` 的模式，具体语法见[构造 local 实例](#构造-local-实例)、[成员函数的 this 模式](#成员函数的-this-模式)和[其他限制速查](#其他限制速查)。在 `this @ local?` 构造函数或终结器中，允许给 `this` 的成员赋数据类型相容、任意模式的值。
+
+`Copyable` 类型的成员不受上述模式限制；`demode` 成员始终采用 `@ ~local` 模式，见[demode 成员变量](./copyable_and_demode.md#demode-成员变量)。
 
 同样，不能给 `@ local?` 数组的非 `Copyable` 元素赋值；`Copyable` 元素不受此限制：
 
@@ -112,10 +155,6 @@ class Order {
     var item: String
     var count: Int64
     init(item: String, count: Int64) {
-        this.item = item
-        this.count = count
-    }
-    exclave init(this @ local!, item: String @ local!, count: Int64) {
         this.item = item
         this.count = count
     }
@@ -137,8 +176,6 @@ func fill(names: Array<String> @ local?, counts: Array<Int64> @ local?) {
     names[0] = "none" // Error, cannot assign to non-Copyable element of a @ local? array
 }
 ```
-
-示例中的 local 构造函数写法见[构造 local 实例](#构造-local-实例)。
 
 ### 返回值
 
@@ -208,38 +245,7 @@ local
 plain
 ```
 
-上述限制只针对含有引用的类型。数值、`Bool`、`Rune` 等实现了 `Copyable` 接口的类型，赋值时复制的就是值本身，不会造成逃逸，因此不受 local 模式的限制，可以在各种模式之间自由转换（详见 [Copyable 与 demode](./copyable_and_demode.md)）：
-
-<!-- verify -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-func count(): Int64 {
-    let n: Int64 @ local! = 42
-    let m: Int64 = n // OK, Int64 is Copyable
-    return n + m
-}
-
-main() {
-    println(count())
-}
-```
-
-执行结果为：
-
-```text
-84
-```
-
 构造新的数组或元组，与访问外部值的成员不同。数组或元组字面量要采用 `@ local!` 模式，所有元素都必须是内部值；不能因为字面量中含有外部 local! 元素，就把整个字面量视为外部 local! 并直接返回。需要将外部 local! 元素组合成 local 返回值时，应在 exclave 中构造并返回，参见[返回 local 对象](./exclave.md#返回-local-对象)。
-
-## 成员与实例的模式
-
-class 和 struct 的实例成员变量声明时不写模式，它的模式由所在实例决定：通过 `@ local!` 的实例访问到的成员是 `@ local!`，通过 `@ local?` 的实例访问到的成员是 `@ local?`。同理，`Array<T> @ local!` 的元素也是 `@ local!`。
-
-元组的模式由各元素共同决定：如果元素中既有 `@ local!` 的值又有 `@ ~local` 的值，元组的模式是 `@ local?`。
-
-对成员和数组元素赋值时的限制，见[实例成员变量的赋值](#实例成员变量的赋值)。
 
 ## 构造 local 实例
 
@@ -776,12 +782,12 @@ func run() {
 - **C 语言互操作**：`@C` 修饰的函数和 `foreign` 函数，参数和返回值不能标注模式。
 - **exclave 的使用位置**：try 块、catch 块、spawn 块、`main`、终结器和静态初始化器中不能使用 exclave，详见 [exclave 表达式](./exclave.md#使用限制)。
 
+下面的示例在 spawn 块中使用外层的 `Copyable` 变量，并在块内创建自己的 local 数组。数组在 spawn 块结束时释放，求和结果是可返回的普通 `Int64` 值：
+
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-var lastError: Exception = Exception()
-
 func sumInThread(n: Int64): Int64 {
     let limit: Int64 @ local! = n // Int64 is Copyable, can be used in spawn
     let fut = spawn {
@@ -795,18 +801,8 @@ func sumInThread(n: Int64): Int64 {
     fut.get()
 }
 
-func check() {
-    try {
-        throw Exception("bad input")
-    } catch (e: Exception) {
-        lastError = e // OK, e is @ ~local
-    }
-}
-
 main() {
     println(sumInThread(4))
-    check()
-    println(lastError.message)
 }
 ```
 
@@ -814,7 +810,6 @@ main() {
 
 ```text
 14
-bad input
 ```
 
 <!-- compile.error -->
@@ -883,4 +878,4 @@ main() {
 12. 宏的参数和返回值只能采用 `@ ~local` 模式。
 13. 效应处理中的 `perform` 操作数只能是 `@ ~local` 的值。
 
-可选参数的默认值还有以下求值规则：非 `Copyable` 类型的 `@ local!` 或 `@ local?` 参数，其默认值在调用函数时的活跃 region 中求值；其余参数的默认值在临时创建的 region 中求值。因此，默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@ local!` 变量。
+可选参数的默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@ local!` 变量。

@@ -17,7 +17,7 @@
 
 实现了 `Copyable` 的类型的值，可以在 `@ local!`、`@ local?`、`@ ~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作。
 
-下面展示 `Copyable` 值在不同模式间的转换，以及返回非接口类型的值：
+元组的所有元素类型都实现 `Copyable` 时，可以把 `@ local?` 元组按值返回为普通元组：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -28,18 +28,46 @@ func toPlain(t: (Int64, Bool) @ local?): (Int64, Bool) {
 }
 
 main() {
-    let n: Int64 @ local! = 1
-    let v: VArray<Int64, $2> @ local! = [1, 2]
-    let w: VArray<Int64, $2> = v
-    let t = toPlain((n, true))
-    println("${t[0]} ${t[1]} ${w[1]}")
+    let t: (Int64, Bool) @ local! = (1, true)
+    let plain: (Int64, Bool) = toPlain(t)
+    println("${plain[0]} ${plain[1]}")
 }
 ```
 
 执行结果为：
 
 ```text
-1 true 2
+1 true
+```
+
+如果元组中包含未实现 `Copyable` 的类型，例如 `String`，就不能进行同样的转换：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func toPlain(t: (Int64, String) @ local?): (Int64, String) {
+    t // Error, (Int64, String) is not Copyable
+}
+```
+
+同样，元素类型为 `Copyable` 的 `VArray` 可以从 `@ local!` 复制为 `@ ~local`：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+main() {
+    let local: VArray<Int64, $2> @ local! = [1, 2]
+    let plain: VArray<Int64, $2> = local
+    println(plain[1])
+}
+```
+
+执行结果为：
+
+```text
+2
 ```
 
 在 exclave 之外，`@ local!` 或 `@ local?` 的 `Copyable` 值不能直接作为接口类型返回，需要先复制到 `@ ~local` 变量再返回。下面分别接收两种模式的值，复制为普通 `Int64` 后以 `ToString` 接口返回：
@@ -98,28 +126,41 @@ struct Pair<A, B> <: Copyable where A <: Copyable, B <: Copyable {
     }
 }
 
-func shift(p: Point @ local?): Point {
-    Point(p.x + 1, p.y + 1) // p.x and p.y are Int64, no local restriction
-}
-
 func keep(p: Point @ local?): Point {
     p // OK, Point is Copyable
 }
 
 main() {
     let p: Point @ local! = Point(1, 2)
-    let q = shift(p)
-    let r = keep(p)
+    let r: Point = keep(p) // OK, copy a local Point as a non-local value
     let pr: Pair<Int64, Bool> @ local! = Pair<Int64, Bool>(3, true)
     let pr2: Pair<Int64, Bool> = pr
-    println("${q.x} ${r.y} ${pr2.first}")
+    println("${r.x} ${r.y} ${pr2.first}")
 }
 ```
 
 执行结果为：
 
 ```text
-2 2 3
+1 2 3
+```
+
+仅成员类型满足条件还不够，struct 需要显式声明实现 `Copyable`。下面的 `Plain` 虽然只有一个 `Int64` 成员，但没有实现 `Copyable`，因此不能进行上述转换：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+struct Plain {
+    var x: Int64
+    init(x: Int64) {
+        this.x = x
+    }
+}
+
+func keep(p: Plain @ local?): Plain {
+    p // Error, Plain does not implement Copyable
+}
 ```
 
 也可以通过扩展为已有的 struct 实现 `Copyable`，规则与在声明处实现相同。例如，已有一个尚未实现 `Copyable`、且所有实例成员变量的类型都实现了 `Copyable` 的 struct `Plain`，可以写 `extend Plain <: Copyable {}`。

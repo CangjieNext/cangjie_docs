@@ -37,34 +37,7 @@ exclave 执行完就会离开函数，因此 exclave 表达式本身的类型是
 
 在 exclave 中，`@ local!` 参数与块内新建的 local 对象位于同一个 local region（即调用者的 local region），因此可以互相赋值，块内新建的 local 对象也可以作为返回值返回。
 
-### exclave 修饰符
-
-如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：
-
-<!-- verify -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-exclave func redirect(paths: Array<String> @ local!, target: String @ local!): Unit {
-    paths[0] = target
-}
-
-main() {
-    let paths: Array<String> @ local! = ["/old"]
-    redirect(paths, "/new")
-    println(paths[0])
-}
-```
-
-执行结果为：
-
-```text
-/new
-```
-
-`this @ local!` 和 `this @ local?` 的构造函数必须写成 exclave，参见[构造 local 实例](./local_mode_rules.md#构造-local-实例)。
-
-## 修改 @ local! 参数
+### 修改 @ local! 参数
 
 把上面的 `normalize` 改为在 exclave 中创建并赋值：
 
@@ -91,6 +64,33 @@ main() {
 ```text
 /index.html
 ```
+
+### exclave 修饰符
+
+如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+exclave func redirect(paths: Array<String> @ local!, target: String @ local!): Unit {
+    paths[0] = target
+}
+
+main() {
+    let paths: Array<String> @ local! = ["/old"]
+    redirect(paths, "/new")
+    println(paths[0])
+}
+```
+
+执行结果为：
+
+```text
+/new
+```
+
+`this @ local!` 和 `this @ local?` 的构造函数必须写成 exclave，参见[构造 local 实例](./local_mode_rules.md#构造-local-实例)。
 
 ## 返回 local 对象
 
