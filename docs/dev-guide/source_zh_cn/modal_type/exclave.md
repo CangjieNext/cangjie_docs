@@ -246,3 +246,31 @@ func inCatch(paths: Array<String> @local!) {
     }
 }
 ```
+
+下面补充 spawn 块、`main`、终结器和静态初始化器中的非法写法。其中 `main`、终结器和静态初始化器本身也不满足前节的使用条件；这些示例同时受多条规则约束，不依赖编译器先报告哪一条错误：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+class Resource {
+    static let count: Int64 = 0
+    static init() {
+        exclave { () } // Error, exclave is not allowed here
+    }
+    init() {}
+    ~init() {
+        exclave { () } // Error, exclave is not allowed here
+    }
+}
+
+func inSpawn(): Unit {
+    spawn {
+        exclave { () } // Error, exclave is not allowed here
+    }
+}
+
+main() {
+    exclave { () } // Error, exclave is not allowed here
+}
+```

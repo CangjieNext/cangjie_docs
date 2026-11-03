@@ -137,7 +137,7 @@ local 模式的收益体现在峰值内存，而不是吞吐量：它让临时�
 - 使用 `std.runtime` 包的 `getAllocatedLocalObjectSize()` 获取当前活跃 local region 占用的内存。它统计的是已向 local region 分配的内存块容量（包含内存块中尚未用完的部分），local 对象不计入 `getAllocatedHeapSize()` 的结果。
 - 调用 `getAllocatedLocalObjectSize()` 时会暂停所有仓颉线程，不宜在性能敏感的路径上频繁调用。该函数的详细说明参见标准库 `std.runtime` 包的 API 文档。
 
-单个 local region 的大小有上限，超出上限时会抛出 `LocalRegionOutOfMemoryError`。上限可以通过环境变量 `cjLocalRegionMaxSize` 配置。
+单个 local region 的大小有上限，超出上限时会抛出 `LocalRegionOutOfMemoryError`。上限可以通过环境变量 `cjLocalRegionMaxSize` 配置，参见[运行时环境变量](../Appendix/runtime_env.md#cjlocalregionmaxsize)。
 
 ## 本章内容
 
