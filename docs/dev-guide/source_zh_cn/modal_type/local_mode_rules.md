@@ -57,7 +57,7 @@ size 5
 size 9
 ```
 
-由于 `@local?` 的值可能是 local 的，它同样不能逃逸：
+由于 `@local?` 的值可能是 local 的，它不能作为 `@~local` 返回值返回：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -66,6 +66,30 @@ size 9
 func keep(s: String @local?): String {
     return s // Error, @local? cannot be returned as @~local
 }
+```
+
+在 exclave 之外，`@local?` 参数本身，以及通过参数访问到的（包括嵌套的）字段，可以直接作为 `@local?` 返回值返回。返回值仍受 local 限制，并没有转换为 `@~local`：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func identity(s: String @local?): String @local? {
+    s
+}
+
+main() {
+    let local: String @local! = "local"
+    println(identity(local))
+    println(identity("plain"))
+}
+```
+
+执行结果为：
+
+```text
+local
+plain
 ```
 
 上述限制只针对含有引用的类型。数值、`Bool`、`Rune` 等实现了 `Copyable` 接口的类型，赋值时复制的就是值本身，不会造成逃逸，因此不受 local 模式的限制，可以在各种模式之间自由转换（详见 [Copyable 与 demode](./copyable_and_demode.md)）：
@@ -209,7 +233,52 @@ class Label {
 }
 ```
 
-在构造函数中通过 `this(...)` 调用另一个构造函数时，被调用的构造函数必须与当前构造函数的 `this` 模式相同。
+在构造函数中通过 `this(...)` 调用当前类型的另一个构造函数，或通过 `super(...)` 调用父类构造函数时，被调用的构造函数必须与当前构造函数的 `this` 模式相同。在 `this @local!` 或 `this @local?` 的构造函数中，该调用还必须是 exclave 块中的第一个表达式：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+open class Base {
+    var n: Int64 = 7
+    init() {}
+    exclave init(this @local!) {}
+}
+
+class Child <: Base {
+    exclave init(this @local!) {
+        super() // OK, calls Base's this @local! constructor
+    }
+}
+
+main() {
+    let child = Child() @local!
+    println(child.n)
+}
+```
+
+执行结果为：
+
+```text
+7
+```
+
+如果父类只有默认的 `this @~local` 构造函数，local 构造函数不能调用它：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+open class Base {
+    init() {}
+}
+
+class Child <: Base {
+    exclave init(this @local!) {
+        super() // Error, no constructor with this @local!
+    }
+}
+```
 
 ## 成员函数的 this 模式
 
@@ -249,7 +318,7 @@ func use(c: Counter @local?) {
 }
 ```
 
-同一个成员函数可以只按 `this` 模式重载。调用时选择 `this` 模式与实例模式最匹配的版本：
+同一个成员函数可以只按 `this` 模式重载。在可通过类型检查的候选中，`this` 模式的匹配优先于参数类型：先选择 `this` 模式与实例模式最匹配的版本，只有无法据此确定时才继续比较参数类型：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -631,6 +700,8 @@ func run() {
 }
 ```
 
+被 lambda 或嵌套函数捕获的、非 `Copyable` 类型的 `@local?` 变量，只能在捕获它的函数中被赋予 `@~local` 值。不能给它赋一个在该函数中创建的 local 值，否则闭包返回后该变量可能仍引用已释放的对象。`Copyable` 类型的变量不受这条赋值限制。
+
 ## 约束
 
 以下场景对 local 值有额外限制：
@@ -744,3 +815,8 @@ main() {
 8. `this` 模式说明只能用于实例成员函数和构造函数，写在全局函数或静态函数上会报错。
 9. 模式只能写在构造调用之后，如 `C() @local!`，写在普通函数调用之后会报错。
 10. 访问按模式重载的属性时，如果没有与实例模式匹配的版本会报错。
+11. 主构造函数的普通参数只能采用 `@~local` 模式。
+12. 宏的参数和返回值只能采用 `@~local` 模式。
+13. 效应处理中的 `perform` 操作数只能是 `@~local` 的值。
+
+可选参数的默认值还有以下求值规则：非 `Copyable` 类型的 `@local!` 或 `@local?` 参数，其默认值在调用函数时的活跃 region 中求值；其余参数的默认值在临时创建的 region 中求值。因此，默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@local!` 变量。
