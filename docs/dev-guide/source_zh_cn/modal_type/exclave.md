@@ -111,6 +111,33 @@ func makeSquares(n: Int64): Array<Int64> @local! {
 }
 ```
 
+如果需要把传入的 `@local!` 参数放进新的数组或元组后返回，也应在 exclave 中构造。下面将字符串参数放入新数组；数组及其元素都位于调用者的 local region：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func duplicate(s: String @local!): Array<String> @local! {
+    exclave {
+        [s, s] // OK, the new array is in the caller's region
+    }
+}
+
+main() {
+    let s: String @local! = "hello"
+    let copies = duplicate(s)
+    println(copies[0])
+    println(copies[1])
+}
+```
+
+执行结果为：
+
+```text
+hello
+hello
+```
+
 ## exclave 修饰符
 
 如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：

@@ -426,10 +426,12 @@ func test(p: String @local?) {
 
 `@local!` 的值分为两类，编译器的报错信息中分别称为 external 和 internal：
 
-- **外部 local!**（external）：函数的 `@local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。含有外部 local! 元素的数组或元组字面量也按外部处理。
+- **外部 local!**（external）：函数的 `@local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。
 - **内部 local!**（internal）：在当前函数中创建的 `@local!` 值，属于当前函数的 local region，函数返回时就会释放。
 
 外部 local! 比内部 local! 活得更久，因此二者不能混用：内部 local! 不能赋给外部 local! 的成员（需要时使用 [exclave](./exclave.md)），内部 local! 不能作为返回值返回，而外部 local! 可以作为 `@local!` 的返回值返回给调用者。
+
+构造新的数组或元组，与访问外部值的成员不同。数组或元组字面量要采用 `@local!` 模式，所有元素都必须是内部值；不能因为字面量中含有外部 local! 元素，就把整个字面量视为外部 local! 并直接返回。需要将外部 local! 元素组合成 local 返回值时，应在 exclave 中构造并返回，参见[返回 local 对象](./exclave.md#返回-local-对象)。
 
 外部 local!（`Copyable` 类型除外）不能用来初始化 `@local!` 局部变量。需要在局部变量中保留对外部值的引用时，可以把该变量声明为 `@local?`，见下方的变通写法。
 
