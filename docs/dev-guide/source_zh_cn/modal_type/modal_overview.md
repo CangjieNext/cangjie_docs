@@ -1,3 +1,5 @@
+<!--Del-->
+
 # 模态类型概述
 
 ## 为什么需要 local 模式
@@ -25,9 +27,10 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 未开启 local 模式时：
 
 - `exclave`、`demode` 是普通标识符，已有代码中同名的变量、函数等不受影响。
-- 使用 `@local!`、`@local?`、`@~local` 等模式标注会报错 `local mode is disabled`，并提示开启方式。
-- 使用以 local 模式声明的 API 会报错 `cannot use local API '...' when local mode is disabled`。这类 API 包括：参数或返回值本身的模式为 `@local!` 或 `@local?` 的函数，`this` 模式为 `@local!` 的成员函数和构造函数，以及类型为 `@local!` 的属性。
-- 导入包含上述 API 的包不受影响，包中其他 API 可以照常使用。
+- 使用 `@ local!`、`@ local?`、`@ ~local` 等模式标注会报错 `local mode is disabled`，并提示开启方式。
+- 调用参数或返回值本身带 `@ local!` 或 `@ local?` 的函数，调用 `this @ local!` 的成员函数或构造函数，或访问类型为 `@ local!` 的属性，需要开启 local 模式。
+- 上游包还可能导出函数类型的变量或常量。如果该函数类型的参数或返回值带有 `@ local!` 或 `@ local?`，使用这些变量或常量也需要开启 local 模式。
+- 导入包含上述声明的包不受影响，包中不涉及 local 模式的函数和变量可以照常使用。
 
 > **注意：**
 >
@@ -42,17 +45,17 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 
 | 写法 | 含义 |
 |------|------|
-| `T @~local` | 非 local。对象可以自由地被保存、返回、传递，与普通的仓颉对象完全相同 |
-| `T @local!` | 一定是 local。对象的生命周期限定在当前函数（或调用者）的 local region 内，不能逃逸出去 |
-| `T @local?` | 可能是 local。值可能是 local 的，也可能不是；使用时按 local 的要求加以限制 |
+| `T @ ~local` | 非 local。对象可以自由地被保存、返回、传递，与普通的仓颉对象完全相同 |
+| `T @ local!` | 一定是 local。对象的生命周期限定在当前函数（或调用者）的 local region 内，不能逃逸出去 |
+| `T @ local?` | 可能是 local。值可能是 local 的，也可能不是；使用时按 local 的要求加以限制 |
 
-不写模式等价于写 `@~local`，因此开启 local 模式后，已有代码中的类型含义不变。需要注意的是，开启后 `exclave`、`demode` 成为关键字，已有代码中如果用它们作为标识符，需要改写为原始标识符，参见[关键字](../Appendix/keyword.md)。
+不写模式等价于写 `@ ~local`，因此开启 local 模式后，已有代码中的类型含义不变。开启后关键字的变化见[关键字](../Appendix/keyword.md)。
 
-`T @~local` 和 `T @local!` 都是 `T @local?` 的子类型：`@local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@~local` 与 `@local!` 之间没有子类型关系，不能互相赋值。
+`T @ ~local` 和 `T @ local!` 都是 `T @ local?` 的子类型：`@ local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@ ~local` 与 `@ local!` 之间没有子类型关系，不能互相赋值。
 
 书写时需要注意：
 
-- `@` 与模式之间可以有空格，但模式本身是一个整体，`~local`、`local!`、`local?` 内部不能有空格，`@local !`、`@~ local` 都是错误写法。本手册统一采用 `@local!` 这样不带空格的写法。
+- `@` 与模式之间可以有空格，但模式本身是一个整体，`~local`、`local!`、`local?` 内部不能有空格，`@local !`、`@~ local` 都是错误写法。本手册推荐在 `@` 与模式之间写一个空格，如 `@ local!`。
 - `local` 不是关键字，只有出现在 `@` 之后时才表示模式，在其他位置仍然可以作为普通标识符使用。
 
 ## 可以标注模式的位置
@@ -61,21 +64,21 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 
 - 局部变量的类型
 - 函数的参数类型和返回类型
-- 函数类型中的参数类型和返回类型，如 `(String @local?) -> Int64`
-- 构造调用之后，用于指定构造出的实例的模式，如 `C() @local!`
+- 函数类型中的参数类型和返回类型，如 `(String @ local?) -> Int64`
+- 构造调用之后，用于指定构造出的实例的模式，如 `C() @ local!`
 - 属性的类型，参见[其他限制速查](./local_mode_rules.md#其他限制速查)
-- 静态成员变量的类型，但只能采用 `@~local` 模式
+- 静态成员变量的类型，但只能采用 `@ ~local` 模式
 
-嵌套函数还可以在 `func` 前写 `@local?`，说明函数对象的模式及允许捕获的变量，参见[闭包与嵌套函数](./local_mode_rules.md#闭包与嵌套函数)。它与写在参数类型或返回类型后的模式标注不同。
+嵌套函数还可以在 `func` 前写 `@ local?`，说明函数对象的模式及允许捕获的变量，参见[闭包与嵌套函数](./local_mode_rules.md#闭包与嵌套函数)。它与写在参数类型或返回类型后的模式标注不同。
 
 以下位置不能标注模式：
 
 - class、struct 的实例成员变量：成员的模式由所在实例决定，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
-- 泛型实参本身不能带模式，`Array<String @local!>` 是错误写法。local 字符串数组应写作 `Array<String> @local!`：`String` 指定元素类型，`@local!` 指定整个数组的模式；从该数组读取的字符串也受 local 限制，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
+- 泛型实参本身不能带模式，`Array<String @ local!>` 是错误写法。local 字符串数组应写作 `Array<String> @ local!`：`String` 指定元素类型，`@ local!` 指定整个数组的模式；从该数组读取的字符串也受 local 限制，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
 
 ## 第一个示例
 
-下面的示例在 `sumOfSquares` 中创建一个临时数组，把它标注为 `@local!`，并交给只读的辅助函数 `total` 求和。`total` 的参数标注为 `@local?`，因此它既能接收 local 数组，也能接收普通数组。`getAllocatedLocalObjectSize()` 返回当前活跃的 local region 所占用的内存，用来观察 local 数组何时被回收：
+下面的示例在 `sumOfSquares` 中创建一个临时数组，把它标注为 `@ local!`，并交给只读的辅助函数 `total` 求和。`total` 的参数标注为 `@ local?`，因此它既能接收 local 数组，也能接收普通数组。`getAllocatedLocalObjectSize()` 返回当前活跃的 local region 所占用的内存，用来观察 local 数组何时被回收：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -84,7 +87,7 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 import std.runtime.getAllocatedLocalObjectSize
 
 // 只读访问数组，local 数组和普通数组都可以传入
-func total(xs: Array<Int64> @local?): Int64 {
+func total(xs: Array<Int64> @ local?): Int64 {
     var sum = 0
     for (i in 0..xs.size) {
         sum += xs[i]
@@ -94,7 +97,7 @@ func total(xs: Array<Int64> @local?): Int64 {
 
 func sumOfSquares(n: Int64): Int64 {
     // 临时数组只在本函数内使用，函数返回时随 local region 一起释放
-    let squares = Array<Int64>(n, {i => i * i}) @local!
+    let squares = Array<Int64>(n, {i => i * i}) @ local!
     println("in sumOfSquares, local memory in use: ${getAllocatedLocalObjectSize() > 0}")
     total(squares)
 }
@@ -125,8 +128,8 @@ local 对象不能离开创建它的函数。如果试图把上例中的 `square
 
 ```cangjie
 func squaresOf(n: Int64): Array<Int64> {
-    let squares = Array<Int64>(n, {i => i * i}) @local!
-    squares // Error, a @local! value cannot be returned as @~local
+    let squares = Array<Int64>(n, {i => i * i}) @ local!
+    squares // Error, a @ local! value cannot be returned as @ ~local
 }
 ```
 
@@ -136,7 +139,7 @@ func squaresOf(n: Int64): Array<Int64> {
 
 local 模式的收益体现在峰值内存，而不是吞吐量：它让临时对象在函数返回时立即释放，从而降低内存占用的峰值。适合的场景是函数内创建、函数内用完、体积较大或数量较多的临时对象。
 
-是否值得改写，建议实际测量：
+评估改写效果时，应在相同输入和负载下对比改写前后的峰值内存。改写后，还可以观察 local region 的占用：
 
 - 使用 `std.runtime` 包的 `getAllocatedLocalObjectSize()` 获取当前活跃 local region 占用的内存。它统计的是已向 local region 分配的内存块容量（包含内存块中尚未用完的部分），local 对象不计入 `getAllocatedHeapSize()` 的结果。
 - 调用 `getAllocatedLocalObjectSize()` 时会暂停所有仓颉线程，不宜在性能敏感的路径上频繁调用。该函数的详细说明参见标准库 `std.runtime` 包的 API 文档。
@@ -148,3 +151,5 @@ local 模式的收益体现在峰值内存，而不是吞吐量：它让临时�
 - [local 模式的使用规则](./local_mode_rules.md)：赋值与逃逸、成员的模式、构造 local 实例、重载、闭包，以及使用约束。
 - [exclave 表达式](./exclave.md)：如何修改 local 参数、如何把 local 对象返回给调用者。
 - [Copyable 与 demode](./copyable_and_demode.md)：不受 local 限制的值类型，以及让成员变量不继承实例模式的方法。
+
+<!--DelEnd-->

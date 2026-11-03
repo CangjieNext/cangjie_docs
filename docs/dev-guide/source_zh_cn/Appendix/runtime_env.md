@@ -45,17 +45,26 @@ export cjHeapSize=4GB
 export cjRegionSize=1024kb
 ```
 
+<!--Del-->
 ### `cjLocalRegionMaxSize`
 
 指定开启 [local 模式](../modal_type/modal_overview.md#开启-local-模式)后，单个 local region 可分配的内存上限，默认值为 256MB。超过上限时会抛出 `LocalRegionOutOfMemoryError`。
 
-支持单位为 kb（KB）、mb（MB）、gb（GB），必须带单位。大小需大于 0，且在当前平台可表示的范围内。参数解析结果为 0，或解析后的 KB 数无法安全转换为字节数时，运行时会打印错误日志并使用默认值。超出可表示范围的数值在单位换算时可能溢出，不保证会被识别为无效配置。
+支持单位为 kb（KB）、mb（MB）、gb（GB），必须带单位，大小需大于 0。单位解析后，KB 数转换为字节数时的检查范围如下：
+
+| 平台位数 | KB 数的检查范围（含端点） |
+|---|---|
+| 64 位 | 1 至 18014398509481983 |
+| 32 位 | 1 至 4194303 |
+
+参数解析结果为 0，或解析后的 KB 数超出上述范围时，运行时会打印错误日志并使用默认值。MB、GB 单位解析中的中间换算还可能溢出，不保证会被识别为无效配置；不应使用会在单位换算中溢出的数值。
 
 例如，将单个 local region 的上限设为 128MB：
 
 ```shell
 export cjLocalRegionMaxSize=128MB
 ```
+<!--DelEnd-->
 
 ### `cjLargeThresholdSize`
 

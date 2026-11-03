@@ -1,18 +1,82 @@
+<!--Del-->
+
 # local 模式的使用规则
 
 > **说明：**
 >
 > local 模式是实验特性。本节示例都按开启 local 模式编写，编译时需要加上 `--experimental --enable-local-mode` 编译选项，参见[开启 local 模式](./modal_overview.md#开启-local-模式)。
 
-本节介绍编写 local 代码时需要遵守的规则。本节的规则都由编译器在编译期检查，违反时直接报错。运行时可能出现的问题（如 local region 超出上限）见[模态类型概述](./modal_overview.md#何时值得使用-local-模式)。
+本节介绍编写 local 代码时需要遵守的规则。这些规则属于编译期约束，违反时应报错。运行时可能出现的问题（如 local region 超出上限）见[模态类型概述](./modal_overview.md#何时值得使用-local-模式)。
 
 ## 赋值、返回与逃逸
 
-`@local!` 的值不能离开当前函数，因此：
+赋值时，除了数据类型相容，还需要满足值的模式与生命周期要求。以下赋值表针对非 `Copyable` 类型；`Copyable` 类型的值可以在不同模式之间按值复制。
 
-- 不能赋值给 `@~local` 的变量；
-- 不能保存到全局变量或静态成员变量中（它们只能是 `@~local`）；
-- 不能作为 `@~local` 的返回值返回。
+`@ local!` 的值分为外部和内部两类：
+
+- **外部 local!**（external）：函数的 `@ local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。
+- **内部 local!**（internal）：在当前函数中创建的 `@ local!` 值，属于当前函数的 local region，函数返回时就会释放。
+
+### 变量的初始化和整体赋值
+
+对于 `var x: T @ 模式`，整体赋值 `x = value` 的规则如下。`let` 变量初始化时也需要满足相同的模式要求，但初始化后不能再次赋值。
+
+| 目标变量的模式 | 可以赋入的值 |
+|---|---|
+| `@ ~local` | 只能是 `@ ~local` |
+| `@ local!` | 只能是 `@ local!`，而且目标和值必须同为内部或同为外部 |
+| `@ local?`，不是当前函数的捕获变量 | 可以是 `@ ~local`、`@ local!` 或 `@ local?` |
+| `@ local?`，是当前 lambda 或嵌套函数的捕获变量 | 只能是 `@ ~local` |
+
+对于被捕获的、非 `Copyable` 类型的 `@ local?` 变量，在捕获它的 lambda 或嵌套函数内部给它赋值时，只能赋 `@ ~local` 值。不能给它赋一个在该函数中创建的 local 值，否则闭包返回后该变量可能仍引用已释放的对象。`Copyable` 类型的变量不受这条赋值限制。
+
+外部 local!（`Copyable` 类型除外）不能用来初始化 `@ local!` 局部变量。需要在局部变量中保留对外部值的引用时，可以把该变量声明为 `@ local?`，示例见[传递 @ local! 参数](#传递--local-参数)。
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func keep(s: String @ local!) {
+    let alias: String @ local! = s // Error, cannot initialize an internal local! with an external local!
+}
+```
+
+普通变量和 local 变量分别接收相应模式的值，`@ local?` 变量可以在这两类值之间切换：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func reassign() {
+    var plain: String = "start"
+    var owned: String @ local! = "start"
+    var view: String @ local? = plain
+    plain = "plain"
+    owned = "local"
+    view = owned
+    println(view)
+    view = plain
+    println(view)
+    var count: Int64 @ local! = 1
+    let next: Int64 = 2
+    count = next // OK, Int64 is Copyable
+    println(count)
+}
+
+main() {
+    reassign()
+}
+```
+
+执行结果为：
+
+```text
+local
+plain
+2
+```
+
+非 `Copyable` 类型的 local 值不能保存到全局变量或静态成员变量中，因为它们只能采用 `@ ~local` 模式；也不能把 local 值直接作为 `@ ~local` 返回值返回：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -21,20 +85,74 @@
 var cache: String = ""
 
 func process(): String {
-    let s: String @local! = "temporary"
-    let t: String = s // Error, @local! cannot be assigned to @~local
-    cache = s // Error, @local! cannot be stored in a global variable
-    return s // Error, @local! cannot be returned as @~local
+    let s: String @ local! = "temporary"
+    let t: String = s // Error, @ local! cannot be assigned to @ ~local
+    cache = s // Error, @ local! cannot be stored in a global variable
+    return s // Error, @ local! cannot be returned as @ ~local
 }
 ```
 
-`@local?` 的变量或参数可以接收 local 值和非 local 值，因此常用于只读取、不保存数据的函数参数：
+### 实例成员变量的赋值
+
+实例成员变量通常继承实例的模式，详见[成员与实例的模式](#成员与实例的模式)。对于非 `Copyable` 类型的成员，赋值规则如下：
+
+| 成员的模式 | 可以赋入的值 |
+|---|---|
+| `@ ~local` | 只能是 `@ ~local` |
+| `@ local!` | 只能是 `@ local!`，而且成员和值必须同为内部或同为外部 |
+| `@ local?` | 通常不允许赋值 |
+
+`@ local?` 的实例可能实际是非 local 的，因而不能把 local 引用写进它的成员。例外是在 `this @ local?` 构造函数或终结器中，可以给 `this` 的成员赋数据类型相容、任意模式的值。`Copyable` 类型的成员不受上述模式限制；`demode` 成员始终采用 `@ ~local` 模式，见[demode 成员变量](./copyable_and_demode.md#demode-成员变量)。
+
+同样，不能给 `@ local?` 数组的非 `Copyable` 元素赋值；`Copyable` 元素不受此限制：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+class Order {
+    var item: String
+    var count: Int64
+    init(item: String, count: Int64) {
+        this.item = item
+        this.count = count
+    }
+    exclave init(this @ local!, item: String @ local!, count: Int64) {
+        this.item = item
+        this.count = count
+    }
+}
+
+var lastItem: String = ""
+
+func record(o: Order @ local!) {
+    lastItem = o.item // Error, o.item has type String @ local!
+}
+
+func update(o: Order @ local?) {
+    o.count = 2 // OK, Int64 is Copyable
+    o.item = "pen" // Error, cannot assign to non-Copyable member of a @ local? instance
+}
+
+func fill(names: Array<String> @ local?, counts: Array<Int64> @ local?) {
+    counts[0] = 0 // OK, Int64 is Copyable
+    names[0] = "none" // Error, cannot assign to non-Copyable element of a @ local? array
+}
+```
+
+示例中的 local 构造函数写法见[构造 local 实例](#构造-local-实例)。
+
+### 返回值
+
+函数内部创建的非 `Copyable` local 值不能在函数返回后继续使用。外部 `@ local!` 参数及其成员属于调用者的 local region，可以作为 `@ local!` 返回值返回给调用者。需要返回函数中新建的 local 对象时，使用 [exclave](./exclave.md#返回-local-对象)。
+
+`@ local?` 的变量或参数可以接收 local 值和非 local 值，因此常用于只读取、不保存数据的函数参数：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func describe(s: String @local?): String {
+func describe(s: String @ local?): String {
     if (s.isEmpty()) {
         "empty"
     } else {
@@ -43,7 +161,7 @@ func describe(s: String @local?): String {
 }
 
 main() {
-    let a: String @local! = "local"
+    let a: String @ local! = "local"
     let b: String = "not local"
     println(describe(a))
     println(describe(b))
@@ -57,29 +175,29 @@ size 5
 size 9
 ```
 
-由于 `@local?` 的值可能是 local 的，它不能作为 `@~local` 返回值返回：
+由于 `@ local?` 的值可能是 local 的，它不能作为 `@ ~local` 返回值返回：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func keep(s: String @local?): String {
-    return s // Error, @local? cannot be returned as @~local
+func keep(s: String @ local?): String {
+    return s // Error, @ local? cannot be returned as @ ~local
 }
 ```
 
-在 exclave 之外，`@local?` 参数本身，以及通过参数访问到的（包括嵌套的）字段，可以直接作为 `@local?` 返回值返回。返回值仍受 local 限制，并没有转换为 `@~local`：
+在 exclave 之外，`@ local?` 参数本身，以及通过参数访问到的（包括嵌套的）字段，可以直接作为 `@ local?` 返回值返回。返回值仍受 local 限制，并没有转换为 `@ ~local`：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func identity(s: String @local?): String @local? {
+func identity(s: String @ local?): String @ local? {
     s
 }
 
 main() {
-    let local: String @local! = "local"
+    let local: String @ local! = "local"
     println(identity(local))
     println(identity("plain"))
 }
@@ -99,7 +217,7 @@ plain
 
 ```cangjie
 func count(): Int64 {
-    let n: Int64 @local! = 42
+    let n: Int64 @ local! = 42
     let m: Int64 = n // OK, Int64 is Copyable
     return n + m
 }
@@ -115,57 +233,23 @@ main() {
 84
 ```
 
+构造新的数组或元组，与访问外部值的成员不同。数组或元组字面量要采用 `@ local!` 模式，所有元素都必须是内部值；不能因为字面量中含有外部 local! 元素，就把整个字面量视为外部 local! 并直接返回。需要将外部 local! 元素组合成 local 返回值时，应在 exclave 中构造并返回，参见[返回 local 对象](./exclave.md#返回-local-对象)。
+
 ## 成员与实例的模式
 
-class 和 struct 的实例成员变量声明时不写模式，它的模式由所在实例决定：通过 `@local!` 的实例访问到的成员是 `@local!`，通过 `@local?` 的实例访问到的成员是 `@local?`。同理，`Array<T> @local!` 的元素也是 `@local!`。
+class 和 struct 的实例成员变量声明时不写模式，它的模式由所在实例决定：通过 `@ local!` 的实例访问到的成员是 `@ local!`，通过 `@ local?` 的实例访问到的成员是 `@ local?`。同理，`Array<T> @ local!` 的元素也是 `@ local!`。
 
-元组的模式由各元素共同决定：如果元素中既有 `@local!` 的值又有 `@~local` 的值，元组的模式是 `@local?`。
+元组的模式由各元素共同决定：如果元素中既有 `@ local!` 的值又有 `@ ~local` 的值，元组的模式是 `@ local?`。
 
-不能给 `@local?` 实例的非 `Copyable` 成员赋值，也不能给 `@local?` 数组的非 `Copyable` 元素赋值。原因是 `@local?` 的实例实际上可能是非 local 的，如果允许赋值，就可能让一个非 local 对象引用 local 对象，而 local 对象会随 local region 释放。`Copyable` 类型的成员和元素不受此限制。
-
-<!-- compile.error -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-class Order {
-    var item: String
-    var count: Int64
-    init(item: String, count: Int64) {
-        this.item = item
-        this.count = count
-    }
-    exclave init(this @local!, item: String @local!, count: Int64) {
-        this.item = item
-        this.count = count
-    }
-}
-
-var lastItem: String = ""
-
-func record(o: Order @local!) {
-    lastItem = o.item // Error, o.item has type String @local!
-}
-
-func update(o: Order @local?) {
-    o.count = 2 // OK, Int64 is Copyable
-    o.item = "pen" // Error, cannot assign to non-Copyable member of a @local? instance
-}
-
-func fill(names: Array<String> @local?, counts: Array<Int64> @local?) {
-    counts[0] = 0 // OK, Int64 is Copyable
-    names[0] = "none" // Error, cannot assign to non-Copyable element of a @local? array
-}
-```
-
-上例中的 `exclave init(this @local!, ...)` 用于构造 local 实例，见下一小节。
+对成员和数组元素赋值时的限制，见[实例成员变量的赋值](#实例成员变量的赋值)。
 
 ## 构造 local 实例
 
-实例的模式由构造函数决定。在 `init` 的参数列表开头写上 `this @local!` 或 `this @local?`，该构造函数构造出的就是相应模式的实例；不写时等价于 `this @~local`。主构造函数总是构造 `@~local` 的实例。
+实例的模式由构造函数决定。在 `init` 的参数列表开头写上 `this @ local!` 或 `this @ local?`，该构造函数构造出的就是相应模式的实例；不写时等价于 `this @ ~local`。主构造函数总是构造 `@ ~local` 的实例。
 
-`this @local!` 和 `this @local?` 的构造函数，整个函数体必须是一个 exclave 表达式，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，不受上一小节“不能给 `@local?` 实例的成员赋值”的限制。
+`this @ local!` 和 `this @ local?` 的构造函数，整个函数体必须是一个 exclave 表达式，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，适用[实例成员变量的赋值](#实例成员变量的赋值)中对 `this` 初始化的例外规则。
 
-构造实例时，可以在构造调用之后显式写上模式来选择构造函数，例如 `Order("pen", 2) @local!`。省略模式时，编译器会按上下文推断，例如变量类型、形参类型或返回类型；若无法推断，或没有对应模式的构造函数，则选择 `@~local` 模式的构造函数，再按参数类型等规则进行重载决议。下面通过变量类型选择构造函数：
+构造实例时，可以在构造调用之后显式写上模式来选择构造函数，例如 `Order("pen", 2) @ local!`。省略模式时，编译器会按上下文推断，例如变量类型、形参类型或返回类型；若无法推断，或没有对应模式的构造函数，则选择 `@ ~local` 模式的构造函数，再按参数类型等规则进行重载决议。下面通过变量类型选择构造函数：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -178,16 +262,16 @@ class Order {
         this.item = item
         this.count = count
     }
-    exclave init(this @local!, item: String @local!, count: Int64) {
+    exclave init(this @ local!, item: String @ local!, count: Int64) {
         this.item = item
         this.count = count
     }
 }
 
 main() {
-    let a = Order("book", 1) // @~local instance
-    let b = Order("pen", 2) @local! // @local! instance
-    let c: Order @local! = Order("ink", 3) // constructor selected by the variable type
+    let a = Order("book", 1) // @ ~local instance
+    let b = Order("pen", 2) @ local! // @ local! instance
+    let c: Order @ local! = Order("ink", 3) // constructor selected by the variable type
     println("${a.item} ${b.item} ${c.item}")
 }
 ```
@@ -212,11 +296,11 @@ class Point {
 }
 
 main() {
-    let p = Point(1) @local! // Error, no @local! constructor
+    let p = Point(1) @ local! // Error, no @ local! constructor
 }
 ```
 
-`this @local!` 或 `this @local?` 的构造函数如果没有写成 exclave，编译器会报错：
+`this @ local!` 或 `this @ local?` 的构造函数如果没有写成 exclave，编译器会报错：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -227,13 +311,13 @@ class Label {
     init(text: String) {
         this.text = text
     }
-    init(this @local!, text: String @local!) { // Error, body must be an exclave
+    init(this @ local!, text: String @ local!) { // Error, body must be an exclave
         this.text = text
     }
 }
 ```
 
-在构造函数中通过 `this(...)` 调用当前类型的另一个构造函数，或通过 `super(...)` 调用父类构造函数时，被调用的构造函数必须与当前构造函数的 `this` 模式相同。在 `this @local!` 或 `this @local?` 的构造函数中，该调用还必须是 exclave 块中的第一个表达式：
+在构造函数中通过 `this(...)` 调用当前类型的另一个构造函数，或通过 `super(...)` 调用父类构造函数时，被调用的构造函数必须与当前构造函数的 `this` 模式相同。在 `this @ local!` 或 `this @ local?` 的构造函数中，该调用还必须是 exclave 块中的第一个表达式：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -242,17 +326,17 @@ class Label {
 open class Base {
     var n: Int64 = 7
     init() {}
-    exclave init(this @local!) {}
+    exclave init(this @ local!) {}
 }
 
 class Child <: Base {
-    exclave init(this @local!) {
-        super() // OK, calls Base's this @local! constructor
+    exclave init(this @ local!) {
+        super() // OK, calls Base's this @ local! constructor
     }
 }
 
 main() {
-    let child = Child() @local!
+    let child = Child() @ local!
     println(child.n)
 }
 ```
@@ -263,7 +347,7 @@ main() {
 7
 ```
 
-如果父类只有默认的 `this @~local` 构造函数，local 构造函数不能调用它：
+如果父类只有默认的 `this @ ~local` 构造函数，local 构造函数不能调用它：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -274,25 +358,25 @@ open class Base {
 }
 
 class Child <: Base {
-    exclave init(this @local!) {
-        super() // Error, no constructor with this @local!
+    exclave init(this @ local!) {
+        super() // Error, no constructor with this @ local!
     }
 }
 ```
 
 ## 成员函数的 this 模式
 
-实例成员函数中 `this` 的模式也需要确定。在参数列表开头写 `this @模式` 来指定，例如 `func show(this @local?): String`；不写时等价于 `this @~local`。`this @...` 只是对 `this` 的说明，不是参数，调用时不需要也不能为它传值。
+实例成员函数中 `this` 的模式也需要确定。在参数列表开头写 `this @模式` 来指定，例如 `func show(this @ local?): String`；不写时等价于 `this @ ~local`。`this @...` 只是对 `this` 的说明，不是参数，调用时不需要也不能为它传值。
 
 通过实例调用成员函数时，实例的模式必须是 `this` 模式的子类型：
 
 | 实例的模式 | 可以调用的成员函数 |
 |-----------|------------------|
-| `@~local` | `this @~local`（即不写）、`this @local?` |
-| `@local!` | `this @local!`、`this @local?` |
-| `@local?` | `this @local?` |
+| `@ ~local` | `this @ ~local`（即不写）、`this @ local?` |
+| `@ local!` | `this @ local!`、`this @ local?` |
+| `@ local?` | `this @ local?` |
 
-因此，如果希望某个只读的成员函数对任何模式的实例都可用，应把它声明为 `this @local?`。
+因此，如果希望某个只读的成员函数对任何模式的实例都可用，应把它声明为 `this @ local?`。
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -301,20 +385,20 @@ class Child <: Base {
 class Counter {
     var n: Int64 = 0
     init() {}
-    exclave init(this @local!) {}
+    exclave init(this @ local!) {}
     func value(): Int64 {
         n
     }
-    func reset(this @local!): Unit {
+    func reset(this @ local!): Unit {
         n = 0
     }
 }
 
-func use(c: Counter @local?) {
-    let a = Counter() @local!
-    a.value() // Error, a @local! instance cannot call a this @~local member function
-    c.value() // Error, a @local? instance cannot call a this @~local member function
-    Counter().reset() // Error, a @~local instance cannot call a this @local! member function
+func use(c: Counter @ local?) {
+    let a = Counter() @ local!
+    a.value() // Error, a @ local! instance cannot call a this @ ~local member function
+    c.value() // Error, a @ local? instance cannot call a this @ ~local member function
+    Counter().reset() // Error, a @ ~local instance cannot call a this @ local! member function
 }
 ```
 
@@ -326,21 +410,21 @@ func use(c: Counter @local?) {
 ```cangjie
 class C {
     init() {}
-    exclave init(this @local!) {}
-    func name(this @~local): String {
-        "this @~local"
+    exclave init(this @ local!) {}
+    func name(this @ ~local): String {
+        "this @ ~local"
     }
-    func name(this @local?): String {
-        "this @local?"
+    func name(this @ local?): String {
+        "this @ local?"
     }
-    func name(this @local!): String {
-        "this @local!"
+    func name(this @ local!): String {
+        "this @ local!"
     }
 }
 
-func test(p: C @local?) {
+func test(p: C @ local?) {
     let a = C()
-    let b = C() @local!
+    let b = C() @ local!
     println(a.name())
     println(b.name())
     println(p.name())
@@ -354,9 +438,9 @@ main() {
 执行结果为：
 
 ```text
-this @~local
-this @local!
-this @local?
+this @ ~local
+this @ local!
+this @ local?
 ```
 
 实现接口函数或覆盖父类函数时，`this` 模式必须与被实现或被覆盖的函数完全相同：
@@ -366,7 +450,7 @@ this @local?
 
 ```cangjie
 interface Shape {
-    func area(this @local?): Int64
+    func area(this @ local?): Int64
 }
 
 class Square <: Shape {
@@ -374,12 +458,12 @@ class Square <: Shape {
     init(side: Int64) {
         this.side = side
     }
-    public func area(this @local?): Int64 { // same this mode as Shape.area
+    public func area(this @ local?): Int64 { // same this mode as Shape.area
         side * side
     }
 }
 
-func areaOf(s: Shape @local?): Int64 {
+func areaOf(s: Shape @ local?): Int64 {
     s.area()
 }
 
@@ -399,17 +483,17 @@ main() {
 
 ```cangjie
 interface Shape {
-    func area(this @local?): Int64
+    func area(this @ local?): Int64
 }
 
-class Square <: Shape { // Error, area(this @local?) is not implemented
+class Square <: Shape { // Error, area(this @ local?) is not implemented
     public func area(): Int64 {
         1
     }
 }
 
 open class Base {
-    public open func id(this @local?): Int64 {
+    public open func id(this @ local?): Int64 {
         1
     }
 }
@@ -423,7 +507,7 @@ class Derived <: Base {
 
 ## 按参数模式重载
 
-函数可以只按参数的模式重载。标准库中常见的做法是同时提供 `f(x: T)` 和 `f(x: T @local?)` 两个版本。调用时，编译器选择参数模式与实参模式最匹配的版本：
+函数可以只按参数的模式重载。标准库中常见的做法是同时提供 `f(x: T)` 和 `f(x: T @ local?)` 两个版本。调用时，编译器选择参数模式与实参模式最匹配的版本：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -433,21 +517,21 @@ func f(_: String): String {
     "f(String)"
 }
 
-func f(_: String @local?): String {
-    "f(String @local?)"
+func f(_: String @ local?): String {
+    "f(String @ local?)"
 }
 
-func g(_: String @local!): String {
-    "g(String @local!)"
+func g(_: String @ local!): String {
+    "g(String @ local!)"
 }
 
-func g(_: String @local?): String {
-    "g(String @local?)"
+func g(_: String @ local?): String {
+    "g(String @ local?)"
 }
 
-func test(p: String @local?) {
+func test(p: String @ local?) {
     let a: String = "a"
-    let b: String @local! = "b"
+    let b: String @ local! = "b"
     println(f(a))
     println(f(b))
     println(f(p))
@@ -465,58 +549,40 @@ main() {
 
 ```text
 f(String)
-f(String @local?)
-f(String @local?)
-g(String @local?)
-g(String @local!)
-g(String @local?)
+f(String @ local?)
+f(String @ local?)
+g(String @ local?)
+g(String @ local!)
+g(String @ local?)
 ```
 
-即：实参为 `@~local` 时优先选 `@~local` 版本，没有时选 `@local?` 版本；实参为 `@local!` 时优先选 `@local!` 版本，没有时选 `@local?` 版本；实参为 `@local?` 时只能选 `@local?` 版本。
+即：实参为 `@ ~local` 时优先选 `@ ~local` 版本，没有时选 `@ local?` 版本；实参为 `@ local!` 时优先选 `@ local!` 版本，没有时选 `@ local?` 版本；实参为 `@ local?` 时只能选 `@ local?` 版本。
 
-如果没有任何版本能接收实参的模式，调用会报错。例如只提供 `@local!` 版本时，不能传入 `@~local` 或 `@local?` 的实参：
+如果没有任何版本能接收实参的模式，调用会报错。例如只提供 `@ local!` 版本时，不能传入 `@ ~local` 或 `@ local?` 的实参：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func h(s: String @local!): Int64 {
+func h(s: String @ local!): Int64 {
     s.size
 }
 
-func test(p: String @local?) {
+func test(p: String @ local?) {
     let a: String = "a"
-    h(a) // Error, no h accepts a @~local argument
-    h(p) // Error, no h accepts a @local? argument
+    h(a) // Error, no h accepts a @ ~local argument
+    h(p) // Error, no h accepts a @ local? argument
 }
 ```
 
-## 传递 @local! 参数
+## 传递 @ local! 参数
 
-`@local!` 的值分为两类，编译器的报错信息中分别称为 external 和 internal：
+外部与内部 local! 的区别，以及局部变量初始化的限制，见[变量的初始化和整体赋值](#变量的初始化和整体赋值)。
 
-- **外部 local!**（external）：函数的 `@local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。
-- **内部 local!**（internal）：在当前函数中创建的 `@local!` 值，属于当前函数的 local region，函数返回时就会释放。
-
-外部 local! 比内部 local! 活得更久，因此二者不能混用：内部 local! 不能赋给外部 local! 的成员（需要时使用 [exclave](./exclave.md)），内部 local! 不能作为返回值返回，而外部 local! 可以作为 `@local!` 的返回值返回给调用者。
-
-构造新的数组或元组，与访问外部值的成员不同。数组或元组字面量要采用 `@local!` 模式，所有元素都必须是内部值；不能因为字面量中含有外部 local! 元素，就把整个字面量视为外部 local! 并直接返回。需要将外部 local! 元素组合成 local 返回值时，应在 exclave 中构造并返回，参见[返回 local 对象](./exclave.md#返回-local-对象)。
-
-外部 local!（`Copyable` 类型除外）不能用来初始化 `@local!` 局部变量。需要在局部变量中保留对外部值的引用时，可以把该变量声明为 `@local?`，见下方的变通写法。
-
-<!-- compile.error -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-func keep(s: String @local!) {
-    let alias: String @local! = s // Error, cannot initialize an internal local! with an external local!
-}
-```
-
-此外，在 exclave 之外，外部 local!（`Copyable` 类型除外）还有两条限制：
+在 exclave 之外，外部 local!（`Copyable` 类型除外）还有两条限制：
 
 - 不能直接作为实参传给其他函数；
-- 不能用来调用 `this @local!` 的成员函数。
+- 不能用来调用 `this @ local!` 的成员函数。
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -527,54 +593,54 @@ class Doc {
     init(title: String) {
         this.title = title
     }
-    exclave init(this @local!, title: String @local!) {
+    exclave init(this @ local!, title: String @ local!) {
         this.title = title
     }
-    exclave func clear(this @local!): Unit {
+    exclave func clear(this @ local!): Unit {
         title = ""
     }
 }
 
-func size(s: String @local?): Int64 {
+func size(s: String @ local?): Int64 {
     s.size
 }
 
-func process(d: Doc @local!): Int64 {
-    d.clear() // Error, cannot call a this @local! member function on a @local! parameter
-    size(d.title) // Error, cannot pass a @local! parameter (or its member) as an argument
+func process(d: Doc @ local!): Int64 {
+    d.clear() // Error, cannot call a this @ local! member function on a @ local! parameter
+    size(d.title) // Error, cannot pass a @ local! parameter (or its member) as an argument
 }
 ```
 
 需要传递时，可以采用以下两种写法之一：
 
-- 先把参数赋给一个 `@local?` 变量，再把该变量传给 `@local?` 形参；
-- 在 [exclave](./exclave.md) 中传递或调用，此时外部 local! 视同内部 local!，可以传给 `@local!` 形参，也可以调用 `this @local!` 的成员函数。
+- 先把参数赋给一个 `@ local?` 变量，再把该变量传给 `@ local?` 形参；
+- 在 [exclave](./exclave.md) 中传递或调用，此时外部 local! 视同内部 local!，可以传给 `@ local!` 形参，也可以调用 `this @ local!` 的成员函数。
 
-通过外部 local! 调用 `this @local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
+通过外部 local! 调用 `this @ local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func size(s: String @local?): Int64 {
+func size(s: String @ local?): Int64 {
     s.size
 }
 
-func sizeL(s: String @local!): Int64 {
+func sizeL(s: String @ local!): Int64 {
     s.size
 }
 
-func forward1(s: String @local!): Int64 {
-    let t: String @local? = s
+func forward1(s: String @ local!): Int64 {
+    let t: String @ local? = s
     size(t)
 }
 
-exclave func forward2(s: String @local!): Int64 {
+exclave func forward2(s: String @ local!): Int64 {
     sizeL(s)
 }
 
 main() {
-    let s: String @local! = "abc"
+    let s: String @ local! = "abc"
     println(forward1(s))
     println(forward2(s))
 }
@@ -591,9 +657,9 @@ main() {
 
 lambda 表达式和嵌套函数会捕获外部变量，捕获规则如下：
 
-- 不能捕获非 `Copyable` 类型的 `@local!` 变量。
-- 捕获了非 `Copyable` 类型的 `@local?` 变量的 lambda，其自身的模式是 `@local?`，因此不能逃逸，例如不能赋值给 `@~local` 的变量。只捕获 `Copyable` 类型的 local 变量时，lambda 的模式仍是 `@~local`。
-- 不能创建 `@local!` 的函数对象，即 lambda 的类型不能是 `@local!` 的函数类型。
+- 不能捕获非 `Copyable` 类型的 `@ local!` 变量。
+- 捕获了非 `Copyable` 类型的 `@ local?` 变量的 lambda，其自身的模式是 `@ local?`，因此不能逃逸，例如不能赋值给 `@ ~local` 的变量。只捕获 `Copyable` 类型的 local 变量时，lambda 的模式仍是 `@ ~local`。
+- 不能创建 `@ local!` 的函数对象，即 lambda 的类型不能是 `@ local!` 的函数类型。
 
 例如，捕获 `Copyable` 类型的 local 变量不会使 lambda 变成 local，嵌套函数也可以捕获这样的变量：
 
@@ -602,7 +668,7 @@ lambda 表达式和嵌套函数会捕获外部变量，捕获规则如下：
 
 ```cangjie
 func makeCounter(): () -> Int64 {
-    let n: Int64 @local! = 42
+    let n: Int64 @ local! = 42
     func value(): Int64 { n }
     {=> value() }
 }
@@ -625,25 +691,25 @@ main() {
 var onDone: () -> Int64 = {=> 0}
 
 func run() {
-    let text: String @local! = "abc"
-    let view: String @local? = text
-    let byText = {=> text.size} // Error, cannot capture a @local! variable
+    let text: String @ local! = "abc"
+    let view: String @ local? = text
+    let byText = {=> text.size} // Error, cannot capture a @ local! variable
     let byView = {=> view.size}
-    onDone = byView // Error, a @local? lambda cannot be assigned to @~local
-    let fixed: (() -> Int64) @local! = {=> 1} // Error, a lambda cannot have a @local! function type
+    onDone = byView // Error, a @ local? lambda cannot be assigned to @ ~local
+    let fixed: (() -> Int64) @ local! = {=> 1} // Error, a lambda cannot have a @ local! function type
 }
 ```
 
-捕获 `@local?` 变量的 lambda 可以在当前函数内正常调用：
+捕获 `@ local?` 变量的 lambda 可以在当前函数内正常调用：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func run() {
-    let text: String @local! = "hello"
-    let view: String @local? = text
-    let length: (() -> Int64) @local? = {=> view.size}
+    let text: String @ local! = "hello"
+    let view: String @ local? = text
+    let length: (() -> Int64) @ local? = {=> view.size}
     println(length())
 }
 
@@ -658,16 +724,16 @@ main() {
 5
 ```
 
-嵌套函数默认是 `@~local` 的，不能捕获非 `Copyable` 类型的 `@local?` 和 `@local!` 变量。要捕获非 `Copyable` 类型的 `@local?` 变量，在 `func` 前写上 `@local?`；嵌套函数同样不能捕获非 `Copyable` 类型的 `@local!` 变量。`Copyable` 类型的 local 变量不受上述捕获限制：
+嵌套函数默认是 `@ ~local` 的，不能捕获非 `Copyable` 类型的 `@ local?` 和 `@ local!` 变量。要捕获非 `Copyable` 类型的 `@ local?` 变量，在 `func` 前写上 `@ local?`；嵌套函数同样不能捕获非 `Copyable` 类型的 `@ local!` 变量。`Copyable` 类型的 local 变量不受上述捕获限制：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func run() {
-    let text: String @local! = "hello"
-    let view: String @local? = text
-    @local? func length(): Int64 {
+    let text: String @ local! = "hello"
+    let view: String @ local? = text
+    @ local? func length(): Int64 {
         view.size
     }
     println(length())
@@ -689,26 +755,26 @@ main() {
 
 ```cangjie
 func run() {
-    let text: String @local! = "hello"
-    let view: String @local? = text
+    let text: String @ local! = "hello"
+    let view: String @ local? = text
     func length1(): Int64 {
-        view.size // Error, a @~local nested function cannot capture a @local? variable
+        view.size // Error, a @ ~local nested function cannot capture a @ local? variable
     }
-    @local? func length2(): Int64 {
-        text.size // Error, cannot capture a @local! variable
+    @ local? func length2(): Int64 {
+        text.size // Error, cannot capture a @ local! variable
     }
 }
 ```
 
-对于被捕获的、非 `Copyable` 类型的 `@local?` 变量，在捕获它的 lambda 或嵌套函数内部给它赋值时，只能赋 `@~local` 值。不能给它赋一个在该函数中创建的 local 值，否则闭包返回后该变量可能仍引用已释放的对象。`Copyable` 类型的变量不受这条赋值限制。
+
 
 ## 约束
 
 以下场景对 local 值有额外限制：
 
-- **spawn**：spawn 块中不能使用块外声明的、非 `Copyable` 类型的 `@local!` 或 `@local?` 变量，块的结果只能是 `@~local` 的值。spawn 块中可以创建自己的 local 对象，它们在块执行结束时释放。spawn 块中不能使用 exclave 表达式。
-- **异常**：`throw` 的操作数只能是 `@~local` 的值；catch 中绑定的异常变量是 `@~local` 的，可以自由保存。
-- **泛型**：泛型实参不能带模式（如 `Array<String @local!>`）。泛型函数的形参 `x: T` 是 `@~local` 的，如果要接收 local 值，需要写成 `x: T @local?` 等形式。
+- **spawn**：spawn 块中不能使用块外声明的、非 `Copyable` 类型的 `@ local!` 或 `@ local?` 变量，块的结果只能是 `@ ~local` 的值。spawn 块中可以创建自己的 local 对象，它们在块执行结束时释放。spawn 块中不能使用 exclave 表达式。
+- **异常**：`throw` 的操作数只能是 `@ ~local` 的值；catch 中绑定的异常变量是 `@ ~local` 的，可以自由保存。
+- **泛型**：泛型实参不能带模式（如 `Array<String @ local!>`）。泛型函数的形参 `x: T` 是 `@ ~local` 的，如果要接收 local 值，需要写成 `x: T @ local?` 等形式。
 - **C 语言互操作**：`@C` 修饰的函数和 `foreign` 函数，参数和返回值不能标注模式。
 - **exclave 的使用位置**：try 块、catch 块、spawn 块、`main`、终结器和静态初始化器中不能使用 exclave，详见 [exclave 表达式](./exclave.md#使用限制)。
 
@@ -719,9 +785,9 @@ func run() {
 var lastError: Exception = Exception()
 
 func sumInThread(n: Int64): Int64 {
-    let limit: Int64 @local! = n // Int64 is Copyable, can be used in spawn
+    let limit: Int64 @ local! = n // Int64 is Copyable, can be used in spawn
     let fut = spawn {
-        let squares = Array<Int64>(limit, {i => i * i}) @local! // local to the spawn block
+        let squares = Array<Int64>(limit, {i => i * i}) @ local! // local to the spawn block
         var sum = 0
         for (i in 0..squares.size) {
             sum += squares[i]
@@ -735,7 +801,7 @@ func check() {
     try {
         throw Exception("bad input")
     } catch (e: Exception) {
-        lastError = e // OK, e is @~local
+        lastError = e // OK, e is @ ~local
     }
 }
 
@@ -758,39 +824,39 @@ bad input
 
 ```cangjie
 func f() {
-    let s: String @local? = "s"
+    let s: String @ local? = "s"
     spawn {
-        println(s) // Error, cannot use a @local? variable declared outside spawn
+        println(s) // Error, cannot use a @ local? variable declared outside spawn
     }
 }
 
-func g(e: Exception @local?) {
-    throw e // Error, the thrown value must be @~local
+func g(e: Exception @ local?) {
+    throw e // Error, the thrown value must be @ ~local
 }
 
 func id<T>(x: T): Unit {}
 
 func h() {
-    let s: String @local! = "s"
-    id(s) // Error, the parameter x: T is @~local
+    let s: String @ local! = "s"
+    id(s) // Error, the parameter x: T is @ ~local
 }
 
 @C
-func fromC(p: CPointer<Int8> @local!): Unit {} // Error, @C function cannot use modal types
+func fromC(p: CPointer<Int8> @ local!): Unit {} // Error, @C function cannot use modal types
 ```
 
-泛型函数要接收 local 值时，把形参标注为 `@local?`：
+泛型函数要接收 local 值时，把形参标注为 `@ local?`：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func count<T>(xs: Array<T> @local?): Int64 {
+func count<T>(xs: Array<T> @ local?): Int64 {
     xs.size
 }
 
 main() {
-    let xs: Array<String> @local! = ["a", "b", "c"]
+    let xs: Array<String> @ local! = ["a", "b", "c"]
     println(count(xs))
 }
 ```
@@ -805,18 +871,20 @@ main() {
 
 以下限制不常遇到，这里只简要列出：
 
-1. 终结器的 `this` 模式必须是所有构造函数 `this` 模式的父类型。例如同时有 `this @~local` 和 `this @local!` 的构造函数时，终结器需写成 `~init(this @local?)`。
+1. 终结器的 `this` 模式必须是所有构造函数 `this` 模式的父类型。例如同时有 `this @ ~local` 和 `this @ local!` 的构造函数时，终结器需写成 `~init(this @ local?)`。
 2. 如果一个类型的构造函数能构造出不同模式的实例，那么它的非 `Copyable` 类型的成员变量不能在声明处写初始值，`demode` 成员变量除外。
 3. 同名的实例成员属性可以按模式重载，但它们的数据类型必须相同。
 4. 静态成员属性不能按模式重载。
 5. `abstract` 函数不能用 `exclave` 修饰。
-6. 在 exclave 之外，非 `Copyable` 类型的外部 `@local!` 参数不能直接作为实参传给其他函数，见[传递 @local! 参数](#传递-local-参数)。
-7. 对 `@local!` 参数做模式匹配时，绑定得到的变量是 `@local?` 而不是 `@local!`。
+6. 在 exclave 之外，非 `Copyable` 类型的外部 `@ local!` 参数不能直接作为实参传给其他函数，见[传递 @ local! 参数](#传递--local-参数)。
+7. 对 `@ local!` 参数做模式匹配时，绑定得到的变量是 `@ local?` 而不是 `@ local!`。
 8. `this` 模式说明只能用于实例成员函数和构造函数，写在全局函数或静态函数上会报错。
-9. 模式只能写在构造调用之后，如 `C() @local!`，写在普通函数调用之后会报错。
+9. 模式只能写在构造调用之后，如 `C() @ local!`，写在普通函数调用之后会报错。
 10. 访问按模式重载的属性时，如果没有与实例模式匹配的版本会报错。
-11. 主构造函数的普通参数只能采用 `@~local` 模式。
-12. 宏的参数和返回值只能采用 `@~local` 模式。
-13. 效应处理中的 `perform` 操作数只能是 `@~local` 的值。
+11. 主构造函数的普通参数只能采用 `@ ~local` 模式。
+12. 宏的参数和返回值只能采用 `@ ~local` 模式。
+13. 效应处理中的 `perform` 操作数只能是 `@ ~local` 的值。
 
-可选参数的默认值还有以下求值规则：非 `Copyable` 类型的 `@local!` 或 `@local?` 参数，其默认值在调用函数时的活跃 region 中求值；其余参数的默认值在临时创建的 region 中求值。因此，默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@local!` 变量。
+可选参数的默认值还有以下求值规则：非 `Copyable` 类型的 `@ local!` 或 `@ local?` 参数，其默认值在调用函数时的活跃 region 中求值；其余参数的默认值在临时创建的 region 中求值。因此，默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@ local!` 变量。
+
+<!--DelEnd-->

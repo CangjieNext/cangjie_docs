@@ -1,3 +1,5 @@
+<!--Del-->
+
 # Copyable 与 demode
 
 > **说明：**
@@ -15,7 +17,7 @@
 - 元素类型全部实现了 `Copyable` 的元组类型；
 - 元素类型实现了 `Copyable` 的 `VArray`。
 
-实现了 `Copyable` 的类型的值，可以在 `@local!`、`@local?`、`@~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作。
+实现了 `Copyable` 的类型的值，可以在 `@ local!`、`@ local?`、`@ ~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作。
 
 下面展示 `Copyable` 值在不同模式间的转换，以及返回非接口类型的值：
 
@@ -23,13 +25,13 @@
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func toPlain(t: (Int64, Bool) @local?): (Int64, Bool) {
+func toPlain(t: (Int64, Bool) @ local?): (Int64, Bool) {
     t // OK, the tuple type is Copyable
 }
 
 main() {
-    let n: Int64 @local! = 1
-    let v: VArray<Int64, $2> @local! = [1, 2]
+    let n: Int64 @ local! = 1
+    let v: VArray<Int64, $2> @ local! = [1, 2]
     let w: VArray<Int64, $2> = v
     let t = toPlain((n, true))
     println("${t[0]} ${t[1]} ${w[1]}")
@@ -42,24 +44,24 @@ main() {
 1 true 2
 ```
 
-在 exclave 之外，`@local!` 或 `@local?` 的 `Copyable` 值不能直接作为接口类型返回，需要先复制到 `@~local` 变量再返回。下面分别接收两种模式的值，复制为普通 `Int64` 后以 `ToString` 接口返回：
+在 exclave 之外，`@ local!` 或 `@ local?` 的 `Copyable` 值不能直接作为接口类型返回，需要先复制到 `@ ~local` 变量再返回。下面分别接收两种模式的值，复制为普通 `Int64` 后以 `ToString` 接口返回：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func fromLocal(n: Int64 @local!): ToString {
+func fromLocal(n: Int64 @ local!): ToString {
     let plain: Int64 = n
     plain
 }
 
-func fromMaybe(n: Int64 @local?): ToString {
+func fromMaybe(n: Int64 @ local?): ToString {
     let plain: Int64 = n
     plain
 }
 
 main() {
-    let n: Int64 @local! = 42
+    let n: Int64 @ local! = 42
     println(fromLocal(n).toString())
     println(fromMaybe(n).toString())
 }
@@ -98,19 +100,19 @@ struct Pair<A, B> <: Copyable where A <: Copyable, B <: Copyable {
     }
 }
 
-func shift(p: Point @local?): Point {
+func shift(p: Point @ local?): Point {
     Point(p.x + 1, p.y + 1) // p.x and p.y are Int64, no local restriction
 }
 
-func keep(p: Point @local?): Point {
+func keep(p: Point @ local?): Point {
     p // OK, Point is Copyable
 }
 
 main() {
-    let p: Point @local! = Point(1, 2)
+    let p: Point @ local! = Point(1, 2)
     let q = shift(p)
     let r = keep(p)
-    let pr: Pair<Int64, Bool> @local! = Pair<Int64, Bool>(3, true)
+    let pr: Pair<Int64, Bool> @ local! = Pair<Int64, Bool>(3, true)
     let pr2: Pair<Int64, Bool> = pr
     println("${q.x} ${r.y} ${pr2.first}")
 }
@@ -165,12 +167,12 @@ func g() {
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-func plain<T>(x: T @local?): T where T <: Copyable {
+func plain<T>(x: T @ local?): T where T <: Copyable {
     x
 }
 
 main() {
-    let n: Int64 @local! = 42
+    let n: Int64 @ local! = 42
     let m: Int64 = plain(n)
     println(m)
 }
@@ -186,9 +188,9 @@ main() {
 
 实例成员变量的模式通常与所在实例相同（参见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)）。如果 local 对象需要持有一个普通对象的引用，例如指向全局配置或缓存，成员就不能跟着实例变成 local 的。这时可以用 `demode` 修饰该成员变量：
 
-- `demode` 成员变量的模式始终是 `@~local`，与实例的模式无关；
-- 因此可以把 `@~local` 的值赋给它，读出的值也是 `@~local` 的，可以自由保存和返回；
-- 相应地，不能把 local 值赋给它。
+- `demode` 成员变量的模式始终是 `@ ~local`，与实例的模式无关；
+- 因此可以把 `@ ~local` 的值赋给它，读出的值也是 `@ ~local` 的，可以自由保存和返回；
+- 相应地，不能把非 `Copyable` 类型的 `@ local!` 或 `@ local?` 值赋给它；`Copyable` 值可以按值复制。
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -203,15 +205,15 @@ class Node {
         this.tag = ""
         this.label = label
     }
-    exclave init(this @local!, label: String @local!) {
+    exclave init(this @ local!, label: String @ local!) {
         this.tag = ""
         this.label = label
     }
 }
 
 func tagOf(): String {
-    let n = Node("temp") @local!
-    n.tag = defaultTag // OK, n.tag is always @~local
+    let n = Node("temp") @ local!
+    n.tag = defaultTag // OK, n.tag is always @ ~local
     n.tag // OK, can be returned
 }
 
@@ -239,41 +241,41 @@ class Node {
         this.tag = ""
         this.label = label
     }
-    exclave init(this @local!, label: String @local!) {
+    exclave init(this @ local!, label: String @ local!) {
         this.tag = ""
         this.label = label
     }
 }
 
 func f() {
-    let n = Node("temp") @local!
-    n.label = defaultTag // Error, n.label is @local!
-    let s: String @local! = "s"
-    n.tag = s // Error, n.tag is @~local
+    let n = Node("temp") @ local!
+    n.label = defaultTag // Error, n.label is @ local!
+    let s: String @ local! = "s"
+    n.tag = s // Error, n.tag is @ ~local
 }
 ```
 
 ## 元素非 local 的 local 数组
 
-`Array<T> @local!` 的元素也是 local 的。如果想要一个随函数释放的临时数组，但其中存放的是普通对象，可以先定义一个只含 `demode` 成员的包装 struct，再用它作为数组元素：
+`Array<T> @ local!` 的元素也是 local 的。如果想要一个随函数释放的临时数组，但其中存放的是普通对象，可以使用带有 `demode` 成员的包装 struct。下面的 `Demode<T>` 是本示例定义的包装类型，用作数组的元素：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
-struct Detached<T> {
+struct Demode<T> {
     demode var value: T
     init(v: T) {
         this.value = v
     }
-    exclave init(this @local!, v: T) {
+    exclave init(this @ local!, v: T) {
         this.value = v
     }
 }
 
 func pickSecond(a: String, b: String): String {
-    let arr: Array<Detached<String>> @local! = [Detached(a) @local!, Detached(b) @local!]
-    arr[1].value // OK, value is @~local
+    let arr: Array<Demode<String>> @ local! = [Demode(a) @ local!, Demode(b) @ local!]
+    arr[1].value // OK, value is @ ~local
 }
 
 main() {
@@ -287,4 +289,6 @@ main() {
 y
 ```
 
-这样，`Array<Detached<String>> @local!` 这个数组在函数返回时随 local region 释放，而每个元素的 `value` 引用的是普通对象，不受影响，可以被返回或保存。
+这样，`Array<Demode<String>> @ local!` 这个数组在函数返回时随 local region 释放，而每个元素的 `value` 引用的是普通对象，不受影响，可以被返回或保存。
+
+<!--DelEnd-->

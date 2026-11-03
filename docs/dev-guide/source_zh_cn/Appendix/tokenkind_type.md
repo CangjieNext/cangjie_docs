@@ -165,8 +165,10 @@ public enum TokenKind <: ToString {
     | RESUME //  "resume"
     | THROWING //  "throwing"
     | DOUBLE_COLON //  "::"
-    | EXCLAVE //  "exclave"
-    | DEMODE //  "demode"
         ...
 }
 ```
+
+<!--Del-->
+开启 local 模式后，`TokenKind` 还包括 `EXCLAVE`（`exclave`）和 `DEMODE`（`demode`），用于[模态类型](../modal_type/modal_overview.md)。
+<!--DelEnd-->
