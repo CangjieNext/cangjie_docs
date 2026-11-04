@@ -231,6 +231,8 @@ main() {
 - 因此可以把 `@ ~local` 的值赋给它，读出的值也是 `@ ~local` 的，可以自由保存和返回；
 - 相应地，不能把非 `Copyable` 类型的 `@ local!` 或 `@ local?` 值赋给它；`Copyable` 值可以按值复制。
 
+下面通过 `this @ local!` 的构造函数创建 local 对象，再观察其 `demode` 成员的模式。该构造函数必须使用 `exclave`，参见[构造 local 实例](./local_mode_rules.md#构造-local-实例)。
+
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
@@ -240,10 +242,6 @@ var defaultTag: String = "default"
 class Node {
     demode var tag: String
     var label: String
-    init(label: String) {
-        this.tag = ""
-        this.label = label
-    }
     exclave init(this @ local!, label: String @ local!) {
         this.tag = ""
         this.label = label
@@ -276,10 +274,6 @@ var defaultTag: String = "default"
 class Node {
     demode var tag: String
     var label: String
-    init(label: String) {
-        this.tag = ""
-        this.label = label
-    }
     exclave init(this @ local!, label: String @ local!) {
         this.tag = ""
         this.label = label
