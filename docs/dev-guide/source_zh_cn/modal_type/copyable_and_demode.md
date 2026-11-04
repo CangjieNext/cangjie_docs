@@ -47,7 +47,7 @@ main() {
 
 ```cangjie
 func toPlain(t: (Int64, String) @ local?): (Int64, String) {
-    t // Error, (Int64, String) is not Copyable
+    t // Error, cannot convert @ local? to @ ~local
 }
 ```
 
