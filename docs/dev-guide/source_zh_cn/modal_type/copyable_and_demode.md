@@ -12,8 +12,8 @@
 
 - 所有数值类型，以及 `Rune`、`Bool`、`Unit`、`Nothing`；
 - 所有实现了 `CType` 的类型，如 `CPointer<T>` 和 `@C` 修饰的 struct；
-- 元素类型全部实现了 `Copyable` 的元组类型；
-- 元素类型实现了 `Copyable` 的 `VArray`。
+- 所有元素类型均实现了 `Copyable` 的元组类型；
+- 元素类型 `T` 实现了 `Copyable` 的 `VArray<T, $N>`。
 
 实现了 `Copyable` 的类型的值，可以在 `@ local!`、`@ local?`、`@ ~local` 之间直接转换。转换只是按值复制，不需要额外的运行时操作。
 
