@@ -69,7 +69,9 @@ main() {
 
 ### exclave 修饰符
 
-如果整个函数体都需要放在 exclave 中，可以直接用 `exclave` 修饰函数或构造函数。`exclave func` 和 `exclave init` 等价于函数体只有一个 exclave 表达式：
+用 `exclave` 修饰函数或构造函数，相当于将其整个函数体包在一个 `exclave { ... }` 块中。块中可以包含多条语句。
+
+例如，`exclave func f() { ... }` 可以展开为 `func f() { exclave { ... } }`；`exclave init` 的展开方式相同。下面使用修饰符写法：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
