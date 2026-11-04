@@ -42,7 +42,11 @@ main() {
 
 区分二者是为了避免生命周期较长的对象引用生命周期较短的对象：调用者的对象在当前函数返回后可能仍被使用，不能把本函数内创建的 local 对象保存到它的成员中。
 
-在 exclave 之外，非 `Copyable` 类型的外部 local! 不能直接作为实参继续传给其他函数，即使形参是 `@ local?`。这是子类型关系之外的调用约束：下一层函数会把 `@ local!` 参数视为属于它的直接调用者，直接转传可能混淆不同层调用的 region 归属。只需读取时，可以先把外部值赋给一个 `@ local?` 局部变量，再传给 `@ local?` 形参；此后对该引用的操作受 `@ local?` 限制，例如不能通过它给非 `Copyable` 成员赋值。需要在调用者的 region 中操作时，使用 exclave。完整示例见[传递 @ local! 参数](#传递--local-参数)。
+在 exclave 之外，非 `Copyable` 类型的外部 local! 不能直接作为实参继续传给其他函数，即使形参是 `@ local?`。这是子类型关系之外的调用约束。
+
+例如，`f` 接收到的外部 local! 参数 `p` 属于 `f` 的调用者。如果允许 `f` 直接把 `p` 传给 `g` 的 `@ local!` 形参，`g` 会把它视为属于直接调用者 `f` 的 local region。此时，`g` 在 exclave 中新建对象并保存到 `p` 的成员里，新对象会分配在 `f` 的 local region，而 `p` 实际属于更外层的调用者。`f` 返回后，`p` 的成员就会引用已释放的对象。
+
+只需读取时，可以先把外部值赋给一个 `@ local?` 局部变量，再传给 `@ local?` 形参；此后对该引用的操作受 `@ local?` 限制，例如不能通过它给非 `Copyable` 成员赋值。需要在调用者的 region 中操作时，使用 exclave。完整示例见[传递 @ local! 参数](#传递--local-参数)。
 
 ### 变量的初始化和整体赋值
 
@@ -671,22 +675,22 @@ func process(d: Doc @ local!): Int64 {
 
 通过外部 local! 调用 `this @ local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
 
-下标和运算符重载也按成员函数调用处理。例如，`Array` 的 `xs[0]` 会调用 `operator func []`。对 `@ local!` 数组，重载决议优先选择 `this @ local!` 版本，因此外部数组参数不能直接这样读取，即使元素类型是 `Int64`；这里受限制的是作为接收者的数组，`Array<Int64>` 本身并不是 `Copyable`：
+当前版本中，外部 `@ local!` 数组参数不能直接通过下标读取，即使元素类型是 `Int64`。这里受限制的是数组接收者的下标调用；元素类型可以按值复制，并不意味着 `Array<Int64>` 本身是 `Copyable`：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
 ```cangjie
 func first(xs: Array<Int64> @ local!): Int64 {
-    xs[0] // Error, cannot call a this @ local! operator on an external local! parameter
+    xs[0] // Error, the current version rejects indexing an external local! array
 }
 
 func firstLength(names: Array<String> @ local!): Int64 {
-    names[0].size // Error, the array receiver is external local!
+    names[0].size // Error, the current version rejects indexing an external local! array
 }
 ```
 
-只需读取时，可以先赋给 `@ local?` 变量，选择接收者为 `this @ local?` 的下标重载。数组的 `size` 属性和迭代也可直接用于外部 local! 参数，不能仅凭下标读取受限就认为所有读取操作都被禁止：
+只需读取时，可以先赋给 `@ local?` 变量，再通过该变量读取下标。当前版本中，数组的 `size` 属性和迭代也可直接用于外部 local! 参数：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->

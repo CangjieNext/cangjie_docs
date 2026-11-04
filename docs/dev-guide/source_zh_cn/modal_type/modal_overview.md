@@ -139,7 +139,7 @@ func squaresOf(n: Int64): Array<Int64> {
 
 | 操作 | 写法 | 说明 |
 |---|---|---|
-| 从普通字符串构造 local 副本 | `String(text.toRuneArray()) @ local!` | 重新构造一个 local 字符串 |
+| 从普通字符串构造 local 副本 | `String(text) @ local!` | 直接从字符串构造 local 副本 |
 | 切分 local 字符串 | `localText.split(",")` | `localText` 为 `@ local!` 时，结果为 `Array<String> @ local!` |
 | 构造 local 数组 | `Array<Int64>(3, {i => i * 10}) @ local!` | 按元素初始化函数构造 |
 | 构造 local 动态数组 | `ArrayList<Int64>() @ local!` | 构造空列表，再用 `add` 添加元素 |
@@ -152,7 +152,7 @@ func squaresOf(n: Int64): Array<Int64> {
 
 ```cangjie
 func splitLocal(text: String) {
-    let localText = String(text.toRuneArray()) @ local!
+    let localText = String(text) @ local!
     let parts: Array<String> @ local! = localText.split(",")
     println(parts.size)
     println(parts[0])
@@ -219,7 +219,7 @@ main() {
 9
 ```
 
-使用外部 `@ local!` 参数访问下标或调用运算符时，还有额外的调用限制，见[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)。其他标准库 API 的模式支持需检查对应的重载签名。
+当前版本中，外部 `@ local!` 数组参数的下标访问受到限制，可以采用[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)中的中转写法。其他标准库 API 的模式支持需检查对应的重载签名。
 
 ## exclave 与调用者的 local region
 
