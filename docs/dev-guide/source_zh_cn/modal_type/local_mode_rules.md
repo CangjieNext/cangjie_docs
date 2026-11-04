@@ -40,6 +40,10 @@ main() {
 - **外部 local!**（external）：函数的 `@ local!` 参数，以及通过它访问到的成员、元组元素和 `VArray` 元素。它们由调用者创建，属于调用者的 local region。
 - **内部 local!**（internal）：在当前函数中创建的 `@ local!` 值，属于当前函数的 local region，函数返回时就会释放。
 
+区分二者是为了避免生命周期较长的对象引用生命周期较短的对象：调用者的对象在当前函数返回后可能仍被使用，不能把本函数内创建的 local 对象保存到它的成员中。
+
+在 exclave 之外，非 `Copyable` 类型的外部 local! 不能直接作为实参继续传给其他函数，即使形参是 `@ local?`。这是子类型关系之外的调用约束：下一层函数会把 `@ local!` 参数视为属于它的直接调用者，直接转传可能混淆不同层调用的 region 归属。只需读取时，可以先把外部值赋给一个 `@ local?` 局部变量，再传给 `@ local?` 形参；此后对该引用的操作受 `@ local?` 限制，例如不能通过它给非 `Copyable` 成员赋值。需要在调用者的 region 中操作时，使用 exclave。完整示例见[传递 @ local! 参数](#传递--local-参数)。
+
 ### 变量的初始化和整体赋值
 
 对于 `var x: T @ 模式`，整体赋值 `x = value` 的规则如下。`let` 变量初始化时也需要满足相同的模式要求，但初始化后不能再次赋值。
@@ -249,7 +253,7 @@ plain
 
 ## 构造 local 实例
 
-实例的模式由构造函数决定。在 `init` 的参数列表开头写上 `this @ local!` 或 `this @ local?`，该构造函数构造出的就是相应模式的实例；不写时等价于 `this @ ~local`。主构造函数总是构造 `@ ~local` 的实例。
+对于非 `Copyable` 类型，实例的模式由构造函数决定。在 `init` 的参数列表开头写上 `this @ local!` 或 `this @ local?`，该构造函数构造出的就是相应模式的实例；不写时等价于 `this @ ~local`。主构造函数总是构造 `@ ~local` 的实例。`Copyable` 类型还可以在普通构造后按值转换模式，见下方示例。
 
 `this @ local!` 和 `this @ local?` 的构造函数，整个函数体必须是一个 exclave 表达式，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，适用[实例成员变量的赋值](#实例成员变量的赋值)中对 `this` 初始化的例外规则。
 
@@ -286,7 +290,7 @@ main() {
 book pen ink
 ```
 
-如果类型没有对应模式的构造函数，就不能构造该模式的实例。例如下面的 `Point` 只有默认模式的构造函数：
+如果非 `Copyable` 类型没有对应模式的构造函数，就不能构造该模式的实例。例如下面的 `Point` 只有默认模式的构造函数：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -301,6 +305,51 @@ class Point {
 
 main() {
     let p = Point(1) @ local! // Error, no @ local! constructor
+}
+```
+
+`Copyable` 类型可以先使用普通构造函数，再把结果按值复制到其他模式的变量中，因此不需要为这种转换添加 local 构造函数。下面的 `P` 只定义了普通构造函数：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+struct P <: Copyable {
+    var x: Int64
+    init(x: Int64) {
+        this.x = x
+    }
+}
+
+main() {
+    let p: P @ local! = P(1)
+    let plain = P(2)
+    let copied: P @ local! = plain
+    println("${p.x} ${copied.x}")
+}
+```
+
+执行结果为：
+
+```text
+1 2
+```
+
+在构造调用之后显式写 `P(1) @ local!`，仍表示选择 `this @ local!` 构造函数。如果没有该构造函数，即使 `P` 实现了 `Copyable`，也会报错；需要使用普通构造后复制的方式时，采用上例的变量类型标注写法：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+struct P <: Copyable {
+    var x: Int64
+    init(x: Int64) {
+        this.x = x
+    }
+}
+
+func create() {
+    let p = P(1) @ local! // Error, the call explicitly requires a @ local! constructor
 }
 ```
 
@@ -581,7 +630,7 @@ func test(p: String @ local?) {
 
 ## 传递 @ local! 参数
 
-外部与内部 local! 的区别，以及局部变量初始化的限制，见[变量的初始化和整体赋值](#变量的初始化和整体赋值)。
+外部与内部 local! 的区别及传参限制，见[赋值、返回与逃逸](#赋值返回与逃逸)。局部变量初始化的限制，见[变量的初始化和整体赋值](#变量的初始化和整体赋值)。
 
 在 exclave 之外，外部 local!（`Copyable` 类型除外）还有两条限制：
 
@@ -621,6 +670,44 @@ func process(d: Doc @ local!): Int64 {
 - 在 [exclave](./exclave.md) 中传递或调用，此时外部 local! 视同内部 local!，可以传给 `@ local!` 形参，也可以调用 `this @ local!` 的成员函数。
 
 通过外部 local! 调用 `this @ local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
+
+下标和运算符重载也按成员函数调用处理。例如，`Array` 的 `xs[0]` 会调用 `operator func []`。对 `@ local!` 数组，重载决议优先选择 `this @ local!` 版本，因此外部数组参数不能直接这样读取，即使元素类型是 `Int64`；这里受限制的是作为接收者的数组，`Array<Int64>` 本身并不是 `Copyable`：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func first(xs: Array<Int64> @ local!): Int64 {
+    xs[0] // Error, cannot call a this @ local! operator on an external local! parameter
+}
+
+func firstLength(names: Array<String> @ local!): Int64 {
+    names[0].size // Error, the array receiver is external local!
+}
+```
+
+只需读取时，可以先赋给 `@ local?` 变量，选择接收者为 `this @ local?` 的下标重载。数组的 `size` 属性和迭代也可直接用于外部 local! 参数，不能仅凭下标读取受限就认为所有读取操作都被禁止：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func first(xs: Array<Int64> @ local!): Int64 {
+    let view: Array<Int64> @ local? = xs
+    view[0]
+}
+
+main() {
+    let xs: Array<Int64> @ local! = [5, 7]
+    println(first(xs))
+}
+```
+
+执行结果为：
+
+```text
+5
+```
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->

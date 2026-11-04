@@ -19,9 +19,11 @@
 ```cangjie
 func normalize(paths: Array<String> @ local!) {
     let fixed: String @ local! = "/index.html"
-    paths[0] = fixed // Error, fixed is released when normalize returns, but paths lives longer
+    paths[0] = fixed // Error, cannot call a this @ local! operator on an external local! parameter
 }
 ```
+
+数组下标赋值也通过成员运算符调用完成，此处触发的是外部 local! 接收者调用 `this @ local!` 版本的限制，见[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)。从生命周期看，`fixed` 属于 `normalize` 的 local region，而 `paths` 属于调用者的 local region；不能让调用者的数组引用在 `normalize` 返回时就被释放的字符串。
 
 exclave 表达式用于解决这类问题。
 

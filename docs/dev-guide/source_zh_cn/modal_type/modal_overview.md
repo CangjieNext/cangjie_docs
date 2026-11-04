@@ -133,7 +133,93 @@ func squaresOf(n: Int64): Array<Int64> {
 }
 ```
 
-标准库中的常用类型（如 `Array`、`String`、`ArrayList`、`HashMap`）提供了接收或返回 local 值的重载版本，具体以各 API 文档的函数签名为准。
+## 常用标准库类型的 local 写法
+
+标准库中的常用类型提供了接收或返回 local 值的重载，但并非每个 API 都支持所有模式。下面列出入门时常用的写法；`ArrayList` 和 `HashMap` 需要导入 `std.collection` 包。
+
+| 操作 | 写法 | 说明 |
+|---|---|---|
+| 从普通字符串构造 local 副本 | `String(text.toRuneArray()) @ local!` | 重新构造一个 local 字符串 |
+| 切分 local 字符串 | `localText.split(",")` | `localText` 为 `@ local!` 时，结果为 `Array<String> @ local!` |
+| 构造 local 数组 | `Array<Int64>(3, {i => i * 10}) @ local!` | 按元素初始化函数构造 |
+| 构造 local 动态数组 | `ArrayList<Int64>() @ local!` | 构造空列表，再用 `add` 添加元素 |
+| 构造 local 哈希表 | `HashMap<Int64, Int64>() @ local!` | 构造空哈希表，再用 `add` 添加键值对 |
+
+对于非 `Copyable` 类型，给变量加上 `@ local!` 不会自动把已有的普通对象变成 local 对象。需要 local 副本时，应使用对应的 local 构造函数。下面从普通字符串重新构造 local 字符串，再调用 local 版本的 `split`：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func splitLocal(text: String) {
+    let localText = String(text.toRuneArray()) @ local!
+    let parts: Array<String> @ local! = localText.split(",")
+    println(parts.size)
+    println(parts[0])
+    println(parts[1])
+}
+
+main() {
+    splitLocal("a,b")
+}
+```
+
+执行结果为：
+
+```text
+2
+a
+b
+```
+
+这里创建的是新的 local 字符串，原来的 `text` 仍是普通字符串。普通字符串的 `split` 返回普通数组，不能直接赋给 local 数组变量；`String @ local?` 也没有匹配的 `split` 重载：
+
+<!-- compile.error -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+func splitPlain(text: String) {
+    let parts: Array<String> @ local! = text.split(",") // Error, the result is @ ~local
+}
+
+func splitView(text: String @ local?): Int64 {
+    text.split(",").size // Error, no split overload accepts a this @ local? receiver
+}
+```
+
+下面的集合都在当前函数中构造为 local 对象，可以添加元素并读取；函数返回时，它们随 local region 释放：
+
+<!-- verify -->
+<!-- cfg="--experimental --enable-local-mode" -->
+
+```cangjie
+import std.collection.*
+
+func useCollections() {
+    let values = Array<Int64>(3, {i => i * 10}) @ local!
+    println(values[2])
+    let list = ArrayList<Int64>() @ local!
+    list.add(7)
+    println(list[0])
+    let map = HashMap<Int64, Int64>() @ local!
+    map.add(1, 9)
+    println(map[1])
+}
+
+main() {
+    useCollections()
+}
+```
+
+执行结果为：
+
+```text
+20
+7
+9
+```
+
+使用外部 `@ local!` 参数访问下标或调用运算符时，还有额外的调用限制，见[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)。其他标准库 API 的模式支持需检查对应的重载签名。
 
 ## exclave 与调用者的 local region
 

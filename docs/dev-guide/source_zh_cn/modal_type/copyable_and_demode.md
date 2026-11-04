@@ -102,7 +102,7 @@ main() {
 
 ## 为 struct 实现 Copyable
 
-如果 struct 的所有实例成员变量的类型都实现了 `Copyable`，可以声明该 struct 实现 `Copyable`。泛型 struct 可以通过泛型约束来满足这一条件：
+如果 struct 的所有实例成员变量的类型都实现了 `Copyable`，可以声明该 struct 实现 `Copyable`。泛型 struct 可以通过泛型约束来满足这一条件。实现后，普通构造函数产生的值也可以按值复制到 local 模式的变量中，不需要额外的 local 构造函数，见[构造 local 实例](./local_mode_rules.md#构造-local-实例)：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
