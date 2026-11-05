@@ -283,7 +283,7 @@ class Order {
 main() {
     let a = Order("book", 1) // @ ~local instance
     let b = Order("pen", 2) @ local! // @ local! instance
-    let c: Order @ local! = Order("ink", 3) // constructor selected by the variable type
+    let c: Order @ local! = Order("ink", 3) // 根据变量类型选择 this @ local! 的构造函数
     println("${a.item} ${b.item} ${c.item}")
 }
 ```
