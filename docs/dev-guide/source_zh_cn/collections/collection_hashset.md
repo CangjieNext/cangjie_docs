@@ -16,7 +16,7 @@ import std.collection.*
 
 ```cangjie
 var a: HashSet<Int64> = HashSet<Int64>() // HashSet whose element type is Int64
-var b: HashSet<String> = HashSet<Int64>() // HashSet whose element type is String
+var b: HashSet<String> = HashSet<String>() // HashSet whose element type is String
 ```
 
 元素类型不相同的 HashSet 是不相同的类型，所以它们之间不可以互相赋值。
