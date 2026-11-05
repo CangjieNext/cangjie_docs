@@ -260,21 +260,21 @@ spawn 块、`main`、终结器和静态初始化器中不能使用 exclave：
 class Resource {
     static let count: Int64 = 0
     static init() {
-        exclave { () } // Error, exclave is not allowed here
+        exclave {()} // Error, exclave is not allowed here
     }
     init() {}
     ~init() {
-        exclave { () } // Error, exclave is not allowed here
+        exclave {()} // Error, exclave is not allowed here
     }
 }
 
 func inSpawn(): Unit {
     spawn {
-        exclave { () } // Error, exclave is not allowed here
+        exclave {()} // Error, exclave is not allowed here
     }
 }
 
 main() {
-    exclave { () } // Error, exclave is not allowed here
+    exclave {()} // Error, exclave is not allowed here
 }
 ```
