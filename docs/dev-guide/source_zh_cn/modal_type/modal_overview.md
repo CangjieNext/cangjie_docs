@@ -51,7 +51,7 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 
 不写模式等价于写 `@ ~local`，因此开启 local 模式后，已有代码中的类型含义不变。开启后关键字的变化见[关键字](../Appendix/keyword.md)。
 
-`T @ ~local` 和 `T @ local!` 都是 `T @ local?` 的子类型：`@ local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@ ~local` 与 `@ local!` 之间没有子类型关系；对于未实现 `Copyable` 的类型，不能在这两种模式之间赋值。`Copyable` 类型可以按值复制转换模式，详见[Copyable 与 demode](./copyable_and_demode.md)。
+`T @ ~local` 和 `T @ local!` 都是 `T @ local?` 的子类型：`@ local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@ ~local` 与 `@ local!` 之间没有子类型关系；对于未实现 `Copyable` 的类型，不能在这两种模式之间赋值。local 值不能当作非 local 值使用，因为它会随函数返回而释放；反过来，非 local 值也不能当作 `@ local!` 使用，因为程序可以把 local 对象保存到 `@ local!` 值的成员或元素中（参见 [exclave 表达式](./exclave.md)），普通对象一旦引用了 local 对象，该对象释放后就会留下悬空引用。需要 local 版本时，应构造一个 local 副本，见[常用标准库类型的 local 写法](#常用标准库类型的-local-写法)。`Copyable` 类型可以按值复制转换模式，详见[Copyable 与 demode](./copyable_and_demode.md)。
 
 书写时需要注意：
 
@@ -65,16 +65,20 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 - 局部变量的类型
 - 函数的参数类型和返回类型
 - 函数类型中的参数类型和返回类型，如 `(String @ local?) -> Int64`
+- 整个函数类型，用于指定函数对象本身的模式，如 `(() -> Int64) @ local?`，参见[闭包与嵌套函数](./local_mode_rules.md#闭包与嵌套函数)
 - 构造调用之后，用于指定构造出的实例的模式，如 `C() @ local!`
-- 属性的类型，参见[其他限制速查](./local_mode_rules.md#其他限制速查)
+- 实例成员属性的类型。属性类型的模式同时也是其 getter 和 setter 中 `this` 的模式，例如 `prop name: String @ local!` 只能通过 `@ local!` 的实例访问，参见[其他限制速查](./local_mode_rules.md#其他限制速查)
 - 静态成员变量的类型，但只能采用 `@ ~local` 模式
 
-嵌套函数还可以在 `func` 前写 `@ local?`，使它可以捕获外层的非 `Copyable` 类型的 `@ local?` 变量，参见[闭包与嵌套函数](./local_mode_rules.md#闭包与嵌套函数)。它与写在参数类型或返回类型后的模式标注不同。
+在函数类型中，`->` 右侧的模式属于返回类型：`() -> String @ local?` 表示返回 `String @ local?` 的函数。要标注函数对象本身的模式，需要给整个函数类型加上括号，写作 `(() -> String) @ local?`。
+
+嵌套函数是声明，没有写类型的位置，因此在 `func` 前写 `@ local?` 来标注它作为函数对象的模式，例如 `@ local? func length(): Int64` 的类型是 `(() -> Int64) @ local?`。这样它就可以捕获外层的非 `Copyable` 类型的 `@ local?` 变量，参见[闭包与嵌套函数](./local_mode_rules.md#闭包与嵌套函数)。
 
 以下位置不能标注模式：
 
 - class、struct 的实例成员变量：成员的模式由所在实例决定，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
 - 泛型实参本身不能带模式，`Array<String @ local!>` 是错误写法。local 字符串数组应写作 `Array<String> @ local!`：`String` 指定元素类型，`@ local!` 指定整个数组的模式；从该数组读取的字符串也受 local 限制，详见[成员与实例的模式](./local_mode_rules.md#成员与实例的模式)。
+- 元组的元素类型和 `?T` 中的 `T` 同样不能单独带模式，`(Int64, String @ local!)`、`?(String @ local?)` 都是错误写法。模式要标注在整个类型上，如 `(Int64, String) @ local!`、`?String @ local?`（即 `Option<String> @ local?`）。
 
 ## 第一个示例
 
@@ -183,7 +187,7 @@ func splitPlain(text: String) {
 }
 
 func splitView(text: String @ local?): Int64 {
-    text.split(",").size // Error, no split overload accepts a this @ local? receiver
+    text.split(",").size // Error, split has no overload for a @ local? string
 }
 ```
 
