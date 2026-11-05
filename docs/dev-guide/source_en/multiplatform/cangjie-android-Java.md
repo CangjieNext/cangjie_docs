@@ -661,7 +661,7 @@ or one of the value types listed above, e.g. `Int32`.
 
 * A variable arity parameter that has the Java type `T` is mirrored into a
   regular parameter of the type `?JArray<T'>`. In order to pass any arguments
-  to such a parameter Cangjie code must explicitly create and initalize
+  to such a parameter Cangjie code must explicitly create and initialize
   an instance of `JArray<T'>` before calling such a method or constructor.
 
 

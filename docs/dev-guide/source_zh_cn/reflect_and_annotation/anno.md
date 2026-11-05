@@ -386,7 +386,7 @@ public class Marked {
 }
 
 class A {
-    @Marked // OK, member funciton
+    @Marked // OK, member function
     func marked() {}
 }
 
