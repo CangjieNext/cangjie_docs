@@ -167,7 +167,7 @@ func keep(p: Plain @ local?): Plain {
 
 以下情况不能实现 `Copyable`：
 
-- struct 中有任何一个成员变量的类型没有实现 `Copyable`；
+- struct 中有任何一个实例成员变量的类型没有实现 `Copyable`；
 - class 和 enum 类型，即使它们不包含任何引用类型的成员。
 
 <!-- compile.error -->
@@ -187,7 +187,7 @@ enum Color <: Copyable { // Error, an enum cannot implement Copyable
 
 ## Copyable 的使用位置
 
-`Copyable` 只能作为 struct 的父接口（在 struct 声明处或扩展中声明），或作为泛型约束（如 `where T <: Copyable`）使用，不能作为变量、参数等的类型：
+`Copyable` 只能用于类型声明或扩展声明的父接口列表，或作为泛型参数的上界（如 `where T <: Copyable`）使用，不能作为变量、参数等的类型：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->

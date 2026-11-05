@@ -51,7 +51,7 @@ local 模式统一使用 cjc 的实验性编译选项，cjpm 没有单独的 loc
 
 不写模式等价于写 `@ ~local`，因此开启 local 模式后，已有代码中的类型含义不变。开启后关键字的变化见[关键字](../Appendix/keyword.md)。
 
-`T @ ~local` 和 `T @ local!` 都是 `T @ local?` 的子类型：`@ local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@ ~local` 与 `@ local!` 之间没有子类型关系，不能互相赋值。
+`T @ ~local` 和 `T @ local!` 都是 `T @ local?` 的子类型：`@ local?` 的变量或参数既可以接收 local 值，也可以接收非 local 值。`@ ~local` 与 `@ local!` 之间没有子类型关系；对于未实现 `Copyable` 的类型，不能在这两种模式之间赋值。`Copyable` 类型可以按值复制转换模式，详见[Copyable 与 demode](./copyable_and_demode.md)。
 
 书写时需要注意：
 

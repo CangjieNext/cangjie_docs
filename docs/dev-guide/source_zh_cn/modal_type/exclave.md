@@ -197,8 +197,8 @@ abstract class Shape {
 exclave 有以下限制：
 
 - 同一个函数中的 exclave 不能嵌套：外层 exclave 已经结束了函数的 local region，内层无法再结束一次。
-- exclave 块中不能访问在块外声明的、非 `Copyable` 类型的 `@ local!` 或 `@ local?` 局部变量，因为它们所在的 local region 在进入 exclave 时已经结束。`Copyable` 类型的变量不受此限制。
-- 以下位置不能使用 exclave：try 块、catch 块、spawn 块、`main` 函数、终结器、静态初始化器。
+- exclave 块中不能访问在块外声明的、非 `Copyable` 类型的 `@ local!` 或 `@ local?` 局部变量，因为当前函数的 local region 在进入 exclave 时已经结束，这些变量引用的对象可能已被释放。`Copyable` 类型的变量不受此限制。
+- 不能在 spawn 块、`main` 函数、终结器和静态初始化器中直接使用 exclave；也不能在 try 或 catch 块中用 exclave 结束包含该块的函数。
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -251,7 +251,7 @@ func inCatch(paths: Array<String> @ local!) {
 }
 ```
 
-spawn 块、`main`、终结器和静态初始化器中不能使用 exclave：
+spawn 块、`main`、终结器和静态初始化器中不能直接使用 exclave：
 
 <!-- compile.error -->
 <!-- cfg="--experimental --enable-local-mode" -->

@@ -259,9 +259,9 @@ plain
 
 对于非 `Copyable` 类型，实例的模式由构造函数决定。在 `init` 的参数列表开头写上 `this @ local!` 或 `this @ local?`，该构造函数构造出的就是相应模式的实例；不写时等价于 `this @ ~local`。主构造函数总是构造 `@ ~local` 的实例。`Copyable` 类型还可以在普通构造后按值转换模式，见下方示例。
 
-`this @ local!` 和 `this @ local?` 的构造函数，整个函数体必须是一个 exclave 表达式，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，适用[实例成员变量的赋值](#实例成员变量的赋值)中对 `this` 初始化的例外规则。
+`this @ local!` 和 `this @ local?` 的构造函数，函数体必须以 exclave 表达式开头，通常直接用 `exclave` 修饰 `init` 来表达（参见 [exclave 表达式](./exclave.md)）。在这样的构造函数中可以给成员赋值，适用[实例成员变量的赋值](#实例成员变量的赋值)中对 `this` 初始化的例外规则。
 
-构造实例时，可以在构造调用之后显式写上模式来选择构造函数，例如 `Order("pen", 2) @ local!`。省略模式时，编译器会按上下文推断，例如变量类型、形参类型或返回类型；若无法推断，或没有对应模式的构造函数，则选择 `@ ~local` 模式的构造函数，再按参数类型等规则进行重载决议。下面通过变量类型选择构造函数：
+构造实例时，可以在构造调用之后显式写上模式来选择构造函数，例如 `Order("pen", 2) @ local!`。省略模式时，编译器会按上下文推断，例如变量类型、形参类型或返回类型；若无法唯一推断，则默认为 `@ ~local`。确定模式后，从 `this` 模式与之相同的构造函数中，按函数重载规则选择。下面通过变量类型选择构造函数：
 
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
@@ -326,7 +326,8 @@ struct P <: Copyable {
 }
 
 main() {
-    let p: P @ local! = P(1)
+    let ordinary = P(1)
+    let p: P @ local! = ordinary
     let plain = P(2)
     let copied: P @ local! = plain
     println("${p.x} ${copied.x}")
@@ -830,8 +831,8 @@ func run() {
 - **spawn**：spawn 块中不能使用块外声明的、非 `Copyable` 类型的 `@ local!` 或 `@ local?` 变量，块的结果只能是 `@ ~local` 的值。spawn 块中可以创建自己的 local 对象，它们在块执行结束时释放。spawn 块中不能使用 exclave 表达式。
 - **异常**：`throw` 的操作数只能是 `@ ~local` 的值；catch 中绑定的异常变量是 `@ ~local` 的，可以自由保存。
 - **泛型**：泛型实参不能带模式（如 `Array<String @ local!>`）。泛型函数的形参 `x: T` 是 `@ ~local` 的，如果要接收 local 值，需要写成 `x: T @ local?` 等形式。
-- **C 语言互操作**：`@C` 修饰的函数和 `foreign` 函数，参数和返回值不能标注模式。
-- **exclave 的使用位置**：try 块、catch 块、spawn 块、`main`、终结器和静态初始化器中不能使用 exclave，详见 [exclave 表达式](./exclave.md#使用限制)。
+- **C 语言互操作**：`@C` 修饰的函数，其参数类型和返回类型只能采用 `@ ~local` 模式。
+- **exclave 的使用位置**：不能在 spawn 块、`main`、终结器和静态初始化器中直接使用 exclave；也不能在 try 或 catch 块中用 exclave 结束包含该块的函数，详见 [exclave 表达式](./exclave.md#使用限制)。
 
 下面的示例在 spawn 块中使用外层的 `Copyable` 变量，并在块内创建自己的 local 数组。数组在 spawn 块结束时释放，求和结果是可返回的普通 `Int64` 值：
 
@@ -918,15 +919,14 @@ main() {
 1. 终结器的 `this` 模式必须是所有构造函数 `this` 模式的父类型。例如同时有 `this @ ~local` 和 `this @ local!` 的构造函数时，终结器需写成 `~init(this @ local?)`。
 2. 如果一个类型的构造函数能构造出不同模式的实例，那么它的非 `Copyable` 类型的成员变量不能在声明处写初始值，`demode` 成员变量除外。
 3. 同名的实例成员属性可以按模式重载，但它们的数据类型必须相同。
-4. 静态成员属性不能按模式重载。
-5. `abstract` 函数不能用 `exclave` 修饰。
-6. 在 exclave 之外，非 `Copyable` 类型的外部 `@ local!` 参数不能直接作为实参传给其他函数，见[传递 @ local! 参数](#传递--local-参数)。
-7. 对 `@ local!` 参数做模式匹配时，绑定得到的变量是 `@ local?` 而不是 `@ local!`。
-8. `this` 模式说明只能用于实例成员函数和构造函数，写在全局函数或静态函数上会报错。
-9. 模式只能写在构造调用之后，如 `C() @ local!`，写在普通函数调用之后会报错。
-10. 访问按模式重载的属性时，如果没有与实例模式匹配的版本会报错。
-11. 主构造函数的普通参数只能采用 `@ ~local` 模式。
-12. 宏的参数和返回值只能采用 `@ ~local` 模式。
-13. 效应处理中的 `perform` 操作数只能是 `@ ~local` 的值。
+4. `abstract` 函数不能用 `exclave` 修饰。
+5. 在 exclave 之外，非 `Copyable` 类型的外部 `@ local!` 参数不能直接作为实参传给其他函数，见[传递 @ local! 参数](#传递--local-参数)。
+6. 对 `@ local!` 参数做模式匹配时，绑定得到的变量是 `@ local?` 而不是 `@ local!`。
+7. `this` 模式说明用于实例成员函数、构造函数和终结器，不能用于全局函数或静态函数。
+8. 模式只能写在构造调用之后，如 `C() @ local!`，写在普通函数调用之后会报错。
+9. 实例成员属性的 getter 和 setter 按对应的成员函数调用及重载规则处理。
+10. 主构造函数的普通参数只能采用 `@ ~local` 模式。
+11. 宏的参数和返回值只能采用 `@ ~local` 模式。
+12. 效应处理中的 `perform` 操作数只能是 `@ ~local` 的值。
 
 可选参数的默认值表达式不能引用其他参数，也不能捕获非 `Copyable` 类型的 `@ local!` 变量。
