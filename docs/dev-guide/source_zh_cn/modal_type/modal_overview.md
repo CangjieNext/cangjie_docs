@@ -219,7 +219,7 @@ main() {
 9
 ```
 
-当前版本中，外部 `@ local!` 数组参数的下标访问受到限制，可以采用[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)中的中转写法。其他标准库 API 的模式支持需检查对应的重载签名。
+标准库 API 的模式支持需检查对应的重载签名。
 
 ## exclave 与调用者的 local region
 

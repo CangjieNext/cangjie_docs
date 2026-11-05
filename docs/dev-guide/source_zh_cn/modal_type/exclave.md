@@ -19,11 +19,11 @@
 ```cangjie
 func normalize(paths: Array<String> @ local!) {
     let fixed: String @ local! = "/index.html"
-    paths[0] = fixed // Error, the current version rejects indexing an external local! array
+    paths[0] = fixed // Error, fixed belongs to this function's region
 }
 ```
 
-当前版本对这段代码的报错指向外部 local! 数组的下标赋值调用，参见[传递 @ local! 参数](./local_mode_rules.md#传递--local-参数)。从生命周期看，`fixed` 属于 `normalize` 的 local region，而 `paths` 属于调用者的 local region；不能让调用者的数组引用在 `normalize` 返回时就被释放的字符串。
+`fixed` 属于 `normalize` 的 local region，而 `paths` 属于调用者的 local region；不能让调用者的数组引用在 `normalize` 返回时就被释放的字符串。
 
 exclave 表达式用于解决这类问题。
 

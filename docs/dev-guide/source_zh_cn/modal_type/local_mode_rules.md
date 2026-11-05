@@ -675,44 +675,6 @@ func process(d: Doc @ local!): Int64 {
 
 通过外部 local! 调用 `this @ local?` 的成员函数、访问 `Copyable` 类型的成员，不受上述限制。
 
-当前版本中，外部 `@ local!` 数组参数不能直接通过下标读取，即使元素类型是 `Int64`。这里受限制的是数组接收者的下标调用；元素类型可以按值复制，并不意味着 `Array<Int64>` 本身是 `Copyable`：
-
-<!-- compile.error -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-func first(xs: Array<Int64> @ local!): Int64 {
-    xs[0] // Error, the current version rejects indexing an external local! array
-}
-
-func firstLength(names: Array<String> @ local!): Int64 {
-    names[0].size // Error, the current version rejects indexing an external local! array
-}
-```
-
-只需读取时，可以先赋给 `@ local?` 变量，再通过该变量读取下标。当前版本中，数组的 `size` 属性和迭代也可直接用于外部 local! 参数：
-
-<!-- verify -->
-<!-- cfg="--experimental --enable-local-mode" -->
-
-```cangjie
-func first(xs: Array<Int64> @ local!): Int64 {
-    let view: Array<Int64> @ local? = xs
-    view[0]
-}
-
-main() {
-    let xs: Array<Int64> @ local! = [5, 7]
-    println(first(xs))
-}
-```
-
-执行结果为：
-
-```text
-5
-```
-
 <!-- verify -->
 <!-- cfg="--experimental --enable-local-mode" -->
 
